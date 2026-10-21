@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Help & Support";
+    ViewData["PageSubtitle"] = "Get help and find answers to your questions.";
+}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="cyh-card mb-3">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">Frequently Asked Questions</h6></div>
+            <div class="cyh-card-body p-0">
+                <div class="accordion accordion-flush" id="faqAccordion">
+                    @{
+                        var faqs = new[]{
+                            ("How do I create a banner?","Go to AI Banner Creator or Template Library to start creating. Choose a template or generate with AI, customize in the editor, and download."),
+                            ("How many designs can I create?","Free plan allows up to 10 designs. Upgrade to Pro for unlimited designs."),
+                            ("Can I add my clinic logo to banners?","Yes! Go to My Profile → Edit Profile → Photos tab to upload your logo. It will be available in the banner editor."),
+                            ("How do I schedule a post?","Create a design, then use Content Calendar to schedule it for a specific date and time."),
+                            ("Which social platforms are supported?","WhatsApp sharing is available now. Facebook, Instagram, LinkedIn, and Twitter will be added in a future update."),
+                        };
+                        var idx = 0;
+                    }
+                    @foreach (var (q, a) in faqs)
+                    {
+                        <div class="accordion-item border-0" style="border-bottom:1px solid #F1F5F9 !important;">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button @(idx>0?"collapsed":"")" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#faq@(idx)"
+                                        style="font-size:.875rem;font-weight:600;color:#1A2332;">
+                                    @q
+                                </button>
+                            </h2>
+                            <div id="faq@(idx)" class="accordion-collapse collapse @(idx==0?"show":"")" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="font-size:.875rem;color:#64748B;">@a</div>
+                            </div>
+                        </div>
+                        idx++;
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="cyh-card mb-3">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">Contact Support</h6></div>
+            <div class="cyh-card-body">
+                <div class="mb-3">
+                    <label class="cyh-form-label">Subject</label>
+                    <input type="text" class="form-control cyh-form-control" placeholder="Brief description..." />
+                </div>
+                <div class="mb-3">
+                    <label class="cyh-form-label">Message</label>
+                    <textarea class="form-control cyh-form-control" rows="4" placeholder="Describe your issue..."></textarea>
+                </div>
+                <button class="btn btn-cyh-teal w-100">
+                    <i class="bi bi-send me-2"></i>Send Message
+                </button>
+            </div>
+        </div>
+        <div class="cyh-card">
+            <div class="cyh-card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <i class="bi bi-envelope-fill fs-4" style="color:#0EA5A0;"></i>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;">Email Support</div>
+                        <div style="font-size:.75rem;color:#94A3B8;">support@cyhbrand.com</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-whatsapp fs-4" style="color:#25D366;"></i>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;">WhatsApp Support</div>
+                        <div style="font-size:.75rem;color:#94A3B8;">+91 00000 00000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

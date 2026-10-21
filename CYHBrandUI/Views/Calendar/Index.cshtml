@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Content Calendar";
+    ViewData["PageSubtitle"] = "Plan, schedule and manage your posts.";
+    var today = DateTime.Today;
+    var firstDay = new DateTime(today.Year, today.Month, 1);
+    var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+    var startOffset = (int)firstDay.DayOfWeek;
+}
+
+<div class="row g-3">
+    <!-- Calendar -->
+    <div class="col-lg-8">
+        <div class="cyh-card">
+            <div class="cyh-card-header">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-chevron-left"></i></button>
+                    <h6 class="cyh-card-title mb-0">@today.ToString("MMMM yyyy")</h6>
+                    <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <a asp-controller="Calendar" asp-action="Index" class="btn btn-cyh-teal btn-sm">
+                    <i class="bi bi-plus me-1"></i>New Post
+                </a>
+            </div>
+            <div class="cyh-card-body p-0">
+                <table class="w-100" style="border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            @foreach (var day in new[]{"Sun","Mon","Tue","Wed","Thu","Fri","Sat"})
+                            {
+                                <th class="text-center py-2" style="font-size:.75rem;color:#94A3B8;font-weight:600;border-bottom:1px solid #E2E8F4;">@day</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var cellCount = 0;
+                            var day2 = 1;
+                        }
+                        @while (day2 <= daysInMonth)
+                        {
+                            <tr>
+                                @for (int col = 0; col < 7; col++)
+                                {
+                                    <td style="border:1px solid #F1F5F9;height:80px;width:14.28%;vertical-align:top;padding:6px;">
+                                        @if (cellCount < startOffset || day2 > daysInMonth)
+                                        {
+                                            <span></span>
+                                        }
+                                        else
+                                        {
+                                            var isToday = day2 == today.Day;
+                                            <div class="d-flex align-items-center justify-content-center"
+                                                 style="width:26px;height:26px;border-radius:50%;
+                                                        background:@(isToday?"#1B2B6B":"transparent");
+                                                        color:@(isToday?"#fff":"#1A2332");
+                                                        font-size:.82rem;font-weight:@(isToday?"700":"400");">
+                                                @day2
+                                            </div>
+                                            day2++;
+                                        }
+                                        cellCount++;
+                                    </td>
+                                }
+                            </tr>
+                            if (cellCount >= startOffset && day2 > daysInMonth) { break; }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Scheduled Posts -->
+    <div class="col-lg-4">
+        <div class="cyh-card">
+            <div class="cyh-card-header">
+                <h6 class="cyh-card-title">Scheduled Posts</h6>
+            </div>
+            <div class="cyh-card-body">
+                <div class="cyh-empty">
+                    <span class="cyh-empty-icon"><i class="bi bi-calendar-x"></i></span>
+                    <div class="cyh-empty-title">No scheduled posts</div>
+                    <div class="cyh-empty-desc mt-2">
+                        <a href="#" class="btn btn-cyh-teal btn-sm"><i class="bi bi-plus me-1"></i>Schedule a Post</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

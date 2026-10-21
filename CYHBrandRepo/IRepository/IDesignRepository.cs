@@ -8,6 +8,8 @@ namespace CYHBrandRepo.IRepository
     {
         Task<PagedResult<BannerDesignDTO>> GetListAsync(int doctorId, string? status, string? searchKey, int pageNo, int pageSize);
         Task<BannerDesignDTO?>             GetByIdAsync(int designId, int doctorId);
+        Task<List<BannerDesignDTO>>        GetRecentByDoctorAsync(int doctorId, int count = 6);
+        Task<int>                          CountByDoctorAsync(int doctorId);
         Task<ApiResponse>                  SaveAsync(BannerDesignDTO model);
         Task<ApiResponse>                  DeleteAsync(int designId, int doctorId);
         Task<ApiResponse>                  UpdateStatusAsync(int designId, string status, int doctorId);

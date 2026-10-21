@@ -123,5 +123,38 @@ namespace CYHBrandRepo.Repository
                 return ApiResponse.ServerErrorResult(ex.Message);
             }
         }
+
+        public async Task<List<BannerDesignDTO>> GetRecentByDoctorAsync(int doctorId, int count = 6)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_conn);
+                var param = new { Flag = "RECENT", DoctorId = doctorId, PageSize = count };
+                var rows  = await con.QueryAsync<BannerDesignDTO>(
+                    "GetDesigns_CYH", param, commandType: CommandType.StoredProcedure);
+                return rows.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DesignRepository.GetRecentByDoctorAsync failed for DoctorId={Id}", doctorId);
+                return new List<BannerDesignDTO>();
+            }
+        }
+
+        public async Task<int> CountByDoctorAsync(int doctorId)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_conn);
+                var param = new { Flag = "COUNT", DoctorId = doctorId };
+                return await con.ExecuteScalarAsync<int>(
+                    "GetDesigns_CYH", param, commandType: CommandType.StoredProcedure);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DesignRepository.CountByDoctorAsync failed for DoctorId={Id}", doctorId);
+                return 0;
+            }
+        }
     }
 }

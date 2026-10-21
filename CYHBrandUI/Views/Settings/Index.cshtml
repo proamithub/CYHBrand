@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Settings";
+    ViewData["PageSubtitle"] = "Configure your account and application preferences.";
+}
+
+<div class="cyh-card">
+    <div class="cyh-card-header"><h6 class="cyh-card-title">Account Settings</h6></div>
+    <div class="cyh-card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="cyh-form-label">Display Name</label>
+                <input type="text" class="form-control cyh-form-control" placeholder="Dr. Your Name" />
+            </div>
+            <div class="col-md-6">
+                <label class="cyh-form-label">Time Zone</label>
+                <select class="form-select cyh-form-control">
+                    <option>Asia/Kolkata (IST)</option>
+                    <option>UTC</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="cyh-form-label">Language</label>
+                <select class="form-select cyh-form-control">
+                    <option>English</option>
+                    <option>Hindi</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="cyh-form-label">Default Post Platform</label>
+                <select class="form-select cyh-form-control">
+                    <option>Instagram</option>
+                    <option>Facebook</option>
+                    <option>WhatsApp</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-cyh-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cyh-card mt-3">
+    <div class="cyh-card-header"><h6 class="cyh-card-title">Change Password</h6></div>
+    <div class="cyh-card-body">
+        <div class="row g-3" style="max-width:400px;">
+            <div class="col-12">
+                <label class="cyh-form-label">Current Password</label>
+                <input type="password" class="form-control cyh-form-control" />
+            </div>
+            <div class="col-12">
+                <label class="cyh-form-label">New Password</label>
+                <input type="password" class="form-control cyh-form-control" />
+            </div>
+            <div class="col-12">
+                <label class="cyh-form-label">Confirm New Password</label>
+                <input type="password" class="form-control cyh-form-control" />
+            </div>
+            <div class="col-12">
+                <button class="btn btn-cyh-primary">Update Password</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Share & Publish";
+    ViewData["PageSubtitle"] = "Share your design on social media or download for later.";
+}
+
+<div class="row g-3">
+    <!-- Preview -->
+    <div class="col-lg-5">
+        <div class="cyh-card">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">Design Preview</h6></div>
+            <div class="cyh-card-body">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="aspect-ratio:1/1;background:linear-gradient(135deg,#1B2B6B,#0EA5A0);">
+                    <div class="text-white text-center p-3">
+                        <i class="bi bi-image display-4 d-block mb-2 opacity-50"></i>
+                        <p class="small opacity-75">Select a design to preview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Actions -->
+    <div class="col-lg-7">
+        <div class="cyh-card mb-3">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">Choose Action</h6></div>
+            <div class="cyh-card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button class="cyh-quick-card w-100">
+                            <div class="cyh-quick-icon" style="background:#EFF6FF;"><i class="bi bi-download" style="color:#3B82F6;font-size:1.3rem;"></i></div>
+                            <div class="cyh-quick-label">Download Image</div>
+                            <div class="cyh-quick-desc">Save PNG or JPG to device</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="cyh-quick-card w-100">
+                            <div class="cyh-quick-icon" style="background:#F0FDF4;"><i class="bi bi-share" style="color:#10B981;font-size:1.3rem;"></i></div>
+                            <div class="cyh-quick-label">Share on Social</div>
+                            <div class="cyh-quick-desc">Post to your platforms</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="cyh-quick-card w-100">
+                            <div class="cyh-quick-icon" style="background:#FFF7ED;"><i class="bi bi-calendar-plus" style="color:#F59E0B;font-size:1.3rem;"></i></div>
+                            <div class="cyh-quick-label">Schedule Post</div>
+                            <div class="cyh-quick-desc">Plan for a future date/time</div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="cyh-quick-card w-100" disabled>
+                            <div class="cyh-quick-icon" style="background:#FEF2F2;"><i class="bi bi-send" style="color:#EF4444;font-size:1.3rem;"></i></div>
+                            <div class="cyh-quick-label">Auto-Publish</div>
+                            <div class="cyh-quick-desc">Connect accounts (Phase 9)</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="cyh-card">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">Social Media Platforms</h6></div>
+            <div class="cyh-card-body">
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var (icon, name, color, ready) in new[]{
+                        ("bi-facebook","Facebook","#1877F2",false),
+                        ("bi-instagram","Instagram","#E4405F",false),
+                        ("bi-whatsapp","WhatsApp","#25D366",true),
+                        ("bi-linkedin","LinkedIn","#0A66C2",false),
+                        ("bi-twitter-x","X (Twitter)","#000000",false),
+                    })
+                    {
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="border:1px solid #E2E8F4;">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi @icon fs-5" style="color:@color;width:24px;"></i>
+                                <span style="font-size:.875rem;font-weight:500;">@name</span>
+                            </div>
+                            @if (ready)
+                            {
+                                <a href="#" class="btn btn-cyh-teal btn-sm">Share Link</a>
+                            }
+                            else
+                            {
+                                <span class="cyh-badge cyh-badge-secondary">Coming Soon</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

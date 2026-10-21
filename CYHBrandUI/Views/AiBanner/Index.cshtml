@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "AI Banner Creator";
+    ViewData["PageSubtitle"] = "Create stunning health-awareness banners with AI in seconds.";
+}
+
+<div class="cyh-card mb-4">
+    <div class="cyh-card-header">
+        <h6 class="cyh-card-title"><i class="bi bi-stars me-2" style="color:#3B82F6;"></i>AI Banner Creator</h6>
+        <!-- Step indicator -->
+        <div class="d-flex align-items-center gap-3">
+            @foreach (var (step, label) in new[]{("1","Topic"),("2","Brand"),("3","Style"),("4","Size"),("5","Generate")})
+            {
+                <div class="d-flex align-items-center gap-1">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                         style="width:26px;height:26px;font-size:.75rem;
+                                background:@(step=="1"?"#1B2B6B":"#E2E8F4");
+                                color:@(step=="1"?"#fff":"#94A3B8");">
+                        @step
+                    </div>
+                    <span style="font-size:.78rem;color:@(step=="1"?"#1B2B6B":"#94A3B8");">@label</span>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="cyh-card-body">
+        <div class="row g-4">
+            <!-- Left: Form -->
+            <div class="col-lg-5">
+                <div class="mb-4">
+                    <label class="cyh-form-label">Enter Your Topic</label>
+                    <textarea class="form-control cyh-form-control" rows="3"
+                              placeholder="e.g. Diabetes Awareness, Heart Health, Seasonal Tips..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="cyh-form-label">Select Design Style</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var style in new[]{"Modern","Minimal","Colorful","Professional"})
+                        {
+                            <div class="cyh-filter-tab @(style=="Modern"?"active":"")">@style</div>
+                        }
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="cyh-form-label">Select Language</label>
+                    <select class="form-select cyh-form-control">
+                        <option>English</option>
+                        <option>Hindi</option>
+                        <option>Marathi</option>
+                        <option>Tamil</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="cyh-form-label">Image Size</label>
+                    <select class="form-select cyh-form-control">
+                        <option>Instagram Post (1080 x 1080)</option>
+                        <option>Facebook Post (1200 x 628)</option>
+                        <option>WhatsApp Status (1080 x 1920)</option>
+                        <option>Twitter Post (1600 x 900)</option>
+                    </select>
+                </div>
+                <button class="btn btn-cyh-teal w-100 py-2" style="border-radius:10px;">
+                    <i class="bi bi-stars me-2"></i>Generate with AI
+                </button>
+                <div class="alert alert-info mt-3 rounded-3" style="font-size:.8rem;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    AI generation is in <strong>Stub mode</strong>. Configure an OpenAI API key in <code>appsettings.json</code> to enable real generation.
+                </div>
+            </div>
+            <!-- Right: Preview -->
+            <div class="col-lg-7">
+                <div class="cyh-card h-100" style="min-height:380px;">
+                    <div class="cyh-card-header">
+                        <h6 class="cyh-card-title">Preview</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-pencil me-1"></i>Edit</button>
+                            <button class="btn btn-cyh-teal btn-sm"><i class="bi bi-download me-1"></i>Download</button>
+                        </div>
+                    </div>
+                    <div class="cyh-card-body d-flex align-items-center justify-content-center" style="min-height:320px;">
+                        <div class="cyh-empty">
+                            <span class="cyh-empty-icon"><i class="bi bi-image-alt"></i></span>
+                            <div class="cyh-empty-title">Your banner will appear here</div>
+                            <div class="cyh-empty-desc">Fill in the form and click Generate to create your banner</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

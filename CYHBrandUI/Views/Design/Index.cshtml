@@ -1,127 +1,231 @@
 @model CYHBrandModel.DTO.BannerDesignDTO
 @{
     ViewData["Title"] = "My Designs";
+    ViewData["PageSubtitle"] = "All your saved and published banners in one place.";
 }
 
-<div class="p-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="fw-bold mb-0">My Designs</h4>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> New Design
-        </a>
-    </div>
-
-    <!-- Filters -->
-    <form method="get" class="row g-2 mb-4">
-        <div class="col-md-5">
-            <input type="text" name="searchKey" value="@Model?.SearchKey"
-                   class="form-control" placeholder="Search designs..." />
+<!-- Top toolbar -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <form method="get" class="d-flex align-items-center gap-2">
+        <div class="cyh-search">
+            <i class="bi bi-search cyh-search-icon"></i>
+            <input type="text" name="searchKey" value="@Model?.SearchKey" placeholder="Search designs..." />
+            <input type="hidden" name="status" value="@Model?.FilterStatus" />
         </div>
-        <div class="col-md-3">
-            <select name="status" class="form-select">
-                <option value="">All Status</option>
-                <option value="Draft" selected="@(Model?.FilterStatus == "Draft")">Draft</option>
-                <option value="Saved" selected="@(Model?.FilterStatus == "Saved")">Saved</option>
-                <option value="Published" selected="@(Model?.FilterStatus == "Published")">Published</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-search me-1"></i> Search
-            </button>
-        </div>
+        <button type="submit" class="btn btn-cyh-outline btn-sm">
+            <i class="bi bi-search"></i>
+        </button>
     </form>
+    <a asp-action="Create" class="btn btn-cyh-teal d-flex align-items-center gap-2">
+        <i class="bi bi-plus-lg"></i> New Design
+    </a>
+</div>
 
-    <!-- Design Grid -->
-    @if (Model?.DesignList?.Any() == true)
-    {
-        <div class="row g-3">
-            @foreach (var d in Model.DesignList)
-            {
-                <div class="col-sm-6 col-md-4 col-xl-3">
-                    <div class="design-card">
-                        @if (!string.IsNullOrEmpty(d.ThumbnailPath) && !d.ThumbnailPath.StartsWith("data:"))
+<!-- Status filter tabs -->
+<div class="cyh-filter-tabs mb-4">
+    <a href="?status=&searchKey=@Model?.SearchKey"
+       class="cyh-filter-tab @(string.IsNullOrEmpty(Model?.FilterStatus) ? "active" : "")">All Designs</a>
+    <a href="?status=Draft&searchKey=@Model?.SearchKey"
+       class="cyh-filter-tab @(Model?.FilterStatus == "Draft" ? "active" : "")">Drafts</a>
+    <a href="?status=Saved&searchKey=@Model?.SearchKey"
+       class="cyh-filter-tab @(Model?.FilterStatus == "Saved" ? "active" : "")">Saved</a>
+    <a href="?status=Published&searchKey=@Model?.SearchKey"
+       class="cyh-filter-tab @(Model?.FilterStatus == "Published" ? "active" : "")">Published</a>
+</div>
+
+<!-- Design Grid -->
+@if (Model?.DesignList?.Any() == true)
+{
+    <div class="row g-3 mb-4">
+        @foreach (var d in Model.DesignList)
+        {
+            var badgeClass   = d.Status == "Published" ? "cyh-badge-success"
+                             : d.Status == "Saved"     ? "cyh-badge-teal"
+                             :                           "cyh-badge-secondary";
+            var bgGradient   = d.Status == "Published"
+                             ? "linear-gradient(135deg,#1B2B6B,#0EA5A0)"
+                             : "linear-gradient(135deg,#1e3a8a,#4f46e5)";
+            var hasThumbnail = !string.IsNullOrEmpty(d.ThumbnailPath) && !d.ThumbnailPath.StartsWith("data:");
+
+            <div class="col-sm-6 col-lg-4 col-xl-3">
+                <div class="cyh-banner-card">
+
+                    <!-- Thumbnail -->
+                    <div style="position:relative;overflow:hidden;border-radius:14px 14px 0 0;">
+                        @if (hasThumbnail)
                         {
-                            <img src="@d.ThumbnailPath" alt="@d.DesignName" />
+                            <img src="/@d.ThumbnailPath" alt="@d.DesignName"
+                                 style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
                         }
                         else
                         {
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="aspect-ratio:1;background:linear-gradient(135deg,#667eea,#764ba2)">
-                                <i class="bi bi-grid-3x3-gap text-white" style="font-size:3rem"></i>
+                            <div style="width:100%;aspect-ratio:1/1;background:@bgGradient;
+                                        display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-image text-white opacity-50" style="font-size:2.5rem;"></i>
                             </div>
                         }
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h6 class="fw-semibold mb-0 text-truncate">@d.DesignName</h6>
-                                <span class="badge @(d.Status == "Published" ? "bg-success" : d.Status == "Saved" ? "bg-info" : "bg-secondary") ms-1">
-                                    @d.Status
-                                </span>
-                            </div>
-                            <small class="text-muted">@d.CreatedDate?.ToString("dd MMM yyyy")</small>
-                            <div class="d-flex gap-2 mt-2">
-                                <a asp-action="Edit" asp-route-id="@d.EncId"
-                                   class="btn btn-primary btn-sm flex-grow-1">
-                                    <i class="bi bi-pencil me-1"></i> Edit
-                                </a>
-                                <a asp-action="Detail" asp-route-id="@d.EncId"
-                                   class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteDesign('@d.EncId', this)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+
+                        <!-- Hover overlay -->
+                        <div class="cyh-design-thumb-overlay">
+                            <a asp-action="Edit" asp-route-id="@d.EncId"
+                               class="btn btn-sm btn-light rounded-pill px-3">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </a>
+                            <a asp-action="Detail" asp-route-id="@d.EncId"
+                               class="btn btn-sm btn-light rounded-pill px-3">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </div>
+
+                        <!-- Status badge -->
+                        <div style="position:absolute;top:8px;right:8px;">
+                            <span class="cyh-badge @badgeClass">@(d.Status ?? "Draft")</span>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
 
-        <!-- Pagination -->
-        @if (Model.TotalPages > 1)
-        {
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    @for (int i = 1; i <= Model.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == Model.PageNo ? "active" : "")">
-                            <a class="page-link"
-                               asp-action="Index"
-                               asp-route-pageNo="@i"
-                               asp-route-searchKey="@Model.SearchKey"
-                               asp-route-status="@Model.FilterStatus">@i</a>
-                        </li>
-                    }
-                </ul>
-            </nav>
+                    <!-- Card body -->
+                    <div class="cyh-banner-body">
+                        <div class="cyh-banner-title">@(d.DesignName ?? "Untitled Design")</div>
+                        <div class="cyh-banner-meta">
+                            <i class="bi bi-calendar3 me-1"></i>@d.CreatedAt.ToString("dd MMM yyyy")
+                            @if (d.WidthPx > 0)
+                            {
+                                <span class="ms-2" style="color:#CBD5E1;">@d.WidthPx×@d.HeightPx</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="cyh-banner-actions">
+                        <a asp-action="Edit" asp-route-id="@d.EncId"
+                           class="btn btn-cyh-outline btn-sm flex-fill"
+                           style="font-size:.78rem;padding:5px;">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <a asp-action="Detail" asp-route-id="@d.EncId"
+                           class="btn btn-cyh-outline btn-sm"
+                           style="font-size:.78rem;padding:5px 10px;" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button class="btn btn-sm" title="Download"
+                                style="font-size:.78rem;padding:5px 10px;
+                                       border:1.5px solid #E2E8F4;border-radius:8px;background:#fff;color:#64748B;">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm" title="Delete"
+                                style="font-size:.78rem;padding:5px 10px;
+                                       border:1.5px solid #FEE2E2;border-radius:8px;background:#fff;color:#EF4444;"
+                                onclick="deleteDesign('@d.EncId', this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         }
-    }
-    else
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
     {
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-images display-4 d-block mb-2"></i>
-            <p>No designs yet. <a asp-action="Create">Create your first design!</a></p>
-        </div>
+        <nav>
+            <ul class="pagination justify-content-center gap-1 mb-0">
+                @for (int pg = 1; pg <= Model.TotalPages; pg++)
+                {
+                    var isActive = pg == Model.PageNo;
+                    <li class="page-item">
+                        <a class="page-link rounded-2"
+                           style="border:1.5px solid #E2E8F4;min-width:36px;text-align:center;
+                                  color:@(isActive?"#fff":"#64748B");
+                                  background:@(isActive?"#1B2B6B":"#fff");"
+                           asp-action="Index"
+                           asp-route-pageNo="@pg"
+                           asp-route-searchKey="@Model.SearchKey"
+                           asp-route-status="@Model.FilterStatus">@pg</a>
+                    </li>
+                }
+            </ul>
+        </nav>
     }
-</div>
+}
+else
+{
+    <!-- Empty State -->
+    <div class="cyh-card">
+        <div class="cyh-card-body">
+            <div class="cyh-empty py-5">
+                <i class="bi bi-images" style="font-size:4rem;color:#CBD5E1;display:block;margin-bottom:16px;"></i>
+                <div class="cyh-empty-title">
+                    @if (!string.IsNullOrEmpty(Model?.SearchKey) || !string.IsNullOrEmpty(Model?.FilterStatus))
+                    {
+                        <span>No designs match your filter</span>
+                    }
+                    else
+                    {
+                        <span>No designs yet</span>
+                    }
+                </div>
+                <div class="cyh-empty-desc mt-2">
+                    @if (!string.IsNullOrEmpty(Model?.SearchKey) || !string.IsNullOrEmpty(Model?.FilterStatus))
+                    {
+                        <a href="?status=&searchKey=" class="btn btn-cyh-outline btn-sm mt-2">
+                            <i class="bi bi-x-circle me-1"></i>Clear Filters
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="mb-3">Create your first design using the AI Banner Creator or Template Library.</p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <a asp-controller="AiBanner" asp-action="Index" class="btn btn-cyh-teal">
+                                <i class="bi bi-stars me-2"></i>AI Banner Creator
+                            </a>
+                            <a asp-controller="Template" asp-action="Index" class="btn btn-cyh-outline">
+                                <i class="bi bi-grid-1x2 me-2"></i>Browse Templates
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@Html.AntiForgeryToken()
 
 @section Scripts {
+<style>
+    .cyh-design-thumb-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,.48);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity .2s;
+    }
+    .cyh-banner-card:hover .cyh-design-thumb-overlay { opacity: 1; }
+</style>
 <script>
 async function deleteDesign(encId, btn) {
-    if (!confirm('Delete this design?')) return;
+    if (!confirm('Delete this design? This cannot be undone.')) return;
     btn.disabled = true;
-    const res = await fetch('/Design/Delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-                   'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' },
-        body: 'id=' + encId
-    });
-    const data = await res.json();
-    if (data.isSuccess) location.reload();
-    else { alert(data.msg || 'Error'); btn.disabled = false; }
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    try {
+        const res = await fetch('/Design/Delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
+            },
+            body: 'id=' + encId
+        });
+        const data = await res.json();
+        if (data.isSuccess) location.reload();
+        else { alert(data.msg || 'Delete failed.'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash"></i>'; }
+    } catch (e) {
+        alert('Network error.'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash"></i>';
+    }
 }
 </script>
-@Html.AntiForgeryToken()
 }

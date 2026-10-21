@@ -1,103 +1,243 @@
 @model CYHBrandModel.DTO.BannerDesignDTO
 @{
-    ViewData["Title"] = Model?.DesignName ?? "Design Detail";
+    var designName  = Model?.DesignName ?? "Design Preview";
+    ViewData["Title"]       = designName;
+    ViewData["PageSubtitle"] = "View and manage your design.";
+
+    var badgeClass = Model?.Status == "Published" ? "cyh-badge-success"
+                   : Model?.Status == "Saved"     ? "cyh-badge-teal"
+                   :                                "cyh-badge-secondary";
+    var hasThumbnail = !string.IsNullOrEmpty(Model?.ThumbnailPath)
+                    && !Model.ThumbnailPath.StartsWith("data:");
 }
 
-<div class="p-4">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Back
+<!-- Back button + title row -->
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a asp-action="Index" class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h5 class="fw-bold mb-0">@designName</h5>
+            <span class="cyh-badge @badgeClass">@(Model?.Status ?? "Draft")</span>
+        </div>
+    </div>
+    <!-- Top action buttons -->
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Edit" asp-route-id="@Model?.EncId"
+           class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-pencil"></i> Edit
         </a>
-        <h4 class="fw-bold mb-0">@Model?.DesignName</h4>
-        <span class="badge @(Model?.Status == "Published" ? "bg-success" : Model?.Status == "Saved" ? "bg-info" : "bg-secondary")">
-            @Model?.Status
-        </span>
+        @if (!string.IsNullOrEmpty(Model?.ExportedFilePath))
+        {
+            <a href="/@Model.ExportedFilePath" download
+               class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-download"></i> Download
+            </a>
+        }
+        @if (Model?.Status != "Published")
+        {
+            <button class="btn btn-cyh-teal btn-sm d-flex align-items-center gap-1"
+                    onclick="publishDesign('@Model?.EncId')">
+                <i class="bi bi-send"></i> Publish
+            </button>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ── Left: Preview ── -->
+    <div class="col-lg-8">
+        <div class="cyh-card">
+            <div class="cyh-card-header">
+                <h6 class="cyh-card-title"><i class="bi bi-eye me-2" style="color:#0EA5A0;"></i>Design Preview</h6>
+                <div class="d-flex gap-2">
+                    <span class="cyh-badge cyh-badge-secondary" style="font-size:.7rem;">
+                        @(Model?.WidthPx > 0 ? $"{Model.WidthPx} × {Model.HeightPx} px" : "Standard")
+                    </span>
+                </div>
+            </div>
+            <div class="cyh-card-body d-flex align-items-center justify-content-center"
+                 style="min-height:420px;background:#F4F7FC;border-radius:0 0 14px 14px;">
+                @if (hasThumbnail)
+                {
+                    <div style="position:relative;display:inline-block;">
+                        <img src="/@Model!.ThumbnailPath" alt="@designName"
+                             style="max-width:100%;max-height:500px;object-fit:contain;
+                                    border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);" />
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <div style="width:300px;height:300px;margin:auto;
+                                    background:linear-gradient(135deg,#1B2B6B,#0EA5A0);
+                                    border-radius:16px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-image text-white opacity-50" style="font-size:4rem;"></i>
+                        </div>
+                        <p class="mt-3 text-muted small">No preview available — open the editor to generate one.</p>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body d-flex align-items-center justify-content-center p-5">
-                    @if (!string.IsNullOrEmpty(Model?.ThumbnailPath))
-                    {
-                        <img src="@Model.ThumbnailPath" class="img-fluid rounded" style="max-height:500px" />
-                    }
-                    else
-                    {
-                        <div class="d-flex align-items-center justify-content-center rounded"
-                             style="width:400px;height:400px;background:#f1f5f9">
-                            <i class="bi bi-image text-muted" style="font-size:4rem"></i>
+    <!-- ── Right: Info + Actions ── -->
+    <div class="col-lg-4">
+
+        <!-- Design Info -->
+        <div class="cyh-card mb-3">
+            <div class="cyh-card-header">
+                <h6 class="cyh-card-title">Design Info</h6>
+            </div>
+            <div class="cyh-card-body p-0">
+                <div class="cyh-info-row px-4">
+                    <div class="cyh-info-icon"><i class="bi bi-tag"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Design Name</div>
+                        <div class="cyh-info-value">@(Model?.DesignName ?? "—")</div>
+                    </div>
+                </div>
+                <div class="cyh-info-row px-4">
+                    <div class="cyh-info-icon"><i class="bi bi-circle-fill" style="font-size:.5rem;color:@(Model?.Status=="Published"?"#10B981":"#94A3B8");"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Status</div>
+                        <div class="cyh-info-value">
+                            <span class="cyh-badge @badgeClass">@(Model?.Status ?? "Draft")</span>
                         </div>
-                    }
+                    </div>
+                </div>
+                <div class="cyh-info-row px-4">
+                    <div class="cyh-info-icon"><i class="bi bi-aspect-ratio"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Canvas Size</div>
+                        <div class="cyh-info-value">
+                            @(Model?.WidthPx > 0 ? $"{Model.WidthPx} × {Model.HeightPx} px" : "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="cyh-info-row px-4">
+                    <div class="cyh-info-icon"><i class="bi bi-phone"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Orientation</div>
+                        <div class="cyh-info-value">@(Model?.Orientation ?? "—")</div>
+                    </div>
+                </div>
+                <div class="cyh-info-row px-4">
+                    <div class="cyh-info-icon"><i class="bi bi-calendar3"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Created</div>
+                        <div class="cyh-info-value">@Model?.CreatedAt.ToString("dd MMM yyyy, h:mm tt")</div>
+                    </div>
+                </div>
+                <div class="cyh-info-row px-4" style="border-bottom:none;">
+                    <div class="cyh-info-icon"><i class="bi bi-pencil-square"></i></div>
+                    <div>
+                        <div class="cyh-info-label">Last Updated</div>
+                        <div class="cyh-info-value">@Model?.UpdatedAt.ToString("dd MMM yyyy, h:mm tt")</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body">
-                    <h6 class="fw-semibold mb-3">Design Info</h6>
-                    <dl class="row small mb-0">
-                        <dt class="col-6 text-muted">Status</dt>
-                        <dd class="col-6">@Model?.Status</dd>
-                        <dt class="col-6 text-muted">Orientation</dt>
-                        <dd class="col-6">@(Model?.Orientation ?? "—")</dd>
-                        <dt class="col-6 text-muted">Size</dt>
-                        <dd class="col-6">@Model?.WidthPx × @Model?.HeightPx px</dd>
-                        <dt class="col-6 text-muted">Created</dt>
-                        <dd class="col-6">@Model?.CreatedDate?.ToString("dd MMM yyyy")</dd>
-                        <dt class="col-6 text-muted">Updated</dt>
-                        <dd class="col-6">@(Model?.UpdatedDate?.ToString("dd MMM yyyy") ?? "—")</dd>
-                    </dl>
-                </div>
+        <!-- Actions -->
+        <div class="cyh-card mb-3">
+            <div class="cyh-card-header">
+                <h6 class="cyh-card-title">Actions</h6>
             </div>
-
-            <div class="d-grid gap-2">
+            <div class="cyh-card-body d-flex flex-column gap-2">
                 <a asp-action="Edit" asp-route-id="@Model?.EncId"
-                   class="btn btn-primary">
-                    <i class="bi bi-pencil me-1"></i> Edit Design
+                   class="btn btn-cyh-primary w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-pencil-square"></i> Open in Editor
                 </a>
+
                 @if (Model?.Status != "Published")
                 {
-                    <button class="btn btn-success" onclick="updateStatus('@Model?.EncId','Published')">
-                        <i class="bi bi-send me-1"></i> Publish
+                    <button onclick="publishDesign('@Model?.EncId')"
+                            class="btn btn-cyh-teal w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-send"></i> Publish Design
                     </button>
                 }
+
                 @if (!string.IsNullOrEmpty(Model?.ExportedFilePath))
                 {
-                    <a href="@Model.ExportedFilePath" download class="btn btn-outline-info">
-                        <i class="bi bi-download me-1"></i> Download
+                    <a href="/@Model.ExportedFilePath" download
+                       class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-download"></i> Download Image
                     </a>
                 }
-                <button class="btn btn-outline-danger" onclick="deleteThis('@Model?.EncId')">
-                    <i class="bi bi-trash me-1"></i> Delete
+                else
+                {
+                    <button class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2" disabled>
+                        <i class="bi bi-download"></i> Download (Export from Editor)
+                    </button>
+                }
+
+                <a asp-controller="Share" asp-action="Index"
+                   class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-share"></i> Share &amp; Publish
+                </a>
+
+                <hr class="cyh-divider my-1" />
+
+                <button class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                        style="border:1.5px solid #FEE2E2;background:#FFF5F5;color:#EF4444;border-radius:8px;padding:8px;"
+                        onclick="deleteThis('@Model?.EncId')">
+                    <i class="bi bi-trash"></i> Delete Design
                 </button>
             </div>
         </div>
+
+        <!-- Template Info (if from template) -->
+        @if (Model?.SourceTemplateId > 0)
+        {
+            <div class="cyh-card">
+                <div class="cyh-card-header">
+                    <h6 class="cyh-card-title">Based on Template</h6>
+                </div>
+                <div class="cyh-card-body">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-1x2 fs-5" style="color:#0EA5A0;"></i>
+                        <div>
+                            <div style="font-size:.85rem;font-weight:600;">@(Model?.TemplateName ?? "Custom Template")</div>
+                            <div style="font-size:.75rem;color:#94A3B8;">@(Model?.CategoryName ?? "—")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @Html.AntiForgeryToken()
+
 @section Scripts {
 <script>
-const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+const _token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
-async function updateStatus(encId, status) {
-    await fetch('/Design/UpdateStatus', {
-        method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded','RequestVerificationToken': token},
-        body: `id=${encId}&status=${status}`
+async function publishDesign(encId) {
+    if (!confirm('Publish this design? It will be marked as Published.')) return;
+    const res = await fetch('/Design/UpdateStatus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
+        body: `id=${encId}&status=Published`
     });
-    location.reload();
+    const data = await res.json();
+    if (data?.isSuccess) location.reload();
+    else alert(data?.msg || 'Could not publish. Please try again.');
 }
+
 async function deleteThis(encId) {
-    if (!confirm('Delete this design?')) return;
+    if (!confirm('Permanently delete this design? This cannot be undone.')) return;
     const res = await fetch('/Design/Delete', {
-        method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded','RequestVerificationToken': token},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
         body: 'id=' + encId
     });
-    const d = await res.json();
-    if (d.isSuccess) window.location.href = '/Design';
-    else alert(d.msg || 'Error');
+    const data = await res.json();
+    if (data?.isSuccess) window.location.href = '/Design';
+    else alert(data?.msg || 'Delete failed.');
 }
 </script>
 }

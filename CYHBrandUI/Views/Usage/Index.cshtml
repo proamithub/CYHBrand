@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Usage & Subscription";
+    ViewData["PageSubtitle"] = "View your plan usage and subscription details.";
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="cyh-card">
+            <div class="cyh-card-body text-center py-4">
+                <div class="cyh-badge cyh-badge-teal mb-3" style="font-size:.85rem;padding:6px 16px;">Free Plan</div>
+                <div style="font-size:2.5rem;font-weight:800;color:#1B2B6B;">₹0<span style="font-size:1rem;font-weight:400;color:#94A3B8;">/mo</span></div>
+                <p class="text-muted small mt-2">Current active plan</p>
+                <button class="btn btn-cyh-teal w-100 mt-2">Upgrade to Pro</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="cyh-card">
+            <div class="cyh-card-header"><h6 class="cyh-card-title">This Month's Usage</h6></div>
+            <div class="cyh-card-body">
+                @foreach (var (label, used, total, color) in new[]{
+                    ("AI Generations",0,5,"#3B82F6"),
+                    ("Designs Created",0,10,"#0EA5A0"),
+                    ("Downloads",0,20,"#F59E0B"),
+                    ("Scheduled Posts",0,5,"#10B981"),
+                })
+                {
+                    var pct = total > 0 ? (used * 100 / total) : 0;
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span style="font-size:.85rem;font-weight:500;">@label</span>
+                            <span style="font-size:.8rem;color:#94A3B8;">@used / @total</span>
+                        </div>
+                        <div class="progress" style="height:8px;border-radius:4px;background:#F1F5F9;">
+                            <div class="progress-bar" style="width:@pct%;background:@color;border-radius:4px;"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

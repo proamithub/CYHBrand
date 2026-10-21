@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Connected Accounts";
+    ViewData["PageSubtitle"] = "Manage your social media connections.";
+}
+
+<div class="cyh-card">
+    <div class="cyh-card-header">
+        <h6 class="cyh-card-title">Social Platform Connections</h6>
+    </div>
+    <div class="cyh-card-body">
+        @foreach (var (icon, name, color, note) in new[]{
+            ("bi-facebook","Facebook","#1877F2","Coming in Phase 9 — requires Facebook App credentials"),
+            ("bi-instagram","Instagram","#E4405F","Coming in Phase 9 — requires Meta Business API"),
+            ("bi-whatsapp","WhatsApp","#25D366","Share links available now — direct API requires WhatsApp Business"),
+            ("bi-linkedin","LinkedIn","#0A66C2","Coming in Phase 9 — requires LinkedIn App"),
+            ("bi-twitter-x","X (Twitter)","#000000","Coming in Phase 9 — requires Twitter Developer App"),
+        })
+        {
+            <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded-3" style="border:1px solid #E2E8F4;background:#FAFBFD;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:@(color)22;">
+                        <i class="bi @icon fs-4" style="color:@color;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.9rem;font-weight:600;">@name</div>
+                        <div style="font-size:.75rem;color:#94A3B8;">@note</div>
+                    </div>
+                </div>
+                <button class="btn btn-cyh-outline btn-sm" disabled>Connect</button>
+            </div>
+        }
+
+        <div class="alert alert-info rounded-3 mt-3" style="font-size:.82rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Social platform connections will be enabled in Phase 9. Direct API access requires verified developer credentials from each platform.
+        </div>
+    </div>
+</div>

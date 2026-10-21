@@ -8,6 +8,7 @@ namespace CYHBrandUI.Helpers
         public string?  MobileNo          { get; set; }
         public string[] Roles             { get; set; } = Array.Empty<string>();
         public string?  ProfilePic        { get; set; }
+        public string?  FullName          { get; set; }
         public string?  Specialty         { get; set; }
         public string?  ClinicName        { get; set; }
         public bool     IsProfileComplete { get; set; }
