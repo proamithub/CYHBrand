@@ -1,0 +1,819 @@
+@model CYHBrandModel.DTO.BannerDesignDTO
+@{
+    ViewData["Title"] = "Design Editor";
+    Layout = null;
+    var template = ViewBag.Template as CYHBrandModel.DTO.BannerTemplateDTO;
+    int canvasW = Model?.WidthPx  ?? template?.WidthPx  ?? 1080;
+    int canvasH = Model?.HeightPx ?? template?.HeightPx ?? 1080;
+    var existingJson = Model?.DesignJson ?? template?.TemplateJson ?? "null";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CYHBrand – Design Editor</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
+       height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Top Bar ── */
+.topbar {
+    background: #1e293b; border-bottom: 1px solid #334155;
+    padding: 0 1rem; height: 52px;
+    display: flex; align-items: center; gap: .75rem; flex-shrink: 0;
+}
+.topbar .design-name {
+    background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+    border-radius: 6px; padding: .3rem .6rem; font-size: .85rem; width: 200px;
+}
+.topbar .design-name:focus { outline: none; border-color: #3b82f6; }
+.btn-tool {
+    background: #0f172a; border: 1px solid #334155; color: #94a3b8;
+    border-radius: 6px; padding: .3rem .7rem; font-size: .8rem; cursor: pointer;
+    display: flex; align-items: center; gap: .3rem; transition: all .15s;
+}
+.btn-tool:hover { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.btn-tool.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.sep { width: 1px; background: #334155; height: 28px; margin: 0 .25rem; }
+
+/* ── Body ── */
+.editor-body { flex: 1; display: flex; overflow: hidden; }
+
+/* ── Left Toolbar ── */
+.left-panel {
+    width: 56px; background: #1e293b; border-right: 1px solid #334155;
+    display: flex; flex-direction: column; align-items: center; padding: .5rem 0; gap: .4rem;
+}
+.tool-icon {
+    width: 40px; height: 40px; border-radius: 8px; background: transparent;
+    border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.tool-icon:hover, .tool-icon.active { background: #3b82f6; color: #fff; }
+
+/* ── Canvas Area ── */
+.canvas-area {
+    flex: 1; background: #334155; display: flex; align-items: center;
+    justify-content: center; overflow: auto; position: relative;
+}
+#designCanvas {
+    background: #fff; cursor: default;
+    box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+#designCanvas.tool-text  { cursor: text; }
+#designCanvas.tool-rect  { cursor: crosshair; }
+#designCanvas.tool-circle{ cursor: crosshair; }
+#designCanvas.tool-move  { cursor: move; }
+
+/* ── Right Panel ── */
+.right-panel {
+    width: 260px; background: #1e293b; border-left: 1px solid #334155;
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.rpanel-section { padding: .75rem; border-bottom: 1px solid #334155; }
+.rpanel-section h6 {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #64748b; margin-bottom: .5rem;
+}
+.prop-label { font-size: .75rem; color: #94a3b8; margin-bottom: .2rem; display: block; }
+.prop-input {
+    background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+    border-radius: 5px; padding: .3rem .5rem; font-size: .8rem; width: 100%;
+}
+.prop-input:focus { outline: none; border-color: #3b82f6; }
+.prop-row { display: flex; gap: .4rem; align-items: center; margin-bottom: .4rem; }
+.prop-row label { font-size: .72rem; color: #94a3b8; width: 20px; }
+
+/* ── Layer list ── */
+.layer-list { flex: 1; overflow-y: auto; }
+.layer-item {
+    padding: .4rem .75rem; font-size: .78rem; cursor: pointer;
+    border-bottom: 1px solid #0f172a; display: flex; align-items: center; gap: .5rem;
+    color: #94a3b8;
+}
+.layer-item:hover { background: #0f172a; color: #e2e8f0; }
+.layer-item.selected { background: #1d4ed8; color: #fff; }
+.layer-item .layer-del {
+    margin-left: auto; color: #f87171; font-size: .8rem;
+    background: none; border: none; cursor: pointer; padding: 0 .2rem;
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+    <a href="/Design" class="btn-tool" title="Back">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="sep"></div>
+    <input type="text" id="designName" class="design-name"
+           value="@(Model?.DesignName ?? "Untitled Design")" />
+    <div class="sep"></div>
+
+    <!-- Zoom -->
+    <button class="btn-tool" onclick="zoom(-0.1)" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
+    <span id="zoomLabel" style="font-size:.75rem;min-width:38px;text-align:center">100%</span>
+    <button class="btn-tool" onclick="zoom(+0.1)" title="Zoom In"><i class="bi bi-zoom-in"></i></button>
+    <button class="btn-tool" onclick="resetZoom()" title="Fit">Fit</button>
+    <div class="sep"></div>
+
+    <!-- Undo / Redo -->
+    <button class="btn-tool" onclick="undo()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button class="btn-tool" onclick="redo()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+    <div class="sep"></div>
+
+    <!-- Save / Export -->
+    <button class="btn-tool" onclick="saveDesign('Draft')" title="Save Draft">
+        <i class="bi bi-cloud"></i> Draft
+    </button>
+    <button class="btn-tool" style="background:#16a34a;border-color:#16a34a;color:#fff"
+            onclick="saveDesign('Saved')" title="Save">
+        <i class="bi bi-check-lg"></i> Save
+    </button>
+    <button class="btn-tool" onclick="exportPNG()" title="Export PNG">
+        <i class="bi bi-download"></i> Export
+    </button>
+
+    <span id="saveStatus" style="font-size:.75rem;color:#64748b;margin-left:.5rem"></span>
+</div>
+
+<!-- ── BODY ── -->
+<div class="editor-body">
+
+    <!-- Left Toolbar -->
+    <div class="left-panel">
+        <button class="tool-icon active" id="tool-select" title="Select / Move" onclick="setTool('select')">
+            <i class="bi bi-cursor"></i>
+        </button>
+        <button class="tool-icon" id="tool-text" title="Add Text" onclick="setTool('text')">
+            <i class="bi bi-type"></i>
+        </button>
+        <button class="tool-icon" id="tool-rect" title="Add Rectangle" onclick="setTool('rect')">
+            <i class="bi bi-square"></i>
+        </button>
+        <button class="tool-icon" id="tool-circle" title="Add Circle" onclick="setTool('circle')">
+            <i class="bi bi-circle"></i>
+        </button>
+        <div style="width:100%;height:1px;background:#334155;margin:.25rem 0"></div>
+        <label class="tool-icon" title="Upload Image">
+            <i class="bi bi-image"></i>
+            <input type="file" accept="image/*" hidden onchange="addImageFromFile(this)" />
+        </label>
+        <div style="width:100%;height:1px;background:#334155;margin:.25rem 0"></div>
+        <button class="tool-icon" title="Delete selected" onclick="deleteSelected()">
+            <i class="bi bi-trash" style="color:#f87171"></i>
+        </button>
+    </div>
+
+    <!-- Canvas -->
+    <div class="canvas-area" id="canvasArea">
+        <canvas id="designCanvas" width="@canvasW" height="@canvasH"></canvas>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+
+        <!-- Background -->
+        <div class="rpanel-section">
+            <h6>Background</h6>
+            <div class="prop-row">
+                <label>Color</label>
+                <input type="color" id="bgColor" value="#ffffff" class="prop-input"
+                       style="height:28px;width:40px;padding:1px"
+                       onchange="setBg(this.value); render()" />
+                <input type="text" id="bgColorHex" value="#ffffff" class="prop-input"
+                       style="flex:1" onchange="setBg(this.value); render()"
+                       oninput="document.getElementById('bgColor').value=this.value" />
+            </div>
+        </div>
+
+        <!-- Element Properties (shown when something selected) -->
+        <div class="rpanel-section" id="propPanel" style="display:none">
+            <h6>Element Properties</h6>
+
+            <!-- Position & Size -->
+            <div class="prop-row">
+                <label>X</label>
+                <input type="number" id="propX" class="prop-input" oninput="applyProp('x',+this.value)" />
+                <label>Y</label>
+                <input type="number" id="propY" class="prop-input" oninput="applyProp('y',+this.value)" />
+            </div>
+            <div class="prop-row">
+                <label>W</label>
+                <input type="number" id="propW" class="prop-input" oninput="applyProp('w',+this.value)" />
+                <label>H</label>
+                <input type="number" id="propH" class="prop-input" oninput="applyProp('h',+this.value)" />
+            </div>
+
+            <!-- Color fill -->
+            <div id="colorRow" class="prop-row" style="display:none">
+                <label>Fill</label>
+                <input type="color" id="propColor" class="prop-input"
+                       style="height:28px;width:40px;padding:1px"
+                       onchange="applyProp('color',this.value)" />
+                <span id="propColorHex" style="font-size:.75rem;color:#94a3b8;margin-left:.3rem"></span>
+            </div>
+
+            <!-- Opacity -->
+            <div class="prop-row" style="margin-top:.3rem">
+                <label style="width:40px">Opacity</label>
+                <input type="range" id="propOpacity" min="0" max="1" step="0.05" value="1"
+                       style="flex:1" oninput="applyProp('opacity',+this.value);document.getElementById('opacityVal').textContent=Math.round(this.value*100)+'%'" />
+                <span id="opacityVal" style="font-size:.72rem;min-width:30px">100%</span>
+            </div>
+
+            <!-- Text properties -->
+            <div id="textProps" style="display:none;margin-top:.5rem">
+                <span class="prop-label">Text Content</span>
+                <textarea id="propText" class="prop-input" rows="2"
+                          oninput="applyProp('text',this.value)"></textarea>
+                <div class="prop-row" style="margin-top:.4rem">
+                    <label style="width:30px">Size</label>
+                    <input type="number" id="propFontSize" class="prop-input" min="6" max="400"
+                           oninput="applyProp('size',+this.value)" />
+                </div>
+                <span class="prop-label" style="margin-top:.3rem">Font</span>
+                <select id="propFont" class="prop-input"
+                        onchange="applyProp('font',this.value)">
+                    <option>sans-serif</option>
+                    <option>Inter</option>
+                    <option>Poppins</option>
+                    <option>Georgia</option>
+                    <option>Courier New</option>
+                    <option>Arial</option>
+                    <option>Verdana</option>
+                </select>
+                <div class="prop-row" style="margin-top:.4rem">
+                    <label style="width:30px">Bold</label>
+                    <input type="checkbox" id="propBold" onchange="applyProp('bold',this.checked)" />
+                    <label style="width:35px;margin-left:.5rem">Italic</label>
+                    <input type="checkbox" id="propItalic" onchange="applyProp('italic',this.checked)" />
+                </div>
+                <div class="prop-row" style="margin-top:.3rem">
+                    <label style="width:40px">Align</label>
+                    <select id="propAlign" class="prop-input"
+                            onchange="applyProp('align',this.value)">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layer Panel -->
+        <div class="rpanel-section" style="padding-bottom:.3rem">
+            <h6>Layers <span style="float:right;cursor:pointer;color:#3b82f6" onclick="moveUp()">↑</span>
+                       <span style="cursor:pointer;color:#3b82f6;margin-left:.3rem" onclick="moveDown()">↓</span>
+            </h6>
+        </div>
+        <div class="layer-list" id="layerList"></div>
+    </div>
+
+</div><!-- end editor-body -->
+
+<!-- Hidden fields -->
+<input type="hidden" id="hdDesignId"  value="@(Model?.DesignId ?? 0)" />
+<input type="hidden" id="hdEncId"     value="@(Model?.EncId ?? "")" />
+<input type="hidden" id="hdDoctorId"  value="@(Model?.DoctorId ?? 0)" />
+<input type="hidden" id="hdTmplId"    value="@(Model?.SourceTemplateId ?? template?.TemplateId ?? 0)" />
+<input type="hidden" id="hdOrient"    value="@(Model?.Orientation ?? template?.Orientation ?? "Square")" />
+<input type="hidden" id="hdW"         value="@canvasW" />
+<input type="hidden" id="hdH"         value="@canvasH" />
+@Html.AntiForgeryToken()
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Globals ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('designCanvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let elements  = [];
+let selected  = null;   // index of selected element
+let bgColor   = '#ffffff';
+let currentTool = 'select';
+let scale     = 1;
+let undoStack = [], redoStack = [];
+
+// drag state
+let isDragging = false, isResizing = false;
+let dragOffX = 0, dragOffY = 0;
+let dragStartEl = null;
+let drawStart = null;        // for rect/circle drawing
+
+const HANDLE = 8; // resize handle size
+
+// ── Load existing JSON ────────────────────────────────────────────────────────
+const existingJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(existingJson));
+if (existingJson && existingJson !== 'null') {
+    try {
+        const d = JSON.parse(existingJson);
+        if (d.bg)       { bgColor = d.bg; document.getElementById('bgColor').value = bgColor;
+                          document.getElementById('bgColorHex').value = bgColor; }
+        if (d.elements) elements = d.elements.map(normalizeEl);
+    } catch(e) { console.warn('Could not parse saved JSON', e); }
+}
+
+// ── Fit canvas to viewport ────────────────────────────────────────────────────
+function fitToViewport() {
+    const area = document.getElementById('canvasArea');
+    const maxW = area.clientWidth  - 64;
+    const maxH = area.clientHeight - 64;
+    const s = Math.min(maxW / W, maxH / H, 1);
+    applyScale(s);
+}
+function applyScale(s) {
+    scale = Math.max(0.05, Math.min(4, s));
+    canvas.style.width  = Math.round(W * scale) + 'px';
+    canvas.style.height = Math.round(H * scale) + 'px';
+    document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+}
+function zoom(delta) { applyScale(scale + delta); }
+function resetZoom()  { fitToViewport(); }
+
+// ── Tool switching ────────────────────────────────────────────────────────────
+function setTool(t) {
+    currentTool = t;
+    document.querySelectorAll('.tool-icon').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('tool-' + t);
+    if (btn) btn.classList.add('active');
+    canvas.className = t === 'select' ? '' : 'tool-' + t;
+}
+
+// ── Normalise element ─────────────────────────────────────────────────────────
+function normalizeEl(el) {
+    return {
+        type:    el.type || 'rect',
+        x:       el.x ?? 50,
+        y:       el.y ?? 50,
+        w:       el.w ?? 200,
+        h:       el.h ?? 100,
+        color:   el.color   || '#3b82f6',
+        opacity: el.opacity ?? 1,
+        // text
+        text:    el.text   || 'Text',
+        size:    el.size   || 40,
+        font:    el.font   || 'sans-serif',
+        bold:    el.bold   || false,
+        italic:  el.italic || false,
+        align:   el.align  || 'left',
+        // image
+        src:     el.src    || null,
+        _img:    null,
+        label:   el.label  || el.type,
+    };
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+function render() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, W, H);
+
+    elements.forEach((el, i) => {
+        ctx.save();
+        ctx.globalAlpha = el.opacity ?? 1;
+        if (el.type === 'rect') {
+            ctx.fillStyle = el.color;
+            ctx.fillRect(el.x, el.y, el.w, el.h);
+        } else if (el.type === 'circle') {
+            ctx.beginPath();
+            ctx.ellipse(el.x + el.w/2, el.y + el.h/2, el.w/2, el.h/2, 0, 0, Math.PI*2);
+            ctx.fillStyle = el.color;
+            ctx.fill();
+        } else if (el.type === 'text') {
+            const weight = el.bold   ? 'bold '   : '';
+            const style  = el.italic ? 'italic ' : '';
+            ctx.font      = `${style}${weight}${el.size}px ${el.font || 'sans-serif'}`;
+            ctx.fillStyle = el.color;
+            ctx.textAlign = el.align || 'left';
+            ctx.textBaseline = 'top';
+            // word-wrap
+            wrapText(ctx, el.text, el.x, el.y, el.w, el.size * 1.25);
+        } else if (el.type === 'image' && el._img) {
+            ctx.drawImage(el._img, el.x, el.y, el.w, el.h);
+        }
+        ctx.restore();
+
+        // Draw selection
+        if (i === selected) drawSelection(el);
+    });
+
+    updateLayerList();
+    updatePropPanel();
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+    const words = (text || '').split(' ');
+    let line = '';
+    let cy = y;
+    for (let n = 0; n < words.length; n++) {
+        const test = line + words[n] + ' ';
+        if (ctx.measureText(test).width > maxW && n > 0) {
+            ctx.fillText(line, x, cy);
+            line = words[n] + ' ';
+            cy += lineH;
+        } else { line = test; }
+    }
+    ctx.fillText(line, x, cy);
+}
+
+function drawSelection(el) {
+    ctx.save();
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth   = 2 / scale;
+    ctx.setLineDash([6 / scale, 3 / scale]);
+    ctx.strokeRect(el.x - 1, el.y - 1, el.w + 2, el.h + 2);
+    ctx.setLineDash([]);
+    // corner handle
+    const hs = HANDLE / scale;
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(el.x + el.w - hs/2, el.y + el.h - hs/2, hs, hs);
+    ctx.restore();
+}
+
+// ── Hit testing ───────────────────────────────────────────────────────────────
+function canvasPoint(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left) / scale,
+        y: (e.clientY - rect.top)  / scale
+    };
+}
+
+function hitElement(px, py) {
+    for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        if (px >= el.x && px <= el.x + el.w && py >= el.y && py <= el.y + el.h)
+            return i;
+    }
+    return -1;
+}
+
+function inResizeHandle(px, py, el) {
+    const hs = HANDLE / scale;
+    return (px >= el.x + el.w - hs && px <= el.x + el.w + hs &&
+            py >= el.y + el.h - hs && py <= el.y + el.h + hs);
+}
+
+// ── Mouse events ──────────────────────────────────────────────────────────────
+canvas.addEventListener('mousedown', onMouseDown);
+canvas.addEventListener('mousemove', onMouseMove);
+canvas.addEventListener('mouseup',   onMouseUp);
+canvas.addEventListener('dblclick',  onDblClick);
+
+function onMouseDown(e) {
+    const p = canvasPoint(e);
+
+    if (currentTool === 'select') {
+        if (selected !== null && inResizeHandle(p.x, p.y, elements[selected])) {
+            isResizing = true;
+            dragStartEl = { ...elements[selected] };
+            dragOffX = p.x; dragOffY = p.y;
+            return;
+        }
+        const hit = hitElement(p.x, p.y);
+        if (hit >= 0) {
+            saveUndo();
+            selected = hit;
+            isDragging = true;
+            dragOffX = p.x - elements[hit].x;
+            dragOffY = p.y - elements[hit].y;
+        } else {
+            selected = null;
+        }
+        render();
+        return;
+    }
+
+    // drawing tools
+    if (currentTool === 'text' || currentTool === 'rect' || currentTool === 'circle') {
+        drawStart = p;
+    }
+}
+
+function onMouseMove(e) {
+    const p = canvasPoint(e);
+
+    if (isResizing && selected !== null) {
+        const el = elements[selected];
+        const dx = p.x - dragOffX, dy = p.y - dragOffY;
+        el.w = Math.max(20, dragStartEl.w + dx);
+        el.h = Math.max(20, dragStartEl.h + dy);
+        render(); return;
+    }
+
+    if (isDragging && selected !== null) {
+        elements[selected].x = Math.round(p.x - dragOffX);
+        elements[selected].y = Math.round(p.y - dragOffY);
+        render(); return;
+    }
+
+    // preview while drawing
+    if (drawStart && (currentTool === 'rect' || currentTool === 'circle')) {
+        render();
+        const x = Math.min(p.x, drawStart.x), y = Math.min(p.y, drawStart.y);
+        const w = Math.abs(p.x - drawStart.x), h = Math.abs(p.y - drawStart.y);
+        ctx.save();
+        ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2 / scale; ctx.setLineDash([6/scale,3/scale]);
+        if (currentTool === 'rect') ctx.strokeRect(x, y, w, h);
+        else { ctx.beginPath(); ctx.ellipse(x+w/2,y+h/2,w/2,h/2,0,0,Math.PI*2); ctx.stroke(); }
+        ctx.restore();
+    }
+}
+
+function onMouseUp(e) {
+    const p = canvasPoint(e);
+
+    if (isResizing) { isResizing = false; render(); return; }
+    if (isDragging) { isDragging = false; render(); return; }
+
+    if (drawStart && (currentTool === 'rect' || currentTool === 'circle' || currentTool === 'text')) {
+        const x = Math.min(p.x, drawStart.x), y = Math.min(p.y, drawStart.y);
+        let   w = Math.abs(p.x - drawStart.x), h = Math.abs(p.y - drawStart.y);
+
+        saveUndo();
+        if (currentTool === 'text') {
+            // single click = use default size
+            addTextAt(drawStart.x, drawStart.y, 300, 60);
+        } else {
+            if (w < 10) w = 150; if (h < 10) h = 100;
+            const el = normalizeEl({ type: currentTool, x, y, w, h,
+                                     color: currentTool==='rect'?'#3b82f6':'#ef4444' });
+            el.label = currentTool;
+            elements.push(el);
+            selected = elements.length - 1;
+        }
+        drawStart = null;
+        setTool('select');
+        render();
+    }
+}
+
+function onDblClick(e) {
+    if (currentTool !== 'select') return;
+    const p = canvasPoint(e);
+    const hit = hitElement(p.x, p.y);
+    if (hit >= 0 && elements[hit].type === 'text') {
+        const newText = prompt('Edit text:', elements[hit].text);
+        if (newText !== null) {
+            saveUndo();
+            elements[hit].text = newText;
+            render();
+        }
+    }
+}
+
+// ── Add elements ──────────────────────────────────────────────────────────────
+function addTextAt(x, y, w, h) {
+    const el = normalizeEl({ type:'text', x, y, w, h,
+                              text:'Your Text', size:48, color:'#1e293b', label:'Text' });
+    elements.push(el);
+    selected = elements.length - 1;
+}
+
+function addImageFromFile(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+            saveUndo();
+            const el = normalizeEl({ type:'image', x:50, y:50, w:Math.min(img.width, W/2),
+                                     h:Math.min(img.height, H/2), label:'Image', src: ev.target.result });
+            el._img = img;
+            elements.push(el);
+            selected = elements.length - 1;
+            render();
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
+
+function setBg(c) {
+    bgColor = c;
+    document.getElementById('bgColor').value    = c;
+    document.getElementById('bgColorHex').value = c;
+}
+
+// ── Delete / Layers ───────────────────────────────────────────────────────────
+function deleteSelected() {
+    if (selected === null) return;
+    saveUndo();
+    elements.splice(selected, 1);
+    selected = null;
+    render();
+}
+
+function moveUp() {
+    if (selected === null || selected >= elements.length - 1) return;
+    saveUndo();
+    [elements[selected], elements[selected+1]] = [elements[selected+1], elements[selected]];
+    selected++;
+    render();
+}
+function moveDown() {
+    if (selected === null || selected <= 0) return;
+    saveUndo();
+    [elements[selected], elements[selected-1]] = [elements[selected-1], elements[selected]];
+    selected--;
+    render();
+}
+
+// ── Undo / Redo ───────────────────────────────────────────────────────────────
+function saveUndo() {
+    undoStack.push(JSON.stringify({ elements, bgColor }));
+    if (undoStack.length > 50) undoStack.shift();
+    redoStack = [];
+}
+function undo() {
+    if (!undoStack.length) return;
+    redoStack.push(JSON.stringify({ elements, bgColor }));
+    const state = JSON.parse(undoStack.pop());
+    elements = state.elements.map(normalizeEl);
+    bgColor  = state.bgColor;
+    setBg(bgColor);
+    selected = null;
+    render();
+}
+function redo() {
+    if (!redoStack.length) return;
+    undoStack.push(JSON.stringify({ elements, bgColor }));
+    const state = JSON.parse(redoStack.pop());
+    elements = state.elements.map(normalizeEl);
+    bgColor  = state.bgColor;
+    setBg(bgColor);
+    selected = null;
+    render();
+}
+
+// ── Property panel ────────────────────────────────────────────────────────────
+function updatePropPanel() {
+    const panel = document.getElementById('propPanel');
+    if (selected === null || !elements[selected]) { panel.style.display='none'; return; }
+    panel.style.display = 'block';
+    const el = elements[selected];
+    document.getElementById('propX').value = Math.round(el.x);
+    document.getElementById('propY').value = Math.round(el.y);
+    document.getElementById('propW').value = Math.round(el.w);
+    document.getElementById('propH').value = Math.round(el.h);
+    document.getElementById('propOpacity').value = el.opacity ?? 1;
+    document.getElementById('opacityVal').textContent = Math.round((el.opacity??1)*100)+'%';
+
+    const hasColor = el.type !== 'image';
+    document.getElementById('colorRow').style.display = hasColor ? 'flex' : 'none';
+    if (hasColor) {
+        document.getElementById('propColor').value = el.color || '#3b82f6';
+        document.getElementById('propColorHex').textContent = el.color || '';
+    }
+
+    const isText = el.type === 'text';
+    document.getElementById('textProps').style.display = isText ? 'block' : 'none';
+    if (isText) {
+        document.getElementById('propText').value     = el.text || '';
+        document.getElementById('propFontSize').value = el.size || 40;
+        document.getElementById('propFont').value     = el.font || 'sans-serif';
+        document.getElementById('propBold').checked   = !!el.bold;
+        document.getElementById('propItalic').checked = !!el.italic;
+        document.getElementById('propAlign').value    = el.align || 'left';
+    }
+}
+
+function applyProp(prop, val) {
+    if (selected === null) return;
+    elements[selected][prop] = val;
+    if (prop === 'color') {
+        document.getElementById('propColorHex').textContent = val;
+        document.getElementById('propColor').value = val;
+    }
+    render();
+}
+
+// ── Layer list ────────────────────────────────────────────────────────────────
+function updateLayerList() {
+    const list = document.getElementById('layerList');
+    list.innerHTML = '';
+    [...elements].reverse().forEach((el, ri) => {
+        const i = elements.length - 1 - ri;
+        const div = document.createElement('div');
+        div.className = 'layer-item' + (i === selected ? ' selected' : '');
+        div.innerHTML = `<i class="bi bi-${el.type==='text'?'type':el.type==='image'?'image':'square'}"></i>
+                         <span>${el.label || el.type}</span>
+                         <button class="layer-del" onclick="event.stopPropagation();delLayer(${i})">✕</button>`;
+        div.onclick = () => { selected = i; render(); };
+        list.appendChild(div);
+    });
+}
+function delLayer(i) {
+    saveUndo();
+    elements.splice(i, 1);
+    if (selected === i) selected = null;
+    else if (selected > i) selected--;
+    render();
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+function getDesignJson() {
+    const safe = elements.map(el => {
+        const { _img, ...rest } = el; return rest;
+    });
+    return JSON.stringify({ bg: bgColor, elements: safe });
+}
+
+async function saveDesign(status) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    const statusEl = document.getElementById('saveStatus');
+    statusEl.textContent = 'Saving…';
+
+    // thumbnail — scale canvas to max 400px for thumbnail
+    const thumb = canvas.toDataURL('image/jpeg', 0.7);
+
+    const body = {
+        DesignId:         parseInt(document.getElementById('hdDesignId').value)  || 0,
+        EncId:            document.getElementById('hdEncId').value,
+        DoctorId:         parseInt(document.getElementById('hdDoctorId').value)  || 0,
+        DesignName:       document.getElementById('designName').value,
+        SourceTemplateId: parseInt(document.getElementById('hdTmplId').value)    || null,
+        DesignJson:       getDesignJson(),
+        ThumbnailPath:    thumb,
+        Status:           status,
+        Orientation:      document.getElementById('hdOrient').value,
+        WidthPx:          parseInt(document.getElementById('hdW').value),
+        HeightPx:         parseInt(document.getElementById('hdH').value)
+    };
+
+    try {
+        const res  = await fetch('/Design/Save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.isSuccess) {
+            if (data.id)    document.getElementById('hdDesignId').value = data.id;
+            if (data.encId) document.getElementById('hdEncId').value    = data.encId;
+            statusEl.textContent = '✓ Saved';
+            statusEl.style.color = '#4ade80';
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+            statusEl.textContent = '✗ ' + (data.msg || 'Save failed');
+            statusEl.style.color = '#f87171';
+        }
+    } catch(err) {
+        statusEl.textContent = '✗ Network error';
+        statusEl.style.color = '#f87171';
+    }
+}
+
+function exportPNG() {
+    const link = document.createElement('a');
+    link.download = (document.getElementById('designName').value || 'design') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveDesign('Saved'); }
+    if (e.key === 'v') setTool('select');
+    if (e.key === 't') setTool('text');
+    if (e.key === 'r') setTool('rect');
+    if (e.key === 'c') setTool('circle');
+    // arrow nudge
+    if (selected !== null) {
+        const step = e.shiftKey ? 10 : 1;
+        if (e.key === 'ArrowLeft')  { elements[selected].x -= step; e.preventDefault(); }
+        if (e.key === 'ArrowRight') { elements[selected].x += step; e.preventDefault(); }
+        if (e.key === 'ArrowUp')    { elements[selected].y -= step; e.preventDefault(); }
+        if (e.key === 'ArrowDown')  { elements[selected].y += step; e.preventDefault(); }
+        render();
+    }
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+// Pre-load any image elements
+elements.forEach(el => {
+    if (el.type === 'image' && el.src) {
+        const img = new Image();
+        img.onload = () => { el._img = img; render(); };
+        img.src = el.src;
+    }
+});
+
+window.addEventListener('load', () => { fitToViewport(); render(); });
+window.addEventListener('resize', fitToViewport);
+</script>
+</body>
+</html>

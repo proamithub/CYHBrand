@@ -1,0 +1,127 @@
+@model CYHBrandModel.DTO.BannerDesignDTO
+@{
+    ViewData["Title"] = "My Designs";
+}
+
+<div class="p-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="fw-bold mb-0">My Designs</h4>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> New Design
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-5">
+            <input type="text" name="searchKey" value="@Model?.SearchKey"
+                   class="form-control" placeholder="Search designs..." />
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Status</option>
+                <option value="Draft" selected="@(Model?.FilterStatus == "Draft")">Draft</option>
+                <option value="Saved" selected="@(Model?.FilterStatus == "Saved")">Saved</option>
+                <option value="Published" selected="@(Model?.FilterStatus == "Published")">Published</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search me-1"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Design Grid -->
+    @if (Model?.DesignList?.Any() == true)
+    {
+        <div class="row g-3">
+            @foreach (var d in Model.DesignList)
+            {
+                <div class="col-sm-6 col-md-4 col-xl-3">
+                    <div class="design-card">
+                        @if (!string.IsNullOrEmpty(d.ThumbnailPath) && !d.ThumbnailPath.StartsWith("data:"))
+                        {
+                            <img src="@d.ThumbnailPath" alt="@d.DesignName" />
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="aspect-ratio:1;background:linear-gradient(135deg,#667eea,#764ba2)">
+                                <i class="bi bi-grid-3x3-gap text-white" style="font-size:3rem"></i>
+                            </div>
+                        }
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="fw-semibold mb-0 text-truncate">@d.DesignName</h6>
+                                <span class="badge @(d.Status == "Published" ? "bg-success" : d.Status == "Saved" ? "bg-info" : "bg-secondary") ms-1">
+                                    @d.Status
+                                </span>
+                            </div>
+                            <small class="text-muted">@d.CreatedDate?.ToString("dd MMM yyyy")</small>
+                            <div class="d-flex gap-2 mt-2">
+                                <a asp-action="Edit" asp-route-id="@d.EncId"
+                                   class="btn btn-primary btn-sm flex-grow-1">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </a>
+                                <a asp-action="Detail" asp-route-id="@d.EncId"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm"
+                                        onclick="deleteDesign('@d.EncId', this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNo ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNo="@i"
+                               asp-route-searchKey="@Model.SearchKey"
+                               asp-route-status="@Model.FilterStatus">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-images display-4 d-block mb-2"></i>
+            <p>No designs yet. <a asp-action="Create">Create your first design!</a></p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+async function deleteDesign(encId, btn) {
+    if (!confirm('Delete this design?')) return;
+    btn.disabled = true;
+    const res = await fetch('/Design/Delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                   'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' },
+        body: 'id=' + encId
+    });
+    const data = await res.json();
+    if (data.isSuccess) location.reload();
+    else { alert(data.msg || 'Error'); btn.disabled = false; }
+}
+</script>
+@Html.AntiForgeryToken()
+}

@@ -1,0 +1,349 @@
+@model CYHBrandModel.DTO.DoctorMasterDTO
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="p-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-action="Profile" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+        <h4 class="fw-bold mb-0">Edit Profile</h4>
+    </div>
+
+    @if (TempData["SuccessMsg"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMsg"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#personal" type="button">
+                <i class="bi bi-person me-1"></i> Personal
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#clinic" type="button">
+                <i class="bi bi-hospital me-1"></i> Clinic
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#brand" type="button">
+                <i class="bi bi-palette me-1"></i> Brand Settings
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#photos" type="button">
+                <i class="bi bi-camera me-1"></i> Photos
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- ── Personal + Clinic combined in one form ── -->
+        <form asp-action="EditProfile" asp-controller="Doctor" method="post" id="profileForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="DoctorId" />
+
+            <!-- Personal Tab -->
+            <div class="tab-pane fade show active" id="personal">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h6 class="fw-semibold">Personal Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-medium">Full Name</label>
+                                <input asp-for="FullName" class="form-control" placeholder="Dr. John Smith" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DisplayName" class="form-label fw-medium">Display Name</label>
+                                <input asp-for="DisplayName" class="form-control" placeholder="Dr. John" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MobileNo" class="form-label fw-medium">Mobile No</label>
+                                <input asp-for="MobileNo" class="form-control" placeholder="+91 9876543210" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Specialty" class="form-label fw-medium">Specialty</label>
+                                <input asp-for="Specialty" class="form-control" placeholder="e.g. Cardiologist" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Qualifications" class="form-label fw-medium">Qualifications</label>
+                                <input asp-for="Qualifications" class="form-control" placeholder="MBBS, MD" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="WebsiteUrl" class="form-label fw-medium">Website URL</label>
+                                <input asp-for="WebsiteUrl" class="form-control" placeholder="https://example.com" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Bio" class="form-label fw-medium">Bio / About</label>
+                                <textarea asp-for="Bio" class="form-control" rows="3"
+                                          placeholder="Write a short bio..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Personal Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinic Tab -->
+            <div class="tab-pane fade" id="clinic">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h6 class="fw-semibold">Clinic Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="ClinicName" class="form-label fw-medium">Clinic Name</label>
+                                <input asp-for="ClinicName" class="form-control" placeholder="City Health Clinic" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="City" class="form-label fw-medium">City</label>
+                                <input asp-for="City" class="form-control" placeholder="Mumbai" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="State" class="form-label fw-medium">State</label>
+                                <input asp-for="State" class="form-control" placeholder="Maharashtra" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="PinCode" class="form-label fw-medium">PIN Code</label>
+                                <input asp-for="PinCode" class="form-control" placeholder="400001" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="ClinicAddress" class="form-label fw-medium">Full Address</label>
+                                <textarea asp-for="ClinicAddress" class="form-control" rows="2"
+                                          placeholder="Shop 12, XYZ Mall, Main Road..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Clinic Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- ── Brand Settings — separate AJAX form ── -->
+        <div class="tab-pane fade" id="brand">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="fw-semibold">Brand Settings</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Primary Color</label>
+                            <div class="input-group">
+                                <input type="color" id="PrimaryColorHex" value="@(Model?.PrimaryColorHex ?? "#2563eb")"
+                                       class="form-control form-control-color"
+                                       oninput="document.getElementById('primaryHexTxt').value=this.value" />
+                                <input type="text" id="primaryHexTxt" value="@(Model?.PrimaryColorHex ?? "#2563eb")"
+                                       class="form-control"
+                                       oninput="document.getElementById('PrimaryColorHex').value=this.value" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Secondary Color</label>
+                            <div class="input-group">
+                                <input type="color" id="SecondaryColorHex" value="@(Model?.SecondaryColorHex ?? "#7c3aed")"
+                                       class="form-control form-control-color"
+                                       oninput="document.getElementById('secondaryHexTxt').value=this.value" />
+                                <input type="text" id="secondaryHexTxt" value="@(Model?.SecondaryColorHex ?? "#7c3aed")"
+                                       class="form-control"
+                                       oninput="document.getElementById('SecondaryColorHex').value=this.value" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Preferred Font</label>
+                            <select id="PreferredFont" class="form-select">
+                                @foreach (var f in new[] { "Inter","Poppins","Roboto","Lato","Montserrat","Nunito","Open Sans" })
+                                {
+                                    <option value="@f" selected="@(Model?.PreferredFont == f)">@f</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 rounded border d-flex align-items-center gap-3"
+                                 style="background:#f8fafc">
+                                <div style="width:40px;height:40px;border-radius:8px;background:var(--prev-primary,#2563eb)"
+                                     id="previewPrimary"></div>
+                                <div style="width:40px;height:40px;border-radius:8px;background:var(--prev-secondary,#7c3aed)"
+                                     id="previewSecondary"></div>
+                                <span id="previewFont" class="fw-medium">Font Preview — @(Model?.PreferredFont ?? "Inter")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary" onclick="saveBrand()">
+                            <i class="bi bi-save me-1"></i> Save Brand Settings
+                        </button>
+                        <span id="brandMsg" class="ms-3 small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Photos Tab ── -->
+        <div class="tab-pane fade" id="photos">
+            <div class="row g-4">
+                <!-- Profile Pic -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="fw-semibold mb-3">Profile Photo</h6>
+                            <div class="mb-3">
+                                @if (!string.IsNullOrEmpty(Model?.ProfilePic))
+                                {
+                                    <img id="profilePicPreview" src="@Model.ProfilePic"
+                                         class="rounded-circle" width="100" height="100" style="object-fit:cover" />
+                                }
+                                else
+                                {
+                                    <div id="profilePicPreview"
+                                         class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                                         style="width:100px;height:100px;font-size:2rem">
+                                        @(Model?.FullName?.Substring(0, 1).ToUpper() ?? "D")
+                                    </div>
+                                }
+                            </div>
+                            <label class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-upload me-1"></i> Upload Photo
+                                <input type="file" id="profilePicFile" accept=".jpg,.jpeg,.png" hidden
+                                       onchange="uploadFile(this, '/Doctor/UploadProfilePic', 'profilePicPreview', 'profilePicMsg')" />
+                            </label>
+                            <div id="profilePicMsg" class="small mt-2"></div>
+                            <p class="text-muted small mt-2">JPG/PNG, max 5 MB</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Clinic Logo -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="fw-semibold mb-3">Clinic Logo</h6>
+                            <div class="mb-3">
+                                @if (!string.IsNullOrEmpty(Model?.ClinicLogo))
+                                {
+                                    <img id="clinicLogoPreview" src="@Model.ClinicLogo"
+                                         class="rounded" height="80" style="object-fit:contain" />
+                                }
+                                else
+                                {
+                                    <div id="clinicLogoPreview"
+                                         class="bg-light border rounded d-inline-flex align-items-center justify-content-center"
+                                         style="width:100px;height:80px">
+                                        <i class="bi bi-building text-muted fs-3"></i>
+                                    </div>
+                                }
+                            </div>
+                            <label class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-upload me-1"></i> Upload Logo
+                                <input type="file" id="clinicLogoFile" accept=".jpg,.jpeg,.png" hidden
+                                       onchange="uploadFile(this, '/Doctor/UploadClinicLogo', 'clinicLogoPreview', 'clinicLogoMsg')" />
+                            </label>
+                            <div id="clinicLogoMsg" class="small mt-2"></div>
+                            <p class="text-muted small mt-2">JPG/PNG, max 5 MB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end tab-content -->
+</div>
+
+@section Scripts {
+<script>
+const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+// ── Brand color live preview ──────────────────────────────────────
+document.getElementById('PrimaryColorHex').addEventListener('input', e => {
+    document.getElementById('previewPrimary').style.background = e.target.value;
+});
+document.getElementById('SecondaryColorHex').addEventListener('input', e => {
+    document.getElementById('previewSecondary').style.background = e.target.value;
+});
+document.getElementById('PreferredFont').addEventListener('change', e => {
+    document.getElementById('previewFont').style.fontFamily = e.target.value;
+    document.getElementById('previewFont').textContent = 'Font Preview — ' + e.target.value;
+});
+
+// ── Save brand via AJAX ───────────────────────────────────────────
+async function saveBrand() {
+    const body = new URLSearchParams({
+        PrimaryColorHex:   document.getElementById('PrimaryColorHex').value,
+        SecondaryColorHex: document.getElementById('SecondaryColorHex').value,
+        PreferredFont:     document.getElementById('PreferredFont').value
+    });
+    const res = await fetch('/Doctor/UpdateBrandSettings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                   'RequestVerificationToken': token },
+        body: body.toString()
+    });
+    const data = await res.json();
+    const el = document.getElementById('brandMsg');
+    el.textContent = data.msg;
+    el.className = 'ms-3 small ' + (data.isSuccess ? 'text-success' : 'text-danger');
+}
+
+// ── File upload helper ────────────────────────────────────────────
+async function uploadFile(input, url, previewId, msgId) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    const msgEl = document.getElementById(msgId);
+    msgEl.textContent = 'Uploading...';
+    msgEl.className = 'small mt-2 text-muted';
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'RequestVerificationToken': token },
+        body: formData
+    });
+    const data = await res.json();
+    if (data.isSuccess) {
+        const preview = document.getElementById(previewId);
+        if (preview.tagName === 'IMG') {
+            preview.src = data.filePath;
+        } else {
+            // replace the placeholder div with an img
+            const img = document.createElement('img');
+            img.id = previewId;
+            img.src = data.filePath;
+            img.className = 'rounded-circle';
+            img.width = 100; img.height = 100;
+            img.style.objectFit = 'cover';
+            preview.replaceWith(img);
+        }
+        msgEl.textContent = data.msg;
+        msgEl.className = 'small mt-2 text-success';
+    } else {
+        msgEl.textContent = data.msg;
+        msgEl.className = 'small mt-2 text-danger';
+    }
+}
+</script>
+}
+

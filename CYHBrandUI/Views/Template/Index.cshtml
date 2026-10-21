@@ -1,0 +1,116 @@
+@model CYHBrandModel.DTO.BannerTemplateDTO
+@{
+    ViewData["Title"] = "Templates";
+}
+
+<div class="p-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="fw-bold mb-0">Browse Templates</h4>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="searchKey" value="@Model?.SearchKey"
+                   class="form-control" placeholder="Search templates..." />
+        </div>
+        <div class="col-md-3">
+            <select name="categoryId" class="form-select">
+                <option value="">All Categories</option>
+                @if (Model?.CategoryList != null)
+                {
+                    foreach (var c in Model.CategoryList)
+                    {
+                        <option value="@c.CategoryId" selected="@(Model.CategoryId == c.CategoryId)">
+                            @c.CategoryName
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="orientation" class="form-select">
+                <option value="">All Orientations</option>
+                <option value="Square" selected="@(Model?.Orientation == "Square")">Square</option>
+                <option value="Landscape" selected="@(Model?.Orientation == "Landscape")">Landscape</option>
+                <option value="Portrait" selected="@(Model?.Orientation == "Portrait")">Portrait</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search me-1"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Template Grid -->
+    @if (Model?.TemplateList?.Any() == true)
+    {
+        <div class="row g-3">
+            @foreach (var t in Model.TemplateList)
+            {
+                <div class="col-sm-6 col-md-4 col-xl-3">
+                    <div class="template-card">
+                        @if (!string.IsNullOrEmpty(t.ThumbnailPath))
+                        {
+                            <img src="@t.ThumbnailPath" alt="@t.TemplateName" />
+                        }
+                        else
+                        {
+                            <div class="bg-gradient d-flex align-items-center justify-content-center"
+                                 style="aspect-ratio:1;background:linear-gradient(135deg,#667eea,#764ba2)">
+                                <i class="bi bi-image text-white" style="font-size:3rem"></i>
+                            </div>
+                        }
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="fw-semibold mb-1 text-truncate">@t.TemplateName</h6>
+                                @if (t.IsPremium)
+                                {
+                                    <span class="badge bg-warning text-dark ms-2">PRO</span>
+                                }
+                            </div>
+                            <small class="text-muted">@t.Orientation · @t.CategoryName</small>
+                            <div class="d-flex gap-2 mt-2">
+                                <a asp-action="Preview" asp-route-id="@t.TemplateId"
+                                   class="btn btn-outline-secondary btn-sm flex-grow-1">Preview</a>
+                                <form asp-action="UseTemplate" method="post" class="flex-grow-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="templateId" value="@t.TemplateId" />
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">Use</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNo ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNo="@i"
+                               asp-route-searchKey="@Model.SearchKey"
+                               asp-route-categoryId="@Model.CategoryId"
+                               asp-route-orientation="@Model.Orientation">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-layout-wtf display-4 d-block mb-2"></i>
+            <p>No templates found. Try a different filter.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,103 @@
+@model CYHBrandModel.DTO.DoctorMasterDTO
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="p-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="fw-bold mb-0">My Profile</h4>
+        <a asp-action="EditProfile" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i> Edit Profile
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Avatar & Brand -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <div class="mb-3">
+                    @if (!string.IsNullOrEmpty(Model?.ProfilePic))
+                    {
+                        <img src="@Model.ProfilePic" class="rounded-circle" width="100" height="100" style="object-fit:cover" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                             style="width:100px;height:100px;font-size:2.5rem">
+                            @(Model?.FullName?.Substring(0, 1).ToUpper() ?? "D")
+                        </div>
+                    }
+                </div>
+                <h5 class="fw-bold mb-0">@(Model?.DisplayName ?? Model?.FullName)</h5>
+                <p class="text-muted small">@Model?.Specialty</p>
+                <hr />
+                <!-- Brand Colors -->
+                <div class="text-start">
+                    <small class="text-muted fw-semibold">Brand Colors</small>
+                    <div class="d-flex gap-2 mt-2">
+                        <div style="width:32px;height:32px;border-radius:6px;background:@(Model?.PrimaryColorHex ?? "#2563eb")"
+                             title="Primary"></div>
+                        <div style="width:32px;height:32px;border-radius:6px;background:@(Model?.SecondaryColorHex ?? "#7c3aed")"
+                             title="Secondary"></div>
+                    </div>
+                    <div class="mt-2 small text-muted">Font: <strong>@(Model?.PreferredFont ?? "Inter")</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Details -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-semibold mb-3 border-bottom pb-2">Personal Information</h6>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Full Name</label>
+                            <p class="fw-medium">@(Model?.FullName ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Email</label>
+                            <p class="fw-medium">@(Model?.Email ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Mobile</label>
+                            <p class="fw-medium">@(Model?.MobileNo ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Specialty</label>
+                            <p class="fw-medium">@(Model?.Specialty ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Qualifications</label>
+                            <p class="fw-medium">@(Model?.Qualifications ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Website</label>
+                            <p class="fw-medium">@(Model?.WebsiteUrl ?? "—")</p>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-semibold mb-3 border-bottom pb-2 mt-3">Clinic Information</h6>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <label class="text-muted small">Clinic Name</label>
+                            <p class="fw-medium">@(Model?.ClinicName ?? "—")</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small">City / State</label>
+                            <p class="fw-medium">@(Model?.City) @(Model?.State)</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">Clinic Address</label>
+                            <p class="fw-medium">@(Model?.ClinicAddress ?? "—")</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">Bio</label>
+                            <p class="fw-medium">@(Model?.Bio ?? "—")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
