@@ -3,8 +3,8 @@
     ViewData["Title"] = "Design Editor";
     Layout = null;
     var template = ViewBag.Template as CYHBrandModel.DTO.BannerTemplateDTO;
-    int canvasW = Model?.WidthPx  ?? template?.WidthPx  ?? 1080;
-    int canvasH = Model?.HeightPx ?? template?.HeightPx ?? 1080;
+    int canvasW = (Model?.WidthPx > 0) ? Model.WidthPx.Value : (template?.WidthPx > 0 ? template.WidthPx.Value : 1080);
+    int canvasH = (Model?.HeightPx > 0) ? Model.HeightPx.Value : (template?.HeightPx > 0 ? template.HeightPx.Value : 1080);
     var existingJson = Model?.DesignJson ?? template?.TemplateJson ?? "null";
     string orientation = Model?.Orientation ?? template?.Orientation ?? ((canvasW == canvasH) ? "Square" : (canvasW < canvasH) ? "Portrait" : "Landscape");
 }
@@ -504,10 +504,18 @@ const HANDLE = 8; // resize handle size
 const existingJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(existingJson));
 if (existingJson && existingJson !== 'null') {
     try {
-        const d = JSON.parse(existingJson);
-        if (d.bg)       { bgColor = d.bg; document.getElementById('bgColor').value = bgColor;
-                          document.getElementById('bgColorHex').value = bgColor; }
-        if (d.elements) elements = d.elements.map(normalizeEl);
+        let d = JSON.parse(existingJson);
+        if (typeof d === 'string') d = JSON.parse(d);
+        if (d.bg) {
+            bgColor = d.bg;
+            const bgEl = document.getElementById('bgColor');
+            const bgHexEl = document.getElementById('bgColorHex');
+            if (bgEl) bgEl.value = bgColor;
+            if (bgHexEl) bgHexEl.value = bgColor;
+        }
+        if (d.elements && Array.isArray(d.elements)) {
+            elements = d.elements.map(normalizeEl);
+        }
     } catch(e) { console.warn('Could not parse saved JSON', e); }
 }
 
