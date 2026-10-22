@@ -404,8 +404,8 @@ namespace CYHBrandUI.Services
                             ?? "";
 
             var client = _httpClientFactory.CreateClient();
-            int timeoutSec = _config.GetValue<int>("AIContentGeneration:TimeoutSeconds", 15);
-            client.Timeout = TimeSpan.FromSeconds(timeoutSec > 0 ? timeoutSec : 15);
+            // Fast timeout to guarantee zero UI freezing / hanging
+            client.Timeout = TimeSpan.FromSeconds(3);
 
             // If an API key is provided, use the configured official provider (OpenAI or Gemini)
             if (!string.IsNullOrWhiteSpace(apiKey))
@@ -421,8 +421,7 @@ namespace CYHBrandUI.Services
                 }
             }
 
-            // If no API key configured, use 100% Free Online AI Engine (Zero Cost, No Key Needed)
-            _logger.LogInformation("Using 100% Free Online AI Engine (isRandom: {IsRandom}) for topic: {Topic}", isRandom, targetTopic);
+            // If no API key configured, use Free Online AI with fast 2-second timeout and instant fallback
             return await CallFreeOnlineAiAsync(client, targetTopic, targetLang, isRandom);
         }
 
@@ -430,6 +429,7 @@ namespace CYHBrandUI.Services
         {
             try
             {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.0));
                 string systemPrompt;
                 string userPrompt;
                 string seed = $"{DateTime.UtcNow:HHmmssfff}_{Guid.NewGuid():N}";
@@ -474,20 +474,19 @@ namespace CYHBrandUI.Services
                 };
 
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-                var response = await client.PostAsync("https://text.pollinations.ai/", jsonContent);
+                var response = await client.PostAsync("https://text.pollinations.ai/", jsonContent, cts.Token);
                 if (!response.IsSuccessStatusCode)
                 {
-                    string err = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning("Free Online AI returned status {Status}: {Error}", response.StatusCode, err);
+                    // Rate limit or service busy - fallback immediately with zero delay
                     return null;
                 }
 
-                string respString = await response.Content.ReadAsStringAsync();
+                string respString = await response.Content.ReadAsStringAsync(cts.Token);
                 return ParseAiContentJson(respString);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogWarning(ex, "CallFreeOnlineAiAsync failed for topic: {Topic}", topic);
+                // Instant fallback on timeout or connection lag
                 return null;
             }
         }
@@ -524,15 +523,16 @@ namespace CYHBrandUI.Services
             requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
             requestMessage.Content = jsonContent;
 
-            var response = await client.SendAsync(requestMessage);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3.5));
+            var response = await client.SendAsync(requestMessage, cts.Token);
             if (!response.IsSuccessStatusCode)
             {
-                string err = await response.Content.ReadAsStringAsync();
+                string err = await response.Content.ReadAsStringAsync(cts.Token);
                 _logger.LogWarning("OpenAI API returned status {Status}: {Error}", response.StatusCode, err);
                 return null;
             }
 
-            string respString = await response.Content.ReadAsStringAsync();
+            string respString = await response.Content.ReadAsStringAsync(cts.Token);
             dynamic? parsed = JsonConvert.DeserializeObject(respString);
             string? rawContent = parsed?.choices?[0]?.message?.content?.ToString();
 
@@ -570,15 +570,16 @@ namespace CYHBrandUI.Services
             };
 
             var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-            var response = await client.PostAsync(url, jsonContent);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3.5));
+            var response = await client.PostAsync(url, jsonContent, cts.Token);
             if (!response.IsSuccessStatusCode)
             {
-                string err = await response.Content.ReadAsStringAsync();
+                string err = await response.Content.ReadAsStringAsync(cts.Token);
                 _logger.LogWarning("Gemini API returned status {Status}: {Error}", response.StatusCode, err);
                 return null;
             }
 
-            string respString = await response.Content.ReadAsStringAsync();
+            string respString = await response.Content.ReadAsStringAsync(cts.Token);
             dynamic? parsed = JsonConvert.DeserializeObject(respString);
             string? rawContent = parsed?.candidates?[0]?.content?.parts?[0]?.text?.ToString();
 
@@ -641,13 +642,40 @@ namespace CYHBrandUI.Services
 
             if (isRandom)
             {
-                var randomKeys = new[] { "heart", "diabet", "yoga", "doctor", "diwali", "blood", "dengue", "child", "eye", "dent", "mental", "bone", "monsoon" };
+                var randomKeys = new[] { "heart", "diabet", "yoga", "doctor", "diwali", "blood", "dengue", "child", "eye", "dent", "mental", "bone", "monsoon", "kidney", "skin", "digest", "hypertens" };
                 topic = randomKeys[Random.Shared.Next(randomKeys.Length)];
             }
 
             // Hindi language bank
             if (language == "hindi")
             {
+                if (topic.Contains("kidney") || topic.Contains("gurde"))
+                {
+                    return ("गुर्दा स्वास्थ्य जागरूकता", "स्वस्थ किडनी, स्वस्थ जीवन की कुंजी", new List<string>
+                    {
+                        "प्रतिदिन 8-10 गिलास पर्याप्त पानी पीकर हाइड्रेटेड रहें",
+                        "दर्द निवारक (painkillers) दवाओं का अनावश्यक उपयोग न करें",
+                        "रक्तचाप और शुगर को नियंत्रित रखकर किडनी सुरक्षित रखें"
+                    });
+                }
+                if (topic.Contains("skin") || topic.Contains("twacha"))
+                {
+                    return ("त्वचा स्वास्थ्य सुरक्षा", "प्राकृतिक निखार और त्वचा की देखभाल", new List<string>
+                    {
+                        "धूप में निकलने से पहले सनस्क्रीन (SPF 30+) अवश्य लगाएं",
+                        "त्वचा को नमी देने के लिए पर्याप्त पानी व नारियल तेल का उपयोग करें",
+                        "किसी भी नए तिल या मस्से में बदलाव पर चर्म रोग विशेषज्ञ से मिलें"
+                    });
+                }
+                if (topic.Contains("digest") || topic.Contains("pet") || topic.Contains("gas"))
+                {
+                    return ("पाचन स्वास्थ्य सलाह", "पेट रहेगा स्वस्थ, तो तन रहेगा तंदुरुस्त", new List<string>
+                    {
+                        "आहार में फाइबर युक्त फल, सलाद व हरी सब्जियां बढ़ाएं",
+                        "भोजन के तुरंत बाद लेटने से बचें और 100 कदम टहलें",
+                        "दही व छाछ जैसे प्रोबायोटिक्स का नियमित सेवन करें"
+                    });
+                }
                 if (topic.Contains("heart") || topic.Contains("cardio") || topic.Contains("dil"))
                 {
                     return ("हृदय स्वास्थ्य जागरूकता", "स्वस्थ हृदय, दीर्घायु जीवन", new List<string>
@@ -925,6 +953,36 @@ namespace CYHBrandUI.Services
                     "Adopt active daily mobility and complete 10,000 steps daily",
                     "Choose fresh local seasonal vegetables and minimize ultra-processed foods",
                     "Pledge to complete timely immunizations and annual preventive checks"
+                });
+            }
+
+            if (topic.Contains("kidney") || topic.Contains("renal"))
+            {
+                return ("Kidney Health Advisory", "Protect Your Kidneys, Guard Your Life", new List<string>
+                {
+                    "Drink 8-10 glasses of clean water daily to flush metabolic toxins",
+                    "Avoid unnecessary or unprescribed long-term painkiller medications",
+                    "Keep blood pressure and blood sugar strictly within target ranges"
+                });
+            }
+
+            if (topic.Contains("skin") || topic.Contains("derma"))
+            {
+                return ("Dermatology & Skin Barrier", "Nourish Your Skin, Shield from Sun Damage", new List<string>
+                {
+                    "Apply broad-spectrum SPF 30+ sunscreen 20 minutes before stepping out",
+                    "Keep skin hydrated with daily moisturizers and adequate water intake",
+                    "Consult a dermatologist for any suspicious changing moles or lesions"
+                });
+            }
+
+            if (topic.Contains("digest") || topic.Contains("gut") || topic.Contains("gerd") || topic.Contains("acid"))
+            {
+                return ("Digestive Wellness", "Healthy Gut, Strong Immunity & Vitality", new List<string>
+                {
+                    "Increase dietary soluble fiber with whole grains, salads, and fruits",
+                    "Avoid lying down immediately after meals; take a light 15-minute walk",
+                    "Include natural probiotics like yogurt and fermented foods in your diet"
                 });
             }
 

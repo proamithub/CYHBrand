@@ -102,8 +102,11 @@ try
     // ── In-Memory Cache (templates, categories, dashboard stats) ──────────────
     builder.Services.AddMemoryCache();
 
-    // ── Response Compression ──────────────────────────────────────────────────
-    builder.Services.AddResponseCompression(o => { o.EnableForHttps = true; });
+    // ── Response Compression (Disabled in Development to prevent Browser Link hangs) ──
+    if (!builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddResponseCompression(o => { o.EnableForHttps = true; });
+    }
 
 #if DEBUG
     if (builder.Environment.IsDevelopment())
@@ -118,9 +121,9 @@ try
     {
         app.UseExceptionHandler("/Home/Error");
         app.UseHsts();
+        app.UseResponseCompression();
     }
 
-    app.UseResponseCompression();
     app.UseHttpsRedirection();
 
     // Static files — aggressive browser caching (1 year for lib assets)
