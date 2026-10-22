@@ -7,147 +7,53 @@
 }
 
 <div class="row g-4">
-    <!-- ── Left Column: AI Prompt & Configuration ── -->
+    <!-- ── Left Column: Clean AI Topic Input & Settings ── -->
     <div class="col-lg-5">
-        <!-- ── ⚡ 1-Click Auto-Generate Banner Feature Card ── -->
-        <div class="card border-0 text-white shadow-sm mb-4" style="background:linear-gradient(135deg, #091E42 0%, #173873 55%, #0EA5A0 100%); border-radius:14px; overflow:hidden;">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size:0.75rem;">
-                        <i class="bi bi-lightning-charge-fill me-1"></i>INSTANT 1-CLICK AI
-                    </span>
-                    <span class="badge rounded-pill bg-white text-dark bg-opacity-25" style="font-size:0.7rem;">
-                        Random Content on Every Click
-                    </span>
-                </div>
-                <h5 class="fw-bold text-white mb-1">Auto-Generate Full Banner</h5>
-                <p class="text-white-50 small mb-3">
-                    Click below to generate a fresh, random clinical awareness banner live from Online AI on every single click.
-                </p>
-
-                <!-- Big 1-Click Action Button -->
-                <button type="button" class="btn btn-warning text-dark fw-bold w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2 shadow" onclick="instantAutoGenerate()" style="border-radius:12px;font-size:1.02rem;">
-                    <i class="bi bi-shuffle fs-5"></i>
-                    <span>⚡ Auto-Generate Full Banner (Random Live AI)</span>
-                </button>
-
-                <!-- Quick Ready Themes Pills -->
-                <div class="small fw-semibold text-white-50 mb-2">Or pick a 1-click clinical campaign:</div>
-                <div class="d-flex flex-wrap gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(0)" title="Auto-generate Heart Health banner">
-                        ❤️ Heart
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(1)" title="Auto-generate Diabetes banner">
-                        🩸 Diabetes
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(2)" title="Auto-generate Monsoon Flu banner">
-                        🌧️ Flu/Monsoon
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(3)" title="Auto-generate Nutrition banner">
-                        🥗 Nutrition
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(4)" title="Auto-generate Child Health banner">
-                        👶 Pediatric
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(5)" title="Auto-generate Eye Care banner">
-                        👁️ Eye Care
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(6)" title="Auto-generate Mental Wellness banner">
-                        🧠 Mental Peace
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(8)" title="Auto-generate Hindi Heart Banner">
-                        🇮🇳 हिंदी हृदय
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <div class="cyh-card shadow-sm mb-4">
             <div class="cyh-card-header d-flex align-items-center justify-content-between">
-                <h6 class="cyh-card-title mb-0">
-                    <i class="bi bi-stars me-2" style="color:#0EA5A0;"></i>AI Creative Controls
-                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-1 rounded bg-teal-subtle text-teal">
+                        <i class="bi bi-stars" style="color:#0EA5A0;"></i>
+                    </span>
+                    <h6 class="cyh-card-title mb-0">AI Banner Studio</h6>
+                </div>
                 <span class="badge rounded-pill bg-light text-primary border" style="font-size:0.75rem;">
-                    <i class="bi bi-cpu me-1"></i>Medical Engine v2.0
+                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Live AI Search
                 </span>
             </div>
             
             <div class="cyh-card-body">
-                <!-- 1. Topic & Quick Chips -->
+                <!-- 1. Topic Input with Live Search -->
                 <div class="mb-3">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label class="cyh-form-label fw-bold mb-0">1. Select or Enter Medical Topic</label>
+                        <label class="cyh-form-label fw-bold mb-0" for="aiTopic">
+                            <i class="bi bi-search me-1" style="color:#0EA5A0;"></i>Enter Medical Topic
+                        </label>
                         <div class="d-flex align-items-center gap-2">
-                            <a href="/Calendar" class="btn btn-link btn-sm text-decoration-none p-0 text-primary fw-semibold" style="font-size:0.75rem;" title="Browse Indian Medical Calendar">
+                            <a href="/Calendar" class="btn btn-link btn-sm text-decoration-none p-0 text-primary fw-semibold" style="font-size:0.75rem;" title="View Health Calendar">
                                 <i class="bi bi-calendar-event me-1"></i>Health Calendar
                             </a>
                             <span class="text-muted small">·</span>
-                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-teal fw-semibold" onclick="shuffleTopic()" title="Suggest a random medical awareness topic" style="font-size:0.75rem;color:#0EA5A0 !important;">
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-teal fw-semibold" onclick="suggestRandomTopic()" title="Random medical topic" style="font-size:0.75rem;color:#0EA5A0 !important;">
                                 <i class="bi bi-shuffle me-1"></i>Suggest Topic
                             </button>
                         </div>
                     </div>
 
-                    <!-- Category Switcher Tabs -->
-                    <div class="d-flex gap-2 mb-2 pb-1 border-bottom" style="font-size:0.78rem;">
-                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-bold topic-tab active" id="tabGeneral" onclick="switchTopicTab('general')" style="color:#0EA5A0 !important;">
-                            🏥 Clinical Topics
-                        </button>
-                        <span class="text-muted">|</span>
-                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-secondary fw-semibold topic-tab" id="tabIndian" onclick="switchTopicTab('indian')">
-                            🇮🇳 Indian Calendar &amp; Festivals
-                        </button>
-                    </div>
-
-                    <!-- Clinical Chips -->
-                    <div id="chipsGeneral" class="d-flex flex-wrap gap-1 mb-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Heart Health & Blood Pressure')">
-                            ❤️ Heart Care
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Diabetes Management & Sugar Control')">
-                            🩸 Diabetes
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Monsoon & Flu Prevention Tips')">
-                            🌧️ Seasonal Flu
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Balanced Nutrition & Daily Diet')">
-                            🥗 Nutrition
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Child Growth & Vaccination Schedule')">
-                            👶 Pediatric Care
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Daily Dental Hygiene & Oral Care')">
-                            🦷 Dental Care
+                    <div class="input-group">
+                        <input type="text" id="aiTopic" class="form-control cyh-form-control shadow-none"
+                               placeholder="e.g. Heart Care, Diabetes, Dengue, Thyroid, Child Health..."
+                               value="@ViewBag.PreloadTopic"
+                               autocomplete="off"
+                               style="font-size:0.95rem; border-color:#CBD5E1;" />
+                        <button type="button" id="btnLiveSearch" class="btn btn-cyh-teal px-3 d-flex align-items-center gap-1" onclick="triggerAiGeneration()" title="Search & Generate Banner Live with AI">
+                            <i class="bi bi-lightning-charge-fill text-warning"></i>
+                            <span class="fw-bold" id="btnSearchText">Search AI</span>
                         </button>
                     </div>
-
-                    <!-- Indian Calendar & Festivals Chips -->
-                    <div id="chipsIndian" class="d-flex flex-wrap gap-1 mb-2" style="display:none !important;">
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'National Doctor\'s Day: Honoring Healers & Preventive Health Checkups')">
-                            🩺 Doctor's Day (July 1)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'International Yoga Day: Daily Asanas, Pranayama & Mental Peace')">
-                            🧘 Yoga Day (June 21)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'World Blood Donor Day: Give Blood, Save Precious Lives')">
-                            🩸 Blood Donor Day (June 14)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Safe & Healthy Green Diwali: Clean Lungs, Burn Care & Sugar Control')">
-                            🪔 Diwali Safe Health
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'National Nutrition Week: Balanced Indian Thali & Pure Eating')">
-                            🥗 Nutrition Week (Sep 1-7)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'National Dengue Day: Stopping Mosquito Breeding & Platelet Care')">
-                            🦟 Dengue Day (May 16)
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Swasth Bharat: National Health, Hygiene & Wellness Pledge')">
-                            🇮🇳 Swasth Bharat (Jan 26 / Aug 15)
-                        </button>
+                    <div class="form-text text-muted small mt-1">
+                        Type any clinical disease or awareness theme & press <kbd>Enter</kbd> to search live.
                     </div>
-
-                    <textarea id="aiTopic" class="form-control cyh-form-control" rows="2"
-                              placeholder="e.g. 5 essential tips to prevent high blood pressure..."></textarea>
                 </div>
 
                 <!-- 2. Language Selection -->
@@ -315,15 +221,15 @@
                 
                 <!-- Empty Placeholder -->
                 <div id="aiEmptyState" class="text-center py-5">
-                    <div style="width:260px;height:260px;margin:auto;
+                    <div style="width:240px;height:240px;margin:auto;
                                 background:linear-gradient(135deg,#1B2B6B,#0EA5A0);
                                 border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 14px 35px rgba(27,43,107,.2);">
-                        <i class="bi bi-stars text-white" style="font-size:4.5rem;opacity:.95;"></i>
+                        <i class="bi bi-stars text-white" style="font-size:4rem;opacity:.95;"></i>
                         <span class="text-white mt-2 fw-semibold opacity-90">AI Banner Studio</span>
                     </div>
                     <h5 class="mt-4 fw-bold text-dark">Your Banner Will Appear Here</h5>
                     <p class="text-muted small mx-auto" style="max-width:380px;">
-                        Choose a medical topic on the left, pick your favorite language and style, then click <strong>Generate with AI</strong>.
+                        Enter any medical topic or clinical theme on the left, then click <strong>Search AI</strong> or press <strong>Enter</strong>.
                     </p>
                 </div>
 
@@ -378,86 +284,28 @@ let currentAiStyle = 'Modern';
 let generatedData = null;
 let currentZoom = 1.0;
 
-// Curated 1-Click Campaigns for Auto-Generation (Including Indian Calendar & Festivals)
-const AUTO_CAMPAIGNS = [
-    { topic: 'Heart Health & Blood Pressure: 3 Proven Rules', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'Diabetes Management & Sugar Control Habits', style: 'Minimal', lang: 'English', orient: 'Square' },
-    { topic: 'National Doctor\'s Day: Honoring Healers & Preventive Health Checkups', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'International Yoga Day: Daily Asanas, Pranayama & Mental Peace', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'World Blood Donor Day: Give Blood, Save Precious Lives', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'Safe & Healthy Green Diwali: Clean Lungs, Burn Care & Sugar Control', style: 'Colorful', lang: 'English', orient: 'Square' },
-    { topic: 'Monsoon Flu & Waterborne Disease Prevention', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'Healthy Daily Nutrition & Clean Eating Plate', style: 'Colorful', lang: 'English', orient: 'Square' },
-    { topic: 'Child Vaccination & Physical Growth Milestones', style: 'Minimal', lang: 'English', orient: 'Square' },
-    { topic: 'Preventing Digital Eye Strain & 20-20-20 Rule', style: 'Professional', lang: 'English', orient: 'Square' },
-    { topic: 'National Dengue Day: Stopping Mosquito Breeding & Platelet Care', style: 'Professional', lang: 'English', orient: 'Square' },
-    { topic: 'Swasth Bharat: National Health, Hygiene & Wellness Pledge', style: 'Modern', lang: 'English', orient: 'Square' },
-    { topic: 'हृदय स्वास्थ्य और उच्च रक्तचाप से बचाव के उपाय', style: 'Modern', lang: 'Hindi', orient: 'Square' },
-    { topic: 'मधुमेह नियंत्रण और संतुलित खानपान के नियम', style: 'Colorful', lang: 'Hindi', orient: 'Square' },
-    { topic: 'राष्ट्रीय डॉक्टर दिवस: स्वास्थ्य रक्षक और नियमित स्वास्थ्य जांच', style: 'Modern', lang: 'Hindi', orient: 'Square' },
-    { topic: 'अंतर्राष्ट्रीय योग दिवस: प्राणायाम और तनाव मुक्ति के सरल नियम', style: 'Modern', lang: 'Hindi', orient: 'Square' },
-    { topic: 'दीपावली स्वास्थ्य सुरक्षा: मधुमेह अनुकूल मिठाई और प्रदूषण से बचाव', style: 'Colorful', lang: 'Hindi', orient: 'Square' },
-    { topic: 'डेंगू और संक्रामक बुखार से बचाव के जरूरी उपाय', style: 'Professional', lang: 'Hindi', orient: 'Square' }
+const SAMPLE_TOPICS = [
+    'Heart Health & Blood Pressure Control',
+    'Diabetes Management & Balanced Diet Habits',
+    'Dengue Fever Prevention & Platelet Care',
+    'Thyroid Health & Metabolism Care',
+    'Asthma & Clean Air Respiratory Tips',
+    'Pediatric Nutrition & Vaccination Milestones',
+    'Digital Eye Strain & 20-20-20 Rule',
+    'Bone Health & Calcium Intake for Adults',
+    'Daily Dental Hygiene & Gum Protection',
+    'Mental Wellness & Stress Reduction Tips',
+    'हृदय स्वास्थ्य और रक्तचाप नियंत्रण के उपाय',
+    'मधुमेह नियंत्रण और संतुलित खानपान',
+    'डेंगू और मौसमी बुखार से बचाव',
+    'थायराइड स्वास्थ्य और संतुलित दिनचर्या'
 ];
 
-function instantAutoGenerate(presetIdx = null) {
-    // Reset topic chips active styling
-    document.querySelectorAll('.topic-chip').forEach(b => {
-        b.classList.remove('btn-teal', 'text-white');
-        b.classList.add('btn-outline-secondary');
-        b.style.backgroundColor = '';
-        b.style.borderColor = '';
-    });
-
-    if (presetIdx !== null && presetIdx !== undefined && presetIdx >= 0 && presetIdx < AUTO_CAMPAIGNS.length) {
-        const item = AUTO_CAMPAIGNS[presetIdx];
-        document.getElementById('aiTopic').value = item.topic;
-        const langSelect = document.getElementById('aiLanguage');
-        if (langSelect) langSelect.value = item.lang;
-        const orientSelect = document.getElementById('aiOrientation');
-        if (orientSelect) orientSelect.value = item.orient;
-        setAiStyleByName(item.style);
-    } else {
-        // Pure Random from Live Online AI on every click
-        document.getElementById('aiTopic').value = "RANDOM";
-        const styles = ['Modern', 'Minimal', 'Colorful', 'Professional'];
-        const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-        setAiStyleByName(randomStyle);
-    }
-
-    // Trigger AI Generation immediately
-    triggerAiGeneration();
-}
-
-function shuffleTopic() {
-    const rand = AUTO_CAMPAIGNS[Math.floor(Math.random() * AUTO_CAMPAIGNS.length)];
+function suggestRandomTopic() {
+    const rand = SAMPLE_TOPICS[Math.floor(Math.random() * SAMPLE_TOPICS.length)];
     const el = document.getElementById('aiTopic');
-    el.value = rand.topic;
+    el.value = rand;
     el.focus();
-}
-
-function setAiStyleByName(styleName) {
-    currentAiStyle = styleName;
-    document.querySelectorAll('.style-card').forEach(c => {
-        c.style.border = '1px solid #E2E8F0';
-        c.style.background = '#FFFFFF';
-        if (c.getAttribute('onclick')?.includes(`'${styleName}'`)) {
-            c.style.border = '2px solid #0EA5A0';
-            c.style.background = '#F0FDFA';
-        }
-    });
-}
-
-function selectTopic(btn, topic) {
-    document.querySelectorAll('.topic-chip').forEach(b => {
-        b.classList.remove('btn-teal', 'text-white');
-        b.classList.add('btn-outline-secondary');
-    });
-    btn.classList.remove('btn-outline-secondary');
-    btn.classList.add('btn-teal', 'text-white');
-    btn.style.backgroundColor = '#0EA5A0';
-    btn.style.borderColor = '#0EA5A0';
-    document.getElementById('aiTopic').value = topic;
 }
 
 function selectStyle(el, styleName) {
@@ -471,15 +319,18 @@ function selectStyle(el, styleName) {
 }
 
 async function triggerAiGeneration() {
-    const topic = document.getElementById('aiTopic').value.trim();
+    const topicInput = document.getElementById('aiTopic');
+    const topic = topicInput ? topicInput.value.trim() : '';
     if (!topic) {
-        alert('Please enter a medical topic or click one of the quick topic chips.');
-        document.getElementById('aiTopic').focus();
+        alert('Please enter a medical topic or disease name.');
+        topicInput.focus();
         return;
     }
 
     const btn = document.getElementById('btnGenerate');
     const btnText = document.getElementById('btnGenText');
+    const btnSearchText = document.getElementById('btnSearchText');
+    const btnLiveSearch = document.getElementById('btnLiveSearch');
     const emptyState = document.getElementById('aiEmptyState');
     const loadingState = document.getElementById('aiLoadingState');
     const canvasWrapper = document.getElementById('aiCanvasWrapper');
@@ -488,16 +339,15 @@ async function triggerAiGeneration() {
     const statusBadge = document.getElementById('previewStatusBadge');
 
     // UI Loading state
-    btn.disabled = true;
-    const isRandomGen = (topic === 'RANDOM');
-    btnText.textContent = isRandomGen ? 'Generating Live Random Topic...' : 'Generating with AI...';
-    const loadingStep = document.getElementById('aiLoadingStep');
-    if (loadingStep) loadingStep.textContent = isRandomGen ? 'Live AI Selecting Random Topic & Clinical Advice...' : 'Generating Branded Medical Concept...';
+    if (btn) btn.disabled = true;
+    if (btnLiveSearch) btnLiveSearch.disabled = true;
+    if (btnText) btnText.textContent = 'Searching & Generating Live...';
+    if (btnSearchText) btnSearchText.textContent = 'Searching...';
 
     emptyState.style.display = 'none';
     canvasWrapper.style.display = 'none';
     loadingState.style.display = 'block';
-    statusBadge.textContent = 'Processing...';
+    statusBadge.textContent = 'Generating...';
     statusBadge.className = 'badge rounded-pill bg-warning text-dark border ms-2';
 
     const reqBody = {
@@ -530,12 +380,6 @@ async function triggerAiGeneration() {
         generatedData = json.data;
         renderGeneratedBanner(generatedData);
 
-        // Update topic textarea with the live-generated topic and headline
-        if (generatedData.headline) {
-            const displayTopic = generatedData.badgeText ? `${generatedData.badgeText}: ${generatedData.headline}` : generatedData.headline;
-            document.getElementById('aiTopic').value = displayTopic;
-        }
-
         loadingState.style.display = 'none';
         canvasWrapper.style.display = 'block';
         controls.style.setProperty('display', 'flex', 'important');
@@ -551,8 +395,14 @@ async function triggerAiGeneration() {
         loadingState.style.display = 'none';
         emptyState.style.display = 'block';
     } finally {
-        btn.disabled = false;
-        btnText.textContent = 'Generate Branded Banner with AI';
+        if (btn) {
+            btn.disabled = false;
+            btnText.textContent = 'Generate Branded Banner with AI';
+        }
+        if (btnLiveSearch) {
+            btnLiveSearch.disabled = false;
+            btnSearchText.textContent = 'Search AI';
+        }
     }
 }
 
@@ -599,104 +449,104 @@ function renderGeneratedBanner(data) {
     if (rawJson) {
         try {
             let parsed = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
-            while (typeof parsed === 'string') {
-                parsed = JSON.parse(parsed);
-            }
-            if (parsed && typeof parsed === 'object') {
+            while (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            if (parsed && parsed.elements) {
+                elements = parsed.elements;
                 if (parsed.bg) bg = parsed.bg;
-                if (parsed.elements && Array.isArray(parsed.elements)) elements = parsed.elements;
             }
         } catch (e) {
-            console.warn("Could not parse DesignJson:", e);
+            console.warn("Could not parse designJson:", e);
         }
     }
 
-    // Render Canvas
-    ctx.clearRect(0, 0, W, H);
-
-    const isLightBg = typeof bg === 'string' && !bg.startsWith('gradient:') && (bg.toLowerCase() === '#f8fafc' || bg.toLowerCase() === '#ffffff' || bg.toLowerCase() === '#fff');
-
-    // Fill background (supports gradient or solid color)
-    if (typeof bg === 'string' && bg.startsWith('gradient:')) {
-        const gradType = bg.split(':')[1];
-        let grad = ctx.createLinearGradient(0, 0, W, H);
-        if (gradType === 'teal-navy') {
-            grad.addColorStop(0, '#091E42');
-            grad.addColorStop(0.5, '#1B2B6B');
-            grad.addColorStop(1, '#0EA5A0');
-        } else if (gradType === 'emerald-gold') {
-            grad.addColorStop(0, '#064E3B');
-            grad.addColorStop(0.5, '#047857');
-            grad.addColorStop(1, '#065F46');
-        } else if (gradType === 'midnight-purple') {
-            grad.addColorStop(0, '#0F172A');
-            grad.addColorStop(0.5, '#1E1B4B');
-            grad.addColorStop(1, '#312E81');
-        } else if (gradType === 'crimson-dark') {
-            grad.addColorStop(0, '#4C0519');
-            grad.addColorStop(0.5, '#831843');
-            grad.addColorStop(1, '#1E1B4B');
-        } else {
-            grad.addColorStop(0, '#0F172A');
-            grad.addColorStop(1, '#1E293B');
+    // 1. Draw Canvas Background
+    if (bg.startsWith('gradient:')) {
+        const gradType = bg.replace('gradient:', '');
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        switch (gradType) {
+            case 'teal-navy':
+                grad.addColorStop(0, '#0EA5A0');
+                grad.addColorStop(1, '#091E42');
+                break;
+            case 'emerald-gold':
+                grad.addColorStop(0, '#064E3B');
+                grad.addColorStop(1, '#1E3A2F');
+                break;
+            case 'midnight-purple':
+                grad.addColorStop(0, '#1E1B4B');
+                grad.addColorStop(1, '#0F172A');
+                break;
+            case 'crimson-dark':
+                grad.addColorStop(0, '#4C0519');
+                grad.addColorStop(1, '#1A040B');
+                break;
+            default:
+                grad.addColorStop(0, '#0B1B3D');
+                grad.addColorStop(1, '#162A5A');
+                break;
         }
         ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
     } else {
-        ctx.fillStyle = bg || '#0B1B3D';
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
     }
-    ctx.fillRect(0, 0, W, H);
 
+    // 2. Render Canvas Elements
     elements.forEach(el => {
         ctx.save();
-        ctx.globalAlpha = el.opacity ?? 1;
+        ctx.globalAlpha = (el.opacity !== undefined) ? el.opacity : 1.0;
 
         if (el.type === 'rect') {
-            let col = el.color || '#0EA5A0';
-            if (isLightBg && (col === '#162A5A' || col === '#152852' || col === '#1E293B' || col === '#0B1B3D')) {
-                col = '#FFFFFF';
-            }
-            ctx.fillStyle = col;
-            roundRect(ctx, el.x, el.y, el.w, el.h, 16);
+            ctx.fillStyle = el.color || '#ffffff';
+            const radius = (el.radius !== undefined) ? el.radius : 14;
+            roundRect(ctx, el.x, el.y, el.w, el.h, radius);
             ctx.fill();
-            if (isLightBg && col === '#FFFFFF') {
-                ctx.strokeStyle = '#CBD5E1';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
         } else if (el.type === 'circle') {
-            ctx.beginPath();
-            ctx.ellipse(el.x + el.w / 2, el.y + el.h / 2, el.w / 2, el.h / 2, 0, 0, Math.PI * 2);
             ctx.fillStyle = el.color || '#0EA5A0';
+            ctx.beginPath();
+            ctx.arc(el.x + (el.w / 2), el.y + (el.h / 2), el.w / 2, 0, Math.PI * 2);
             ctx.fill();
         } else if (el.type === 'text') {
-            let textColor = el.color || '#FFFFFF';
-            if (isLightBg && (textColor.toLowerCase() === '#ffffff' || textColor.toLowerCase() === '#fff')) {
-                textColor = '#0F172A';
-            }
-            const weight = el.bold ? 'bold ' : '';
-            ctx.font = `${weight}${el.size || 30}px ${el.font || 'sans-serif'}`;
-            ctx.fillStyle = textColor;
-            ctx.textAlign = el.align || 'left';
+            ctx.fillStyle = el.color || '#ffffff';
+            const fontWeight = el.bold ? 'bold' : 'normal';
+            const fontSize = el.size || 24;
+            const fontFamily = el.font || 'Inter, -apple-system, sans-serif';
+            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
             ctx.textBaseline = 'top';
 
+            let drawX = el.x;
+            if (el.align === 'center') {
+                ctx.textAlign = 'center';
+                drawX = el.x + (el.w / 2);
+            } else if (el.align === 'right') {
+                ctx.textAlign = 'right';
+                drawX = el.x + el.w;
+            } else {
+                ctx.textAlign = 'left';
+            }
+
+            // Word wrap for long text
             const words = (el.text || '').split(' ');
             let line = '';
-            let cy = el.y;
-            const maxW = el.w || (W - el.x);
-            const lineH = (el.size || 30) * 1.28;
+            let lineY = el.y;
+            const lineHeight = fontSize * 1.35;
+            const maxW = el.w;
 
             for (let n = 0; n < words.length; n++) {
-                const test = line + words[n] + ' ';
-                if (ctx.measureText(test).width > maxW && n > 0) {
-                    ctx.fillText(line, el.align === 'center' ? (el.x + el.w / 2) : el.x, cy);
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxW && n > 0) {
+                    ctx.fillText(line.trim(), drawX, lineY);
                     line = words[n] + ' ';
-                    cy += lineH;
+                    lineY += lineHeight;
                 } else {
-                    line = test;
+                    line = testLine;
                 }
             }
-            ctx.fillText(line, el.align === 'center' ? (el.x + el.w / 2) : el.x, cy);
+            ctx.fillText(line.trim(), drawX, lineY);
         }
+
         ctx.restore();
     });
 
@@ -796,39 +646,30 @@ async function saveToMyDesigns(openInEditor) {
     }
 }
 
-function switchTopicTab(tab) {
-    const generalChips = document.getElementById('chipsGeneral');
-    const indianChips = document.getElementById('chipsIndian');
-    const tabGen = document.getElementById('tabGeneral');
-    const tabInd = document.getElementById('tabIndian');
-
-    if (tab === 'indian') {
-        if (generalChips) generalChips.style.setProperty('display', 'none', 'important');
-        if (indianChips) indianChips.style.setProperty('display', 'flex', 'important');
-        if (tabGen) { tabGen.classList.remove('active', 'fw-bold', 'text-teal'); tabGen.classList.add('text-secondary', 'fw-semibold'); tabGen.style.color = ''; }
-        if (tabInd) { tabInd.classList.remove('text-secondary', 'fw-semibold'); tabInd.classList.add('active', 'fw-bold', 'text-teal'); tabInd.style.color = '#0EA5A0'; }
-    } else {
-        if (indianChips) indianChips.style.setProperty('display', 'none', 'important');
-        if (generalChips) generalChips.style.setProperty('display', 'flex', 'important');
-        if (tabInd) { tabInd.classList.remove('active', 'fw-bold', 'text-teal'); tabInd.classList.add('text-secondary', 'fw-semibold'); tabInd.style.color = ''; }
-        if (tabGen) { tabGen.classList.remove('text-secondary', 'fw-semibold'); tabGen.classList.add('active', 'fw-bold', 'text-teal'); tabGen.style.color = '#0EA5A0'; }
-    }
-}
-
-// Auto-populate from URL query params (e.g. from /Calendar 1-click links)
+// Keydown listener for Enter key on topic input & Auto-populate from URL query params
 window.addEventListener('DOMContentLoaded', () => {
+    const topicInput = document.getElementById('aiTopic');
+    if (topicInput) {
+        topicInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                triggerAiGeneration();
+            }
+        });
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const preTopic = urlParams.get('topic');
     const preLang = urlParams.get('lang');
-    if (preTopic) {
-        document.getElementById('aiTopic').value = preTopic;
+    if (preTopic && topicInput) {
+        topicInput.value = preTopic;
         if (preLang) {
             const langSelect = document.getElementById('aiLanguage');
             if (langSelect) langSelect.value = preLang;
         }
         setTimeout(() => {
             triggerAiGeneration();
-        }, 300);
+        }, 200);
     }
 });
 </script>

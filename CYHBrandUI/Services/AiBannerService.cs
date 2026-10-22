@@ -429,52 +429,13 @@ namespace CYHBrandUI.Services
         {
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.0));
-                string systemPrompt;
-                string userPrompt;
-                string seed = $"{DateTime.UtcNow:HHmmssfff}_{Guid.NewGuid():N}";
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.5));
+                string prompt = isRandom
+                    ? $"Generate random doctor clinic awareness banner in {language}. Return JSON with badge (2-4 words), headline (under 8 words), and tips (array of 3 prevention tips, 8-14 words each)."
+                    : $"Medical topic: {topic}. Language: {language}. Generate medical awareness banner for doctor clinic. Return JSON with badge (2-4 words), headline (under 8 words), and tips (array of 3 prevention tips, 8-14 words each).";
 
-                if (isRandom)
-                {
-                    systemPrompt = "You are an expert creative clinical medical copywriter for doctors and healthcare clinics in India. " +
-                                  "Pick a completely RANDOM, FRESH and UNIQUE medical awareness or healthcare domain out of 40+ clinical fields " +
-                                  "(such as Nephrology, Endocrinology, Dermatology, Ophthalmology, Sleep Science, Geriatrics, Cardiology, Orthopedics, " +
-                                  "Pediatrics, Gastroenterology, Pulmonology, Mental Health, Seasonal Infections, Ayurveda & Yoga, Dental Hygiene, Ergonomics, etc.). " +
-                                  "Every single response MUST choose a distinct health topic. " +
-                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
-                                  "1) \"badge\": Short category name or campaign tag (2-4 words).\n" +
-                                  "2) \"headline\": Catchy, inspiring, patient-friendly medical headline (under 8 words).\n" +
-                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
-                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON.";
-
-                    userPrompt = $"Generate a fresh, completely random, unexpected clinical medical awareness banner for a doctor in {language}. " +
-                                 $"Random Seed / Unique ID: {seed}";
-                }
-                else
-                {
-                    systemPrompt = "You are an expert clinical medical copywriter for a doctor branding platform. " +
-                                  "Generate high-impact, medically accurate health education content. " +
-                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
-                                  "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
-                                  "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
-                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
-                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON.";
-
-                    userPrompt = $"Medical Topic: {topic}\nLanguage: {language}\nUnique Seed: {seed}";
-                }
-
-                var requestBody = new
-                {
-                    messages = new object[]
-                    {
-                        new { role = "system", content = systemPrompt },
-                        new { role = "user", content = userPrompt }
-                    },
-                    jsonMode = true
-                };
-
-                var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-                var response = await client.PostAsync("https://text.pollinations.ai/", jsonContent, cts.Token);
+                string url = $"https://text.pollinations.ai/{Uri.EscapeDataString(prompt)}?json=true&model=openai";
+                var response = await client.GetAsync(url, cts.Token);
                 if (!response.IsSuccessStatusCode)
                 {
                     // Rate limit or service busy - fallback immediately with zero delay
@@ -775,13 +736,68 @@ namespace CYHBrandUI.Services
                         "तेज बुखार व बदन दर्द पर तुरंत खून की जांच करवाएं"
                     });
                 }
+                if (topic.Contains("thyroid") || topic.Contains("gale"))
+                {
+                    return ("थायराइड स्वास्थ्य जागरूकता", "थायराइड को रखें संतुलित, पाएं भरपूर ऊर्जा", new List<string>
+                    {
+                        "हर 6 महीने में T3, T4 व TSH की जांच अवश्य कराएं",
+                        "डॉक्टर द्वारा निर्धारित थायराइड दवा खाली पेट नियमित लें",
+                        "आहार में आयोडीन युक्त नमक, हरी पत्तेदार सब्जियां और अखरोट शामिल करें"
+                    });
+                }
+                if (topic.Contains("asthma") || topic.Contains("dama") || topic.Contains("sans") || topic.Contains("cough"))
+                {
+                    return ("दमा एवं श्वसन स्वास्थ्य", "स्वच्छ सांस, स्वस्थ फेफड़े और सुकून भरा जीवन", new List<string>
+                    {
+                        "धूल, धुएं और परागकणों से बचने के लिए मास्क पहनें",
+                        "डॉक्टर द्वारा बताए गए इनहेलर को हमेशा अपने पास रखें",
+                        "प्रतिदिन सुबह अनुलोम-विलोम व गहरी सांस का अभ्यास करें"
+                    });
+                }
+                if (topic.Contains("bp") || topic.Contains("hyper") || topic.Contains("raktchap"))
+                {
+                    return ("रक्तचाप नियंत्रण जागरूकता", "रक्तचाप रखें सामान्य, हृदय रहेगा स्वस्थ", new List<string>
+                    {
+                        "दैनिक आहार में नमक की मात्रा सीमित करें (5 ग्राम से कम)",
+                        "तनाव प्रबंधन करें और प्रतिदिन 30 मिनट सैर करें",
+                        "घर पर नियमित बीपी जांचें और डॉक्टर की सलाह से दवाएं लें"
+                    });
+                }
+                if (topic.Contains("knee") || topic.Contains("joint") || topic.Contains("arthrit") || topic.Contains("ghutna") || topic.Contains("jod"))
+                {
+                    return ("जोड़ों का दर्द एवं गठिया देखभाल", "जोड़ों को रखें मजबूत, गतिशीलता बनाए रखें", new List<string>
+                    {
+                        "वजन नियंत्रित रखें ताकि घुटनों पर अतिरिक्त दबाव न पड़े",
+                        "विटामिन D3 व कैल्शियम युक्त आहार लें और सुबह धूप में बैठें",
+                        "जोड़ों के लचीलेपन के लिए हल्का व्यायाम और स्ट्रेचिंग करें"
+                    });
+                }
+                if (topic.Contains("migraine") || topic.Contains("headache") || topic.Contains("sar dard"))
+                {
+                    return ("माइग्रेन एवं सिरदर्द राहत", "तनाव मुक्त जीवनशैली, सिरदर्द से पाएं निजात", new List<string>
+                    {
+                        "प्रतिदिन 7-8 घंटे की पर्याप्त और नियमित नींद लें",
+                        "तेज धूप, स्क्रीन चमक और लगातार खाली पेट रहने से बचें",
+                        "सिरदर्द के ट्रिगर्स को पहचानें और समय पर चिकित्सक से परामर्श लें"
+                    });
+                }
+                if (topic.Contains("pcos") || topic.Contains("pcod") || topic.Contains("women") || topic.Contains("mahila"))
+                {
+                    return ("महिला स्वास्थ्य एवं हार्मोनल संतुलन", "हार्मोनल संतुलन और स्वस्थ जीवनशैली की राह", new List<string>
+                    {
+                        "आहार में कम ग्लाइसेमिक इंडेक्स वाले साबुत अनाज व हरी सब्जियां चुनें",
+                        "सक्रिय जीवनशैली अपनाएं और वजन को स्वस्थ सीमा में रखें",
+                        "अनियमित माहवारी या हार्मोनल बदलाव पर स्त्री रोग विशेषज्ञ से मिलें"
+                    });
+                }
 
                 // General Hindi fallback
-                return ("स्वास्थ्य सलाह", "स्वस्थ जीवनशैली अपनाएं, निरोगी रहें", new List<string>
+                string hiTopicClean = !string.IsNullOrWhiteSpace(topic) ? topic : "स्वास्थ्य";
+                return ($"{hiTopicClean} स्वास्थ्य सलाह", $"{hiTopicClean} से बचाव और स्वस्थ जीवन के नियम", new List<string>
                 {
-                    "प्रतिदिन 8-10 गिलास स्वच्छ पानी पिएं",
-                    "ताजे फल, हरी सब्जियां और पौष्टिक आहार लें",
-                    "किसी भी समस्या के लिए समय पर विशेषज्ञ डॉक्टर से परामर्श लें"
+                    "विशेषज्ञ डॉक्टर की सलाह से समय पर सही जांच और उपचार अपनाएं",
+                    "संतुलित आहार, नियमित दिनचर्या और पर्याप्त पानी का सेवन करें",
+                    "लक्षणों को नजरअंदाज न करें और स्वस्थ जीवनशैली को प्राथमिकता दें"
                 });
             }
 
@@ -986,13 +1002,96 @@ namespace CYHBrandUI.Services
                 });
             }
 
-            // General English fallback
-            string fallbackHeadline = string.IsNullOrWhiteSpace(topic) ? "Prioritize Your Health Every Day" : $"Health Guide: {char.ToUpper(topic[0]) + topic[1..]}";
-            return ("Doctor's Health Advisory", fallbackHeadline, new List<string>
+            if (topic.Contains("thyroid") || topic.Contains("tsh") || topic.Contains("goitre"))
             {
-                "Stay well hydrated and maintain daily physical mobility",
-                "Consume balanced, fresh, and nutrient-dense home meals",
-                "Consult your healthcare provider for periodic preventive health checks"
+                return ("Thyroid Health Advisory", "Balancing Thyroid for Active Energy & Metabolism", new List<string>
+                {
+                    "Screen T3, T4 and TSH levels every 6 months to ensure dosage precision",
+                    "Take thyroid medication consistently every morning on an empty stomach",
+                    "Incorporate iodine, selenium, and zinc-rich foods into your daily meals"
+                });
+            }
+
+            if (topic.Contains("asthma") || topic.Contains("breath") || topic.Contains("pulmon") || topic.Contains("inhaler") || topic.Contains("lung"))
+            {
+                return ("Respiratory & Asthma Care", "Breathe Freely: Essential Pulmonary Health", new List<string>
+                {
+                    "Identify and minimize exposure to smoke, dust mites, and cold drafts",
+                    "Always keep your prescribed rescue inhaler accessible wherever you go",
+                    "Perform daily deep breathing exercises to build vital lung capacity"
+                });
+            }
+
+            if (topic.Contains("bp") || topic.Contains("hyperten") || topic.Contains("pressure"))
+            {
+                return ("Hypertension Management", "Keep Blood Pressure in Safe Target Zone", new List<string>
+                {
+                    "Limit dietary sodium intake to under 1 teaspoon (5 grams) per day",
+                    "Commit to 30 minutes of brisk walking or cardio activity 5 days a week",
+                    "Monitor blood pressure regularly at home and take medications as advised"
+                });
+            }
+
+            if (topic.Contains("cholesterol") || topic.Contains("lipid") || topic.Contains("triglyceride"))
+            {
+                return ("Lipid & Cholesterol Control", "Lower Bad Cholesterol, Protect Arteries", new List<string>
+                {
+                    "Cut down on trans fats, processed palm oils, and fried snacks",
+                    "Add oats, flaxseeds, walnuts, and soluble fiber to your daily breakfast",
+                    "Check annual fasting lipid panels to guard against arterial plaque"
+                });
+            }
+
+            if (topic.Contains("knee") || topic.Contains("joint") || topic.Contains("arthrit") || topic.Contains("spine") || topic.Contains("back"))
+            {
+                return ("Joint & Arthritis Care", "Protect Your Joints, Preserve Active Mobility", new List<string>
+                {
+                    "Maintain an optimal body weight to reduce stress on knees and hips",
+                    "Ensure adequate daily Vitamin D3 and Calcium for cartilage integrity",
+                    "Engage in low-impact exercises like swimming and gentle leg stretches"
+                });
+            }
+
+            if (topic.Contains("migraine") || topic.Contains("headache"))
+            {
+                return ("Migraine & Headache Relief", "Recognize Triggers, Restore Calm & Focus", new List<string>
+                {
+                    "Maintain a consistent 7-8 hour sleep schedule without late screen exposure",
+                    "Stay well-hydrated throughout the day and avoid skipping regular meals",
+                    "Track specific food or stress triggers and seek clinical guidance early"
+                });
+            }
+
+            if (topic.Contains("pcos") || topic.Contains("pcod") || topic.Contains("women") || topic.Contains("hormon"))
+            {
+                return ("Women's Hormonal Health", "Holistic Habits for PCOS & Hormone Harmony", new List<string>
+                {
+                    "Focus on a low glycemic index, anti-inflammatory whole-food diet",
+                    "Engage in daily strength training and brisk walking for insulin sensitivity",
+                    "Consult your gynecologist for periodic ultrasound and hormonal evaluations"
+                });
+            }
+
+            if (topic.Contains("cancer") || topic.Contains("oncolog") || topic.Contains("tumor"))
+            {
+                return ("Cancer Awareness & Prevention", "Early Detection Saves Lives: Stay Informed", new List<string>
+                {
+                    "Undergo age-recommended annual clinical screenings and health checkups",
+                    "Adopt a tobacco-free lifestyle and eliminate alcohol consumption",
+                    "Maintain a nutrient-rich, plant-based diet high in natural antioxidants"
+                });
+            }
+
+            // General English fallback
+            string cleanTitle = !string.IsNullOrWhiteSpace(topic)
+                ? System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(topic)
+                : "Health & Wellness";
+
+            return ($"{cleanTitle} Advisory", $"Essential Health Guide: {cleanTitle}", new List<string>
+            {
+                $"Follow clinical preventive guidelines and timely screenings for {cleanTitle.ToLower()}",
+                "Maintain balanced nutrition, adequate hydration, and daily physical activity",
+                "Consult your healthcare specialist early for personalized diagnosis and care"
             });
         }
     }
