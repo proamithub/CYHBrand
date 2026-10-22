@@ -21,6 +21,7 @@ namespace CYHBrandUI.Controllers
             _cache = cache;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index(string? categoryId, string? orientation,
                                                string? searchKey, int pageNo = 1)
         {
@@ -52,6 +53,8 @@ namespace CYHBrandUI.Controllers
             {
                 TemplateList = paged?.Items ?? new(),
                 CategoryList = cats,
+                CategoryId   = realCatId,
+                Orientation  = orientation,
                 SearchKey    = searchKey,
                 PageNo       = pageNo,
                 TotalPages   = paged?.TotalPages   ?? 0,
@@ -60,10 +63,11 @@ namespace CYHBrandUI.Controllers
             return View(vm);
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Preview(string id)
         {
             var realId = Enc.Decrypt(id);
-            if (realId == null) return NotFound();
+            if (realId == null) return RedirectToAction("Index");
 
             var cacheKey = $"template_{realId}";
             var model = await _cache.GetOrCreateAsync(cacheKey, async entry =>
@@ -72,7 +76,7 @@ namespace CYHBrandUI.Controllers
                 return await UOF.TemplateRepo.GetByIdAsync(realId.Value);
             });
 
-            if (model == null) return NotFound();
+            if (model == null) return RedirectToAction("Index");
             model.EncId = Enc.Encrypt(model.TemplateId);
             return View(model);
         }

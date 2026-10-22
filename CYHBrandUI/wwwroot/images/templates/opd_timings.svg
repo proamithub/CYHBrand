@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="500" height="500" fill="url(#bg)"/>
+  <circle cx="450" cy="50" r="160" fill="#0284C7" opacity="0.15"/>
+  <circle cx="50" cy="450" r="120" fill="#0284C7" opacity="0.1"/>
+  
+  <!-- Header Badge -->
+  <rect x="50" y="45" width="200" height="28" rx="14" fill="#0284C7" opacity="0.9"/>
+  <text x="150" y="64" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">SCHEDULE</text>
+  
+  <!-- Headline -->
+  <text x="50" y="125" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold">Clinic OPD Schedule</text>
+  
+  <!-- Content Container Card -->
+  <rect x="50" y="160" width="400" height="190" rx="14" fill="#FFFFFF" opacity="0.12"/>
+  
+  <!-- Bullet 1 -->
+  <circle cx="75" cy="200" r="7" fill="#0284C7"/>
+  <text x="95" y="205" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13">Morning & Evening Consultation Hours</text>
+  
+  <!-- Bullet 2 -->
+  <circle cx="75" cy="245" r="7" fill="#0284C7"/>
+  <text x="95" y="250" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Daily clinical guidelines & precautions</text>
+  
+  <!-- Bullet 3 -->
+  <circle cx="75" cy="290" r="7" fill="#0284C7"/>
+  <text x="95" y="295" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Consult qualified doctor for early diagnosis</text>
+  
+  <!-- Doctor Footer Ribbon -->
+  <rect x="50" y="375" width="400" height="80" rx="12" fill="#0284C7" opacity="0.95"/>
+  <!-- Avatar -->
+  <circle cx="95" cy="415" r="26" fill="#FFFFFF"/>
+  <circle cx="95" cy="415" r="23" fill="#0F172A"/>
+  <text x="95" y="420" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">DR</text>
+  
+  <text x="135" y="408" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Dr. Full Name</text>
+  <text x="135" y="426" fill="#F1F5F9" font-family="system-ui, -apple-system, sans-serif" font-size="11">Specialist Physician • Clinic Center</text>
+  <text x="135" y="443" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold">Call / WhatsApp: +91 98765 43210</text>
+</svg>
