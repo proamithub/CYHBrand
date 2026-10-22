@@ -41,9 +41,17 @@ namespace CYHBrandUI.Controllers
         {
             if (CurrentUser == null) return RedirectToAction("Login", "Account");
             var realId = Enc.Decrypt(id);
-            if (realId == null) return NotFound();
+            if (realId == null)
+            {
+                TempData["ErrorMsg"] = "Design not found or invalid link.";
+                return RedirectToAction("Index");
+            }
             var model = await UOF.DesignRepo.GetByIdAsync(realId.Value, CurrentUser.UserId);
-            if (model == null) return NotFound();
+            if (model == null)
+            {
+                TempData["ErrorMsg"] = "Design not found.";
+                return RedirectToAction("Index");
+            }
             model.EncId = Enc.Encrypt(model.DesignId);
             return View(model);
         }
@@ -80,9 +88,17 @@ namespace CYHBrandUI.Controllers
         {
             if (CurrentUser == null) return RedirectToAction("Login", "Account");
             var realId = Enc.Decrypt(id);
-            if (realId == null) return NotFound();
+            if (realId == null)
+            {
+                TempData["ErrorMsg"] = "Design not found or link has expired.";
+                return RedirectToAction("Index");
+            }
             var model = await UOF.DesignRepo.GetByIdAsync(realId.Value, CurrentUser.UserId);
-            if (model == null) return NotFound();
+            if (model == null)
+            {
+                TempData["ErrorMsg"] = "Design not found.";
+                return RedirectToAction("Index");
+            }
             model.EncId = Enc.Encrypt(model.DesignId);
             return View("Create", model);   // reuse Create view
         }
@@ -98,7 +114,7 @@ namespace CYHBrandUI.Controllers
             if (!string.IsNullOrEmpty(model.EncId))
             {
                 var realId = Enc.Decrypt(model.EncId);
-                model.DesignId = realId ?? 0;
+                model.DesignId = realId ?? (model.DesignId > 0 ? model.DesignId : 0);
             }
 
             // Save thumbnail base64 → disk

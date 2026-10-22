@@ -31,6 +31,11 @@ namespace CYHBrandUI.Helpers
         public int? Decrypt(string? token)
         {
             if (string.IsNullOrWhiteSpace(token)) return null;
+
+            // If token is already a plain numeric ID (e.g. "18"), parse directly
+            if (int.TryParse(token.Trim(), out var directId) && directId > 0)
+                return directId;
+
             try
             {
                 var raw = token.Replace('-', '+').Replace('_', '/').Replace('~', '=');

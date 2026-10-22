@@ -216,16 +216,8 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, 
             <input type="file" accept="image/*" hidden onchange="addImageFromFile(this)" />
         </label>
         <div style="width:80%;height:1px;background:#334155;margin:.25rem 0"></div>
-        <!-- Delete Selected Element -->
-        <button class="tool-icon btn-del-elem" id="btnDeleteSelected" title="Delete selected layer/element" onclick="deleteSelected()">
-            <i class="bi bi-trash" style="color:#f87171"></i>
-        </button>
-
-        <!-- Pushed to bottom: Delete Entire Banner -->
-        <div style="flex:1;"></div>
-        <button class="tool-icon btn-del-design" id="btnDeleteDesign" title="Delete entire design permanently" onclick="deleteEntireDesign()">
-            <i class="bi bi-trash3-fill"></i>
-        </button>
+       
+        
     </div>
 
     <!-- Canvas Area -->
@@ -595,7 +587,14 @@ function normalizeEl(el) {
 function loadImageForElement(el) {
     if ((el.type === 'image' || el.type === 'avatar') && el.src && el.src.trim() !== '') {
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        if (el.src.startsWith('http://') || el.src.startsWith('https://')) {
+            try {
+                const url = new URL(el.src);
+                if (url.origin !== window.location.origin) {
+                    img.crossOrigin = 'anonymous';
+                }
+            } catch (e) { }
+        }
         img.onload = () => {
             el._img = img;
             render();
@@ -1246,7 +1245,12 @@ async function saveDesign(status) {
         statusEl.style.color = '#94a3b8';
     }
 
-    const thumb = canvas.toDataURL('image/jpeg', 0.7);
+    let thumb = '';
+    try {
+        thumb = canvas.toDataURL('image/jpeg', 0.7);
+    } catch (e) {
+        console.warn('Canvas thumbnail export skipped:', e);
+    }
 
     const body = {
         DesignId:         parseInt(document.getElementById('hdDesignId').value)  || 0,
@@ -1282,11 +1286,15 @@ async function saveDesign(status) {
 }
 
 function exportPNG() {
-    render();
-    const link = document.createElement('a');
-    link.download = (document.getElementById('designName').value || 'design') + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    try {
+        render();
+        const link = document.createElement('a');
+        link.download = (document.getElementById('designName').value || 'design') + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (e) {
+        alert('Could not export image directly: ' + e.message);
+    }
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
