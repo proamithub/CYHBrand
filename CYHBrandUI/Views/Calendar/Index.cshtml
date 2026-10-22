@@ -1,88 +1,233 @@
+@using CYHBrandUI.Controllers
 @{
-    ViewData["Title"] = "Content Calendar";
-    ViewData["PageSubtitle"] = "Plan, schedule and manage your posts.";
+    ViewData["Title"] = "Indian Medical & Content Calendar";
+    ViewData["PageSubtitle"] = "Explore upcoming Indian health awareness days, festivals, and generate 1-click AI banners.";
+
     var today = DateTime.Today;
-    var firstDay = new DateTime(today.Year, today.Month, 1);
-    var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
-    var startOffset = (int)firstDay.DayOfWeek;
+    int curMonth = ViewBag.CurMonth ?? today.Month;
+    int curYear = ViewBag.CurYear ?? today.Year;
+
+    var monthDate = new DateTime(curYear, curMonth, 1);
+    var daysInMonth = DateTime.DaysInMonth(curYear, curMonth);
+    var startOffset = (int)monthDate.DayOfWeek;
+
+    var prevMonth = curMonth - 1;
+    var prevYear = curYear;
+    if (prevMonth < 1) { prevMonth = 12; prevYear--; }
+
+    var nextMonth = curMonth + 1;
+    var nextYear = curYear;
+    if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+
+    var monthEvents = (ViewBag.MonthEvents as List<IndianCalendarEvent>) ?? new List<IndianCalendarEvent>();
 }
 
-<div class="row g-3">
-    <!-- Calendar -->
-    <div class="col-lg-8">
-        <div class="cyh-card">
-            <div class="cyh-card-header">
-                <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-chevron-left"></i></button>
-                    <h6 class="cyh-card-title mb-0">@today.ToString("MMMM yyyy")</h6>
-                    <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-chevron-right"></i></button>
-                </div>
-                <a asp-controller="Calendar" asp-action="Index" class="btn btn-cyh-teal btn-sm">
-                    <i class="bi bi-plus me-1"></i>New Post
-                </a>
+<!-- Top Quick Banner -->
+<div class="card border-0 text-white shadow-sm mb-4" style="background:linear-gradient(135deg, #091E42 0%, #163B75 55%, #0EA5A0 100%); border-radius:14px;">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size:0.75rem;">
+                    <i class="bi bi-calendar-event me-1"></i>INDIA HEALTHCARE CALENDAR
+                </span>
+                <span class="badge rounded-pill bg-white text-dark bg-opacity-25" style="font-size:0.7rem;">
+                    @monthEvents.Count Awareness Events in @monthDate.ToString("MMMM yyyy")
+                </span>
             </div>
+            <h5 class="fw-bold mb-1">Indian Health Awareness Days &amp; Festival Calendar</h5>
+            <p class="text-white-50 small mb-0" style="max-width:620px;">
+                Stay connected with your patients by publishing timely clinical advice on key Indian healthcare days and festive occasions. Click <strong>Generate AI Banner</strong> on any event for instant 1-click creative generation.
+            </p>
+        </div>
+        <div>
+            <a asp-controller="AiBanner" asp-action="Index" class="btn btn-warning text-dark fw-bold py-2 px-3 shadow" style="border-radius:10px;">
+                <i class="bi bi-stars me-1"></i>Open AI Banner Studio
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- ── Calendar Grid ── -->
+    <div class="col-lg-8">
+        <div class="cyh-card shadow-sm">
+            <div class="cyh-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="/Calendar?month=@prevMonth&year=@prevYear" class="btn btn-outline-secondary btn-sm" title="Previous Month">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    <h5 class="cyh-card-title mb-0 fw-bold px-2 text-dark">@monthDate.ToString("MMMM yyyy")</h5>
+                    <a href="/Calendar?month=@nextMonth&year=@nextYear" class="btn btn-outline-secondary btn-sm" title="Next Month">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    @if (curMonth != today.Month || curYear != today.Year)
+                    {
+                        <a href="/Calendar" class="btn btn-light btn-sm text-primary border ms-2" style="font-size:0.75rem;">
+                            Today
+                        </a>
+                    }
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill bg-light text-muted border" style="font-size:0.75rem;">
+                        <span class="d-inline-block rounded-circle bg-success me-1" style="width:8px;height:8px;"></span>Health Day
+                    </span>
+                    <span class="badge rounded-pill bg-light text-muted border" style="font-size:0.75rem;">
+                        <span class="d-inline-block rounded-circle bg-warning me-1" style="width:8px;height:8px;"></span>Festival
+                    </span>
+                </div>
+            </div>
+
             <div class="cyh-card-body p-0">
-                <table class="w-100" style="border-collapse:collapse;">
+                <table class="w-100" style="border-collapse:collapse;table-layout:fixed;">
                     <thead>
-                        <tr>
-                            @foreach (var day in new[]{"Sun","Mon","Tue","Wed","Thu","Fri","Sat"})
+                        <tr style="background:#F8FAFC;">
+                            @foreach (var dayName in new[]{"Sun","Mon","Tue","Wed","Thu","Fri","Sat"})
                             {
-                                <th class="text-center py-2" style="font-size:.75rem;color:#94A3B8;font-weight:600;border-bottom:1px solid #E2E8F4;">@day</th>
+                                <th class="text-center py-2" style="font-size:.78rem;color:#64748B;font-weight:700;border-bottom:1px solid #E2E8F4;">
+                                    @dayName
+                                </th>
                             }
                         </tr>
                     </thead>
                     <tbody>
                         @{
-                            var cellCount = 0;
-                            var day2 = 1;
+                            int cellCount = 0;
+                            int dayNum = 1;
                         }
-                        @while (day2 <= daysInMonth)
+                        @while (dayNum <= daysInMonth)
                         {
                             <tr>
                                 @for (int col = 0; col < 7; col++)
                                 {
-                                    <td style="border:1px solid #F1F5F9;height:80px;width:14.28%;vertical-align:top;padding:6px;">
-                                        @if (cellCount < startOffset || day2 > daysInMonth)
+                                    <td style="border:1px solid #EDF2F7;height:105px;width:14.28%;vertical-align:top;padding:6px;position:relative;background:#ffffff;">
+                                        @if (cellCount < startOffset || dayNum > daysInMonth)
                                         {
-                                            <span></span>
+                                            <div style="opacity:0.2;" class="p-1">&nbsp;</div>
                                         }
                                         else
                                         {
-                                            var isToday = day2 == today.Day;
-                                            <div class="d-flex align-items-center justify-content-center"
-                                                 style="width:26px;height:26px;border-radius:50%;
-                                                        background:@(isToday?"#1B2B6B":"transparent");
-                                                        color:@(isToday?"#fff":"#1A2332");
-                                                        font-size:.82rem;font-weight:@(isToday?"700":"400");">
-                                                @day2
+                                            var isToday = (dayNum == today.Day && curMonth == today.Month && curYear == today.Year);
+                                            var currentDayNum = dayNum;
+                                            var dayEvs = monthEvents.Where(e => e.Day == currentDayNum).ToList();
+
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <div class="d-flex align-items-center justify-content-center"
+                                                     style="width:26px;height:26px;border-radius:50%;
+                                                            background:@(isToday ? "#0EA5A0" : "transparent");
+                                                            color:@(isToday ? "#ffffff" : "#1E293B");
+                                                            font-size:.82rem;font-weight:@(isToday ? "700" : "600");">
+                                                    @currentDayNum
+                                                </div>
+                                                @if (isToday)
+                                                {
+                                                    <span class="badge bg-teal-subtle text-teal" style="font-size:0.6rem;padding:2px 4px;">Today</span>
+                                                }
                                             </div>
-                                            day2++;
+
+                                            @if (dayEvs.Any())
+                                            {
+                                                <div class="d-flex flex-column gap-1">
+                                                    @foreach (var ev in dayEvs)
+                                                    {
+                                                        var isFest = ev.Category == "Festival";
+                                                        <a href="/AiBanner?topic=@Uri.EscapeDataString(ev.PromptTopic)&lang=English"
+                                                           class="text-decoration-none d-block p-1 rounded-1 text-truncate"
+                                                           style="font-size:0.68rem;font-weight:600;
+                                                                  background:@(isFest ? "#FEF3C7" : "#E0F2FE");
+                                                                  color:@(isFest ? "#92400E" : "#0369A1");
+                                                                  border-left:3px solid @(isFest ? "#F59E0B" : "#0284C7");"
+                                                           title="@ev.Title - Click to Generate AI Banner">
+                                                            <i class="bi @ev.Icon me-1"></i>@ev.Title
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+
+                                            dayNum++;
                                         }
                                         cellCount++;
                                     </td>
                                 }
                             </tr>
-                            if (cellCount >= startOffset && day2 > daysInMonth) { break; }
+                            if (cellCount >= startOffset && dayNum > daysInMonth) { break; }
                         }
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <!-- Scheduled Posts -->
+
+    <!-- ── Right Column: Upcoming Indian Awareness Days ── -->
     <div class="col-lg-4">
-        <div class="cyh-card">
-            <div class="cyh-card-header">
-                <h6 class="cyh-card-title">Scheduled Posts</h6>
-            </div>
-            <div class="cyh-card-body">
-                <div class="cyh-empty">
-                    <span class="cyh-empty-icon"><i class="bi bi-calendar-x"></i></span>
-                    <div class="cyh-empty-title">No scheduled posts</div>
-                    <div class="cyh-empty-desc mt-2">
-                        <a href="#" class="btn btn-cyh-teal btn-sm"><i class="bi bi-plus me-1"></i>Schedule a Post</a>
-                    </div>
+        <div class="cyh-card shadow-sm h-100 d-flex flex-column">
+            <div class="cyh-card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-1 rounded bg-teal-subtle text-teal">
+                        <i class="bi bi-calendar-check" style="color:#0EA5A0;"></i>
+                    </span>
+                    <h6 class="cyh-card-title mb-0 fw-bold">@monthDate.ToString("MMMM") Awareness Events</h6>
                 </div>
+                <span class="badge rounded-pill bg-light text-secondary border" style="font-size:0.75rem;">
+                    @monthEvents.Count Total
+                </span>
+            </div>
+
+            <div class="cyh-card-body flex-grow-1 p-3 overflow-auto" style="max-height:640px;">
+                @if (monthEvents.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var ev in monthEvents)
+                        {
+                            var isFest = ev.Category == "Festival";
+                            <div class="p-3 rounded-3 border" style="background:@(isFest ? "#FFFDF5" : "#F8FAFC");border-color:@(isFest ? "#FDE68A" : "#E2E8F0") !important;">
+                                <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                                             style="width:34px;height:34px;background:@ev.BadgeColor;flex-shrink:0;">
+                                            <i class="bi @ev.Icon fs-6"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold small text-dark">@ev.Title</div>
+                                            <div class="text-muted" style="font-size:0.72rem;">
+                                                <i class="bi bi-calendar3 me-1"></i>@ev.Day @monthDate.ToString("MMMM")
+                                                <span class="badge @(isFest ? "bg-warning text-dark" : "bg-teal-subtle text-teal") ms-1" style="font-size:0.65rem;">
+                                                    @(isFest ? "Festival" : "Awareness Day")
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="text-secondary small mb-2 mt-2" style="font-size:0.78rem;line-height:1.35;">
+                                    @ev.Description
+                                </p>
+
+                                <div class="d-flex align-items-center gap-2 pt-1 border-top">
+                                    <a href="/AiBanner?topic=@Uri.EscapeDataString(ev.PromptTopic)&lang=English"
+                                       class="btn btn-sm btn-cyh-teal py-1 px-2 w-100 d-flex align-items-center justify-content-center gap-1 shadow-sm"
+                                       style="font-size:0.75rem;">
+                                        <i class="bi bi-stars"></i>
+                                        <span>⚡ Generate AI Banner (English)</span>
+                                    </a>
+                                    <a href="/AiBanner?topic=@Uri.EscapeDataString(ev.PromptTopic)&lang=Hindi"
+                                       class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center justify-content-center"
+                                       title="Generate in Hindi"
+                                       style="font-size:0.75rem;">
+                                        <span>हिंदी</span>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-x fs-1 opacity-50 mb-2"></i>
+                        <p class="small mb-0">No special awareness events listed for this month.</p>
+                    </div>
+                }
             </div>
         </div>
     </div>

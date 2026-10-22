@@ -671,6 +671,51 @@ namespace CYHBrandUI.Services
                         "हर 6 महीने में दंत चिकित्सक से जांच कराएं"
                     });
                 }
+                if (topic.Contains("doctor") || topic.Contains("chikitsak"))
+                {
+                    return ("राष्ट्रीय डॉक्टर दिवस", "स्वास्थ्य रक्षक को नमन, नियमित जांच अपनाएं", new List<string>
+                    {
+                        "समय पर नियमित स्वास्थ्य परीक्षण अवश्य करवाएं",
+                        "बिना डॉक्टर सलाह के कोई भी दवा स्वयं न लें",
+                        "डॉक्टर के साथ अपने लक्षणों की पूरी जानकारी साझा करें"
+                    });
+                }
+                if (topic.Contains("yoga") || topic.Contains("yog"))
+                {
+                    return ("अंतर्राष्ट्रीय योग दिवस", "योग से निरोग, स्वस्थ मन और तन", new List<string>
+                    {
+                        "प्रतिदिन 20 मिनट सूर्य नमस्कार व प्राणायाम करें",
+                        "रीढ़ की हड्डी सीधी रखें और गहरी सांस का अभ्यास करें",
+                        "तनाव मुक्ति और मानसिक शांति के लिए ध्यान लगाएं"
+                    });
+                }
+                if (topic.Contains("diwali") || topic.Contains("deepavali"))
+                {
+                    return ("दीपावली स्वास्थ्य सुरक्षा", "रोशनी का पर्व, स्वास्थ्य और खुशहाली", new List<string>
+                    {
+                        "मधुमेह रोगी चीनी रहित और प्राकृतिक मिठाइयां चुनें",
+                        "प्रदूषण व धुएं से बचने के लिए मास्क का उपयोग करें",
+                        "जलने की स्थिति में तुरंत ठंडा पानी डालें और डॉक्टर से मिलें"
+                    });
+                }
+                if (topic.Contains("blood") || topic.Contains("raktdan"))
+                {
+                    return ("रक्तदान महादान जागरूकता", "रक्तदान करें, किसी का जीवन बचाएं", new List<string>
+                    {
+                        "18 से 65 वर्ष के स्वस्थ व्यक्ति रक्तदान कर सकते हैं",
+                        "रक्तदान से पहले और बाद में भरपूर पानी पिएं",
+                        "नियमित रक्तदान शरीर में नए रक्त कोशिकाओं को बढ़ावा देता है"
+                    });
+                }
+                if (topic.Contains("dengue") || topic.Contains("malaria"))
+                {
+                    return ("डेंगू एवं मलेरिया रोकथाम", "मच्छरों से रहें सावधान, स्वस्थ रहें परिवार", new List<string>
+                    {
+                        "कूलर, गमलों और छतों पर जमा पानी तुरंत हटाएं",
+                        "पूरी बांह के कपड़े पहनें और मच्छरदानी का उपयोग करें",
+                        "तेज बुखार व बदन दर्द पर तुरंत खून की जांच करवाएं"
+                    });
+                }
 
                 // General Hindi fallback
                 return ("स्वास्थ्य सलाह", "स्वस्थ जीवनशैली अपनाएं, निरोगी रहें", new List<string>
@@ -789,6 +834,66 @@ namespace CYHBrandUI.Services
                     "Ensure adequate daily intake of Calcium and Vitamin D3",
                     "Incorporate weight-bearing exercises to boost bone density",
                     "Practice good posture during desk work and driving"
+                });
+            }
+
+            if (topic.Contains("doctor") || topic.Contains("healer") || topic.Contains("physician"))
+            {
+                return ("National Doctor's Day", "Honoring Healers, Celebrating Life", new List<string>
+                {
+                    "Schedule an annual comprehensive clinical health checkup",
+                    "Share complete medical history and symptoms openly with your physician",
+                    "Adhere strictly to prescribed medicine dosages and preventive advice"
+                });
+            }
+
+            if (topic.Contains("yoga") || topic.Contains("asana") || topic.Contains("pranayam"))
+            {
+                return ("International Yoga Day", "Yoga for Inner Harmony & Complete Vitality", new List<string>
+                {
+                    "Practice 20 minutes of daily Pranayama for lung and heart capacity",
+                    "Maintain correct spinal posture during work hours to avoid chronic pain",
+                    "Combine mindful meditation with gentle stretching for deep relaxation"
+                });
+            }
+
+            if (topic.Contains("diwali") || topic.Contains("deepavali"))
+            {
+                return ("Green & Healthy Diwali", "Celebrate Festivals with Health & Vitality", new List<string>
+                {
+                    "Choose sugar-free sweets and nuts for balanced festive indulgence",
+                    "Protect lungs and eyes from smoke and fine particulate matter",
+                    "Keep basic first-aid handy and stay well-hydrated throughout the festival"
+                });
+            }
+
+            if (topic.Contains("blood") || topic.Contains("donor") || topic.Contains("donation"))
+            {
+                return ("World Blood Donor Day", "Give Blood, Give Hope, Save Lives", new List<string>
+                {
+                    "Healthy adults can safely donate blood every three months",
+                    "Stay well-hydrated and have a nutritious meal before donation",
+                    "One single blood donation can save up to three lives in emergency care"
+                });
+            }
+
+            if (topic.Contains("dengue") || topic.Contains("malaria"))
+            {
+                return ("Dengue & Vector Prevention", "Stop Mosquito Breeding, Protect Your Family", new List<string>
+                {
+                    "Eliminate standing water in coolers, plant pots, and open buckets",
+                    "Wear full-coverage clothing and apply mosquito repellents outdoors",
+                    "Seek immediate medical attention and blood platelet screening if fever spikes"
+                });
+            }
+
+            if (topic.Contains("swasth") || topic.Contains("bharat") || topic.Contains("republic") || topic.Contains("independence"))
+            {
+                return ("Swasth Bharat Mission", "Healthy Citizens, Strong & Prosperous Nation", new List<string>
+                {
+                    "Adopt active daily mobility and complete 10,000 steps daily",
+                    "Choose fresh local seasonal vegetables and minimize ultra-processed foods",
+                    "Pledge to complete timely immunizations and annual preventive checks"
                 });
             }
 

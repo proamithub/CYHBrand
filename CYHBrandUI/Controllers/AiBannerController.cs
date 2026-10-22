@@ -28,11 +28,13 @@ namespace CYHBrandUI.Controllers
 
         // GET /AiBanner
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? topic = null, string? lang = null)
         {
             ViewData["Title"] = "AI Banner Creator";
             ViewData["PageSubtitle"] = "Create professional, branded health-awareness banners with AI in seconds.";
             ViewBag.Doctor = CurrentUser;
+            ViewBag.PreloadTopic = topic;
+            ViewBag.PreloadLang = lang;
             return View();
         }
 
