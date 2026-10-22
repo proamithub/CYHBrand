@@ -1,349 +1,1195 @@
 @model CYHBrandModel.DTO.DoctorMasterDTO
 @{
-    ViewData["Title"] = "Edit Profile";
+    ViewData["Title"] = "Edit Profile & Branding";
+    var primaryColor = !string.IsNullOrWhiteSpace(Model?.PrimaryColorHex) ? Model.PrimaryColorHex : "#1B2B6B";
+    var secondaryColor = !string.IsNullOrWhiteSpace(Model?.SecondaryColorHex) ? Model.SecondaryColorHex : "#0EA5A0";
+    var preferredFont = !string.IsNullOrWhiteSpace(Model?.PreferredFont) ? Model.PreferredFont : "Inter";
+    var initials = !string.IsNullOrWhiteSpace(Model?.FullName)
+        ? (Model.FullName.Length >= 2 ? Model.FullName.Substring(0, 2).ToUpper() : Model.FullName.Substring(0, 1).ToUpper())
+        : "DR";
 }
 
-<div class="p-4">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a asp-action="Profile" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Back
-        </a>
-        <h4 class="fw-bold mb-0">Edit Profile</h4>
+<div class="container-fluid px-3 px-md-4 py-3">
+
+    <!-- ── TOP HEADER & BREADCRUMB ── -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Doctor" asp-action="Profile" class="text-decoration-none text-muted">My Profile</a></li>
+                    <li class="breadcrumb-item active text-primary fw-medium" aria-current="page">Edit Profile & Branding</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-person-badge-fill text-primary"></i> Doctor Profile & Branding Studio
+            </h3>
+            <p class="text-muted small mb-0 mt-1">Configure your clinical identity, contact details, and automated AI banner branding footer.</p>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- AI Credits Pill -->
+            <div class="badge bg-warning-subtle text-dark border border-warning px-3 py-2 rounded-pill fs-7 d-flex align-items-center gap-2" title="Available AI Generation Credits">
+                <i class="bi bi-lightning-charge-fill text-warning"></i>
+                <span>Credits: <strong id="headerCreditsCount">@(Model?.AiCredits ?? 10)</strong></span>
+            </div>
+
+            <a asp-action="Profile" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-eye me-1"></i> View Profile
+            </a>
+
+            <a asp-controller="AiBanner" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-stars me-1"></i> AI Banner Studio
+            </a>
+
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm" onclick="submitMainProfileForm()">
+                <i class="bi bi-check2-circle me-1"></i> Save Changes
+            </button>
+        </div>
     </div>
 
+    <!-- ── FEEDBACK ALERTS ── -->
     @if (TempData["SuccessMsg"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["SuccessMsg"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+            <div>@TempData["SuccessMsg"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
     @if (TempData["ErrorMsg"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show">
-            @TempData["ErrorMsg"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+            <div>@TempData["ErrorMsg"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    <div id="ajaxToastMsg" class="alert alert-info alert-dismissible fade d-none shadow-sm border-0 rounded-3 mb-4 align-items-center" role="alert">
+        <i class="bi bi-info-circle-fill fs-5 me-2" id="ajaxToastIcon"></i>
+        <div id="ajaxToastText"></div>
+        <button type="button" class="btn-close ms-auto" onclick="hideToast()"></button>
+    </div>
 
-    <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#personal" type="button">
-                <i class="bi bi-person me-1"></i> Personal
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#clinic" type="button">
-                <i class="bi bi-hospital me-1"></i> Clinic
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#brand" type="button">
-                <i class="bi bi-palette me-1"></i> Brand Settings
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#photos" type="button">
-                <i class="bi bi-camera me-1"></i> Photos
-            </button>
-        </li>
-    </ul>
+    <!-- ── MAIN 2-COLUMN WORKSPACE ── -->
+    <div class="row g-4">
 
-    <div class="tab-content">
+        <!-- ══════════════════════════════════════════════════
+             LEFT COLUMN (col-lg-4):
+             1. Doctor Identity Preview & Avatar Upload
+             2. Live AI Banner Branding Footer Ribbon Mockup
+             3. Clinic Logo Quick Manager
+             ══════════════════════════════════════════════════ -->
+        <div class="col-xl-4 col-lg-5">
 
-        <!-- ── Personal + Clinic combined in one form ── -->
-        <form asp-action="EditProfile" asp-controller="Doctor" method="post" id="profileForm">
-            @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="DoctorId" />
+            <!-- Card 1: Doctor Identity & Avatar -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 position-relative">
+                <div class="p-3 text-white text-center position-relative" style="background: linear-gradient(135deg, @primaryColor 0%, #0F1A42 100%);">
+                    <span class="badge bg-white text-primary position-absolute top-0 end-0 m-3 px-2 py-1 rounded-pill small fw-semibold">
+                        <i class="bi bi-patch-check-fill text-primary me-1"></i> Verified Doctor
+                    </span>
 
-            <!-- Personal Tab -->
-            <div class="tab-pane fade show active" id="personal">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pt-3">
-                        <h6 class="fw-semibold">Personal Information</h6>
+                    <!-- Doctor Avatar with Overlay Upload -->
+                    <div class="position-relative d-inline-block mt-2 mb-2">
+                        <div id="avatarContainer" class="rounded-circle shadow border border-3 border-white overflow-hidden bg-white d-inline-flex align-items-center justify-content-center"
+                             style="width: 110px; height: 110px; cursor: pointer;" onclick="document.getElementById('profilePicFileInput').click()" title="Click to upload/change photo">
+                            @if (!string.IsNullOrEmpty(Model?.ProfilePic))
+                            {
+                                <img id="liveAvatarImg" src="@Model.ProfilePic" alt="@Model.FullName" class="w-100 h-100" style="object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <div id="liveAvatarPlaceholder" class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-2"
+                                     style="background: linear-gradient(135deg, @primaryColor, @secondaryColor);">
+                                    @initials
+                                </div>
+                            }
+                        </div>
+                        <label for="profilePicFileInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow"
+                               style="width: 34px; height: 34px; cursor: pointer; border: 2px solid #fff;" title="Upload new photo">
+                            <i class="bi bi-camera-fill small"></i>
+                        </label>
+                        <input type="file" id="profilePicFileInput" accept=".jpg,.jpeg,.png" hidden onchange="uploadDoctorAvatar(this)" />
                     </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label asp-for="FullName" class="form-label fw-medium">Full Name</label>
-                                <input asp-for="FullName" class="form-control" placeholder="Dr. John Smith" />
-                                <span asp-validation-for="FullName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="DisplayName" class="form-label fw-medium">Display Name</label>
-                                <input asp-for="DisplayName" class="form-control" placeholder="Dr. John" />
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="MobileNo" class="form-label fw-medium">Mobile No</label>
-                                <input asp-for="MobileNo" class="form-control" placeholder="+91 9876543210" />
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Specialty" class="form-label fw-medium">Specialty</label>
-                                <input asp-for="Specialty" class="form-control" placeholder="e.g. Cardiologist" />
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Qualifications" class="form-label fw-medium">Qualifications</label>
-                                <input asp-for="Qualifications" class="form-control" placeholder="MBBS, MD" />
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="WebsiteUrl" class="form-label fw-medium">Website URL</label>
-                                <input asp-for="WebsiteUrl" class="form-control" placeholder="https://example.com" />
-                            </div>
-                            <div class="col-12">
-                                <label asp-for="Bio" class="form-label fw-medium">Bio / About</label>
-                                <textarea asp-for="Bio" class="form-control" rows="3"
-                                          placeholder="Write a short bio..."></textarea>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i> Save Personal Info
-                            </button>
-                        </div>
+
+                    <h5 class="fw-bold mb-1 text-white" id="liveDoctorName">
+                        @(string.IsNullOrWhiteSpace(Model?.FullName) ? "Dr. Full Name" : (Model.FullName.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase) ? Model.FullName : "Dr. " + Model.FullName))
+                    </h5>
+                    <div class="badge bg-light text-primary fw-medium px-3 py-1 rounded-pill small mb-2" id="liveSpecialtyBadge">
+                        @(string.IsNullOrWhiteSpace(Model?.Specialty) ? "Medical Specialist" : Model.Specialty)
+                    </div>
+                    <div class="small text-white-50" id="liveClinicSub">
+                        <i class="bi bi-geo-alt-fill me-1 text-warning"></i>
+                        <span id="liveClinicNameTxt">@(string.IsNullOrWhiteSpace(Model?.ClinicName) ? "Clinic Name" : Model.ClinicName)</span>
+                        <span id="liveCityTxt">@(string.IsNullOrWhiteSpace(Model?.City) ? "" : $", {Model.City}")</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Clinic Tab -->
-            <div class="tab-pane fade" id="clinic">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pt-3">
-                        <h6 class="fw-semibold">Clinic Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label asp-for="ClinicName" class="form-label fw-medium">Clinic Name</label>
-                                <input asp-for="ClinicName" class="form-control" placeholder="City Health Clinic" />
-                            </div>
-                            <div class="col-md-3">
-                                <label asp-for="City" class="form-label fw-medium">City</label>
-                                <input asp-for="City" class="form-control" placeholder="Mumbai" />
-                            </div>
-                            <div class="col-md-3">
-                                <label asp-for="State" class="form-label fw-medium">State</label>
-                                <input asp-for="State" class="form-control" placeholder="Maharashtra" />
-                            </div>
-                            <div class="col-md-3">
-                                <label asp-for="PinCode" class="form-label fw-medium">PIN Code</label>
-                                <input asp-for="PinCode" class="form-control" placeholder="400001" />
-                            </div>
-                            <div class="col-12">
-                                <label asp-for="ClinicAddress" class="form-label fw-medium">Full Address</label>
-                                <textarea asp-for="ClinicAddress" class="form-control" rows="2"
-                                          placeholder="Shop 12, XYZ Mall, Main Road..."></textarea>
-                            </div>
+                <div class="card-body p-3 bg-white">
+                    <!-- Profile Completeness Meter -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span class="text-muted fw-semibold">Profile Completeness</span>
+                            <span class="fw-bold text-primary" id="completionPercent">80%</span>
                         </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i> Save Clinic Info
-                            </button>
+                        <div class="progress" style="height: 6px; border-radius: 4px;">
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="completionBar" role="progressbar" style="width: 80%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mt-2 pt-1 border-top" style="font-size: 11px;">
+                            <span id="chkName"><i class="bi bi-check-circle-fill text-success"></i> Name</span>
+                            <span id="chkSpec"><i class="bi bi-check-circle-fill text-success"></i> Specialty</span>
+                            <span id="chkClinic"><i class="bi bi-check-circle-fill text-success"></i> Clinic</span>
+                            <span id="chkPhoto"><i class="bi bi-check-circle-fill text-success"></i> Photo</span>
+                            <span id="chkBrand"><i class="bi bi-check-circle-fill text-success"></i> Brand</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </form>
 
-        <!-- ── Brand Settings — separate AJAX form ── -->
-        <div class="tab-pane fade" id="brand">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-3">
-                    <h6 class="fw-semibold">Brand Settings</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <label class="form-label fw-medium">Primary Color</label>
-                            <div class="input-group">
-                                <input type="color" id="PrimaryColorHex" value="@(Model?.PrimaryColorHex ?? "#2563eb")"
-                                       class="form-control form-control-color"
-                                       oninput="document.getElementById('primaryHexTxt').value=this.value" />
-                                <input type="text" id="primaryHexTxt" value="@(Model?.PrimaryColorHex ?? "#2563eb")"
-                                       class="form-control"
-                                       oninput="document.getElementById('PrimaryColorHex').value=this.value" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-medium">Secondary Color</label>
-                            <div class="input-group">
-                                <input type="color" id="SecondaryColorHex" value="@(Model?.SecondaryColorHex ?? "#7c3aed")"
-                                       class="form-control form-control-color"
-                                       oninput="document.getElementById('secondaryHexTxt').value=this.value" />
-                                <input type="text" id="secondaryHexTxt" value="@(Model?.SecondaryColorHex ?? "#7c3aed")"
-                                       class="form-control"
-                                       oninput="document.getElementById('SecondaryColorHex').value=this.value" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-medium">Preferred Font</label>
-                            <select id="PreferredFont" class="form-select">
-                                @foreach (var f in new[] { "Inter","Poppins","Roboto","Lato","Montserrat","Nunito","Open Sans" })
-                                {
-                                    <option value="@f" selected="@(Model?.PreferredFont == f)">@f</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <div class="p-3 rounded border d-flex align-items-center gap-3"
-                                 style="background:#f8fafc">
-                                <div style="width:40px;height:40px;border-radius:8px;background:var(--prev-primary,#2563eb)"
-                                     id="previewPrimary"></div>
-                                <div style="width:40px;height:40px;border-radius:8px;background:var(--prev-secondary,#7c3aed)"
-                                     id="previewSecondary"></div>
-                                <span id="previewFont" class="fw-medium">Font Preview — @(Model?.PreferredFont ?? "Inter")</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button class="btn btn-primary" onclick="saveBrand()">
-                            <i class="bi bi-save me-1"></i> Save Brand Settings
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="document.getElementById('profilePicFileInput').click()">
+                            <i class="bi bi-camera me-1"></i> Update Profile Picture
                         </button>
-                        <span id="brandMsg" class="ms-3 small"></span>
+                    </div>
+                    <div id="avatarUploadStatus" class="small text-center mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Card 2: Interactive Real-Time AI Banner Footer Ribbon Mockup -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white border-0 pt-3 px-3 pb-2 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                            <i class="bi bi-columns-gap text-teal"></i> Live Banner Branding Footer
+                        </h6>
+                        <small class="text-muted" style="font-size: 11px;">Automatic footer embedded on generated AI banners</small>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill" style="font-size: 10px;">
+                        <i class="bi bi-broadcast me-1"></i> Live Sync
+                    </span>
+                </div>
+                <div class="card-body p-3 pt-0">
+                    <p class="text-muted small mb-2" style="font-size: 12px;">
+                        This dynamic footer will be rendered at the bottom of your banners when <em>"Embed Doctor Branding"</em> is turned on.
+                    </p>
+
+                    <!-- LIVE FOOTER CONTAINER -->
+                    <div id="mockupFooterBox" class="rounded-3 shadow-sm text-white overflow-hidden p-3 position-relative"
+                         style="background: @primaryColor; font-family: '@preferredFont', sans-serif; transition: all 0.3s ease;">
+                        
+                        <!-- Top Accent Line -->
+                        <div id="mockupAccentLine" class="position-absolute top-0 start-0 w-100" style="height: 4px; background: @secondaryColor;"></div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Avatar in Footer -->
+                            <div class="flex-shrink-0">
+                                <div id="mockupAvatarWrap" class="rounded-circle overflow-hidden shadow-sm d-flex align-items-center justify-content-center"
+                                     style="width: 52px; height: 52px; border: 2px solid @secondaryColor; background: rgba(255,255,255,0.2);">
+                                    @if (!string.IsNullOrEmpty(Model?.ProfilePic))
+                                    {
+                                        <img id="mockupAvatarImg" src="@Model.ProfilePic" alt="Doctor" class="w-100 h-100" style="object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <span id="mockupAvatarInitial" class="fw-bold text-white small">@initials</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Doctor Name & Credentials -->
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-bold text-truncate" id="mockupDocName" style="font-size: 14px; letter-spacing: 0.3px;">
+                                    @(string.IsNullOrWhiteSpace(Model?.FullName) ? "Dr. Full Name" : (Model.FullName.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase) ? Model.FullName : "Dr. " + Model.FullName))
+                                </div>
+                                <div class="small text-truncate" id="mockupDocQual" style="font-size: 11px; color: @secondaryColor;">
+                                    @(string.IsNullOrWhiteSpace(Model?.Qualifications) ? "MBBS, MD" : Model.Qualifications) • <span id="mockupDocSpec">@(string.IsNullOrWhiteSpace(Model?.Specialty) ? "Specialist" : Model.Specialty)</span>
+                                </div>
+                                <div class="small text-truncate text-white-50" id="mockupClinicLine" style="font-size: 10px;">
+                                    <i class="bi bi-hospital me-1"></i><span id="mockupClinicName">@(string.IsNullOrWhiteSpace(Model?.ClinicName) ? "Clinic / Hospital Name" : Model.ClinicName)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Bottom Bar: Phone & Address -->
+                        <div class="mt-2 pt-2 border-top border-white-50 d-flex flex-wrap align-items-center justify-content-between gap-1" style="font-size: 10px;">
+                            <div id="mockupPhone" class="d-flex align-items-center gap-1 text-truncate">
+                                <i class="bi bi-telephone-fill" style="color: @secondaryColor;"></i>
+                                <span id="mockupPhoneTxt">@(string.IsNullOrWhiteSpace(Model?.MobileNo) ? "+91 98765 43210" : Model.MobileNo)</span>
+                            </div>
+                            <div id="mockupLocation" class="text-white-50 text-truncate">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                <span id="mockupAddressTxt">@(string.IsNullOrWhiteSpace(Model?.City) ? "City, State" : $"{Model.City}{(string.IsNullOrWhiteSpace(Model?.PinCode) ? "" : " - " + Model.PinCode)}")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mt-2 pt-1 text-muted" style="font-size: 11px;">
+                        <span><i class="bi bi-palette me-1"></i> Colors: <strong id="lblPrimaryHex">@primaryColor</strong> / <strong id="lblSecondaryHex">@secondaryColor</strong></span>
+                        <span><i class="bi bi-type me-1"></i> Font: <strong id="lblFontName">@preferredFont</strong></span>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ── Photos Tab ── -->
-        <div class="tab-pane fade" id="photos">
-            <div class="row g-4">
-                <!-- Profile Pic -->
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <h6 class="fw-semibold mb-3">Profile Photo</h6>
-                            <div class="mb-3">
-                                @if (!string.IsNullOrEmpty(Model?.ProfilePic))
-                                {
-                                    <img id="profilePicPreview" src="@Model.ProfilePic"
-                                         class="rounded-circle" width="100" height="100" style="object-fit:cover" />
-                                }
-                                else
-                                {
-                                    <div id="profilePicPreview"
-                                         class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
-                                         style="width:100px;height:100px;font-size:2rem">
-                                        @(Model?.FullName?.Substring(0, 1).ToUpper() ?? "D")
-                                    </div>
-                                }
-                            </div>
-                            <label class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-upload me-1"></i> Upload Photo
-                                <input type="file" id="profilePicFile" accept=".jpg,.jpeg,.png" hidden
-                                       onchange="uploadFile(this, '/Doctor/UploadProfilePic', 'profilePicPreview', 'profilePicMsg')" />
-                            </label>
-                            <div id="profilePicMsg" class="small mt-2"></div>
-                            <p class="text-muted small mt-2">JPG/PNG, max 5 MB</p>
-                        </div>
-                    </div>
+            <!-- Card 3: Clinic Logo Manager -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white border-0 pt-3 px-3 pb-2">
+                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-hospital text-primary"></i> Clinic / Hospital Logo
+                    </h6>
+                    <small class="text-muted" style="font-size: 11px;">Appears on digital prescriptions and banner corners</small>
                 </div>
-                <!-- Clinic Logo -->
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <h6 class="fw-semibold mb-3">Clinic Logo</h6>
-                            <div class="mb-3">
-                                @if (!string.IsNullOrEmpty(Model?.ClinicLogo))
-                                {
-                                    <img id="clinicLogoPreview" src="@Model.ClinicLogo"
-                                         class="rounded" height="80" style="object-fit:contain" />
-                                }
-                                else
-                                {
-                                    <div id="clinicLogoPreview"
-                                         class="bg-light border rounded d-inline-flex align-items-center justify-content-center"
-                                         style="width:100px;height:80px">
-                                        <i class="bi bi-building text-muted fs-3"></i>
-                                    </div>
-                                }
+                <div class="card-body p-3 pt-0 text-center">
+                    <div class="p-3 mb-2 rounded-3 border bg-light d-flex align-items-center justify-content-center" style="min-height: 90px;">
+                        @if (!string.IsNullOrEmpty(Model?.ClinicLogo))
+                        {
+                            <img id="clinicLogoPreviewImg" src="@Model.ClinicLogo" alt="Clinic Logo" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            <div id="clinicLogoPlaceholder" class="text-muted small d-flex flex-column align-items-center">
+                                <i class="bi bi-building fs-3 text-secondary mb-1"></i>
+                                <span>No logo uploaded yet</span>
                             </div>
-                            <label class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-upload me-1"></i> Upload Logo
-                                <input type="file" id="clinicLogoFile" accept=".jpg,.jpeg,.png" hidden
-                                       onchange="uploadFile(this, '/Doctor/UploadClinicLogo', 'clinicLogoPreview', 'clinicLogoMsg')" />
-                            </label>
-                            <div id="clinicLogoMsg" class="small mt-2"></div>
-                            <p class="text-muted small mt-2">JPG/PNG, max 5 MB</p>
-                        </div>
+                            <img id="clinicLogoPreviewImg" src="" alt="Clinic Logo" class="d-none" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+                        }
                     </div>
+
+                    <label class="btn btn-outline-secondary btn-sm rounded-pill w-100">
+                        <i class="bi bi-upload me-1"></i> Upload Clinic Logo
+                        <input type="file" id="clinicLogoFileInput" accept=".jpg,.jpeg,.png,.svg" hidden onchange="uploadClinicLogo(this)" />
+                    </label>
+                    <div id="logoUploadStatus" class="small mt-1"></div>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px;">Recommended: Transparent PNG, max 5 MB</small>
                 </div>
             </div>
+
         </div>
 
-    </div><!-- end tab-content -->
+        <!-- ══════════════════════════════════════════════════
+             RIGHT COLUMN (col-lg-8):
+             Multi-Tab Unified Settings Form
+             Tab 1: 👤 Personal Info
+             Tab 2: 🏥 Clinic Details
+             Tab 3: 🎨 Brand Styling & Palette
+             Tab 4: 📸 Media & Assets
+             Tab 5: ⚡ AI Credits & Account
+             ══════════════════════════════════════════════════ -->
+        <div class="col-xl-8 col-lg-7">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <!-- Nav Tabs Navigation -->
+                <div class="card-header bg-white border-bottom px-3 pt-3 pb-0">
+                    <ul class="nav nav-pills card-header-pills gap-1" id="editProfileTabList" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill px-3 py-2 fw-medium small" id="tab-personal-btn" data-bs-toggle="pill" data-bs-target="#tab-personal" type="button" role="tab">
+                                <i class="bi bi-person me-1"></i> Personal Info
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-2 fw-medium small" id="tab-clinic-btn" data-bs-toggle="pill" data-bs-target="#tab-clinic" type="button" role="tab">
+                                <i class="bi bi-hospital me-1"></i> Clinic Details
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-2 fw-medium small" id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab">
+                                <i class="bi bi-palette me-1"></i> Brand & Colors
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-2 fw-medium small" id="tab-photos-btn" data-bs-toggle="pill" data-bs-target="#tab-photos" type="button" role="tab">
+                                <i class="bi bi-images me-1"></i> Photos & Assets
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-2 fw-medium small" id="tab-credits-btn" data-bs-toggle="pill" data-bs-target="#tab-credits" type="button" role="tab">
+                                <i class="bi bi-lightning-charge me-1"></i> AI Credits
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- UNIFIED MAIN FORM -->
+                <form asp-action="EditProfile" asp-controller="Doctor" method="post" id="profileForm" class="needs-validation">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="DoctorId" />
+                    <input type="hidden" asp-for="Email" />
+                    <input type="hidden" asp-for="AiCredits" />
+
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="editProfileTabContent">
+
+                            <!-- ── TAB 1: PERSONAL INFORMATION ── -->
+                            <div class="tab-pane fade show active" id="tab-personal" role="tabpanel">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">Personal Information</h5>
+                                        <small class="text-muted">Doctor's full medical credentials, title, and contact methods.</small>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">Step 1 of 4</span>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="FullName" class="form-label fw-semibold text-dark small">Full Name <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person-fill"></i></span>
+                                            <input asp-for="FullName" id="inputFullName" class="form-control" placeholder="e.g. Dr. Rajesh Sharma" required oninput="syncLivePreview()" />
+                                        </div>
+                                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                                        <small class="text-muted" style="font-size: 11px;">Include your professional prefix ("Dr.").</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="DisplayName" class="form-label fw-semibold text-dark small">Display / Banner Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-tag-fill"></i></span>
+                                            <input asp-for="DisplayName" id="inputDisplayName" class="form-control" placeholder="e.g. Dr. Rajesh" oninput="syncLivePreview()" />
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Short name used for casual greetings or social posts.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-dark small">Email Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope-fill"></i></span>
+                                            <input type="email" value="@Model?.Email" class="form-control bg-light" disabled readonly />
+                                            <span class="input-group-text bg-light text-success"><i class="bi bi-shield-check" title="Verified Account Email"></i></span>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Primary login email cannot be changed from this screen.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="MobileNo" class="form-label fw-semibold text-dark small">Mobile / WhatsApp Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone-fill"></i></span>
+                                            <input asp-for="MobileNo" id="inputMobileNo" class="form-control" placeholder="+91 9876543210" oninput="syncLivePreview()" />
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Direct contact displayed on banner footers.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Specialty" class="form-label fw-semibold text-dark small">Medical Specialty</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-heart-pulse-fill"></i></span>
+                                            <input asp-for="Specialty" id="inputSpecialty" list="specialtySuggestions" class="form-control" placeholder="Select or type specialty..." oninput="syncLivePreview()" />
+                                            <datalist id="specialtySuggestions">
+                                                <option value="Cardiologist / Heart Specialist" />
+                                                <option value="Diabetologist & Endocrinologist" />
+                                                <option value="General Physician / Internal Medicine" />
+                                                <option value="Pediatrician / Child Specialist" />
+                                                <option value="Orthopedic Surgeon" />
+                                                <option value="Dermatologist & Cosmetologist" />
+                                                <option value="Obstetrician & Gynecologist" />
+                                                <option value="Dentist / Orthodontist" />
+                                                <option value="Neurologist / Neurosurgeon" />
+                                                <option value="Ophthalmologist / Eye Specialist" />
+                                                <option value="ENT Specialist (Otolaryngologist)" />
+                                                <option value="Gastroenterologist" />
+                                                <option value="Pulmonologist / Chest Physician" />
+                                                <option value="Psychiatrist / Mental Health" />
+                                                <option value="Oncologist / Cancer Specialist" />
+                                                <option value="Urologist / Andrologist" />
+                                                <option value="Nephrologist / Kidney Care" />
+                                                <option value="Ayurveda Consultant" />
+                                                <option value="Homeopathic Physician" />
+                                                <option value="Physiotherapist / Rehab Specialist" />
+                                            </datalist>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Choose from clinical list or enter custom field.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Qualifications" class="form-label fw-semibold text-dark small">Medical Qualifications</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-mortarboard-fill"></i></span>
+                                            <input asp-for="Qualifications" id="inputQualifications" class="form-control" placeholder="e.g. MBBS, MD (Cardiology), FACC" oninput="syncLivePreview()" />
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Medical degrees shown under doctor's name on banners.</small>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label asp-for="WebsiteUrl" class="form-label fw-semibold text-dark small">Professional Website / Practo URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-globe2"></i></span>
+                                            <input asp-for="WebsiteUrl" class="form-control" placeholder="https://www.drname.com" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label asp-for="Bio" class="form-label fw-semibold text-dark small">About Doctor / Professional Bio</label>
+                                        <textarea asp-for="Bio" class="form-control" rows="3" placeholder="Brief summary of your clinical experience, special interests, and patient philosophy..."></textarea>
+                                        <small class="text-muted" style="font-size: 11px;">Used when generating AI bio summaries and profile introductions.</small>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="switchTab('tab-clinic-btn')">
+                                        Next: Clinic Details <i class="bi bi-arrow-right ms-1"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                        <i class="bi bi-save me-1"></i> Save Personal Details
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ── TAB 2: CLINIC INFORMATION ── -->
+                            <div class="tab-pane fade" id="tab-clinic" role="tabpanel">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">Clinic / Hospital Information</h5>
+                                        <small class="text-muted">Primary practice location, consultation center, and contact address.</small>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">Step 2 of 4</span>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label asp-for="ClinicName" class="form-label fw-semibold text-dark small">Clinic / Hospital Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-hospital-fill"></i></span>
+                                            <input asp-for="ClinicName" id="inputClinicName" class="form-control" placeholder="e.g. Apex Heart & Multispeciality Clinic" oninput="syncLivePreview()" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label asp-for="ClinicAddress" class="form-label fw-semibold text-dark small">Full Clinic Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-geo-alt-fill"></i></span>
+                                            <textarea asp-for="ClinicAddress" id="inputClinicAddress" class="form-control" rows="2" placeholder="Suite 101, Medical Tower, MG Road, Landmark..." oninput="syncLivePreview()"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label asp-for="City" class="form-label fw-semibold text-dark small">City</label>
+                                        <input asp-for="City" id="inputCity" class="form-control" placeholder="e.g. Mumbai" oninput="syncLivePreview()" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label asp-for="State" class="form-label fw-semibold text-dark small">State / Province</label>
+                                        <input asp-for="State" id="inputState" class="form-control" placeholder="e.g. Maharashtra" oninput="syncLivePreview()" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label asp-for="PinCode" class="form-label fw-semibold text-dark small">PIN / Postal Code</label>
+                                        <input asp-for="PinCode" id="inputPinCode" class="form-control" placeholder="e.g. 400001" oninput="syncLivePreview()" />
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="switchTab('tab-personal-btn')">
+                                        <i class="bi bi-arrow-left me-1"></i> Back to Personal
+                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="switchTab('tab-brand-btn')">
+                                            Next: Brand & Colors <i class="bi bi-arrow-right ms-1"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                            <i class="bi bi-save me-1"></i> Save Clinic Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ── TAB 3: BRAND IDENTITY & PALETTE ── -->
+                            <div class="tab-pane fade" id="tab-brand" role="tabpanel">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">Brand Styling & Palette</h5>
+                                        <small class="text-muted">Define your signature medical colors and typography for consistent branding.</small>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">Step 3 of 4</span>
+                                </div>
+
+                                <!-- Preset Color Schemes -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold text-dark small mb-2 d-flex align-items-center gap-1">
+                                        <i class="bi bi-magic text-teal"></i> Recommended Medical Color Themes (1-Click Apply)
+                                    </label>
+                                    <div class="row g-2">
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#1B2B6B', '#0EA5A0', 'Inter')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #1B2B6B;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #0EA5A0;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Navy & Teal</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Classic Clinical</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#2563EB', '#0EA5E9', 'Poppins')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #2563EB;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #0EA5E9;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Royal & Sky Blue</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Modern Trust</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#047857', '#10B981', 'Roboto')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #047857;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #10B981;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Emerald & Mint</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Wellness & Ayurveda</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#6D28D9', '#EC4899', 'Montserrat')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #6D28D9;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #EC4899;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Violet & Rose</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Dermatology & Care</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#BE123C', '#F43F5E', 'Lato')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #BE123C;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #F43F5E;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Crimson & Coral</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Cardiology & Emergency</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 p-2 d-flex align-items-center gap-2 rounded-3 text-start brand-preset-btn"
+                                                    onclick="applyBrandPreset('#334155', '#06B6D4', 'Open Sans')">
+                                                <div class="d-flex gap-1">
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #334155;"></span>
+                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background: #06B6D4;"></span>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="fw-semibold small text-truncate">Slate & Cyan</div>
+                                                    <div class="text-muted" style="font-size: 10px;">Diagnostic & Tech</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Custom Color Inputs -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-dark small">Primary Brand Color</label>
+                                        <div class="input-group">
+                                            <input type="color" id="pickerPrimary" value="@primaryColor" class="form-control form-control-color p-1" style="width: 50px;"
+                                                   oninput="updatePrimaryColor(this.value)" />
+                                            <input type="text" asp-for="PrimaryColorHex" id="inputPrimaryHex" value="@primaryColor" class="form-control font-monospace"
+                                                   oninput="updatePrimaryColor(this.value)" />
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Main ribbon, headers, and primary doctor badge.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-dark small">Secondary Accent Color</label>
+                                        <div class="input-group">
+                                            <input type="color" id="pickerSecondary" value="@secondaryColor" class="form-control form-control-color p-1" style="width: 50px;"
+                                                   oninput="updateSecondaryColor(this.value)" />
+                                            <input type="text" asp-for="SecondaryColorHex" id="inputSecondaryHex" value="@secondaryColor" class="form-control font-monospace"
+                                                   oninput="updateSecondaryColor(this.value)" />
+                                        </div>
+                                        <small class="text-muted" style="font-size: 11px;">Subheadings, highlight badges, and avatar border ring.</small>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label asp-for="PreferredFont" class="form-label fw-semibold text-dark small">Preferred Typography Font</label>
+                                        <select asp-for="PreferredFont" id="selectPreferredFont" class="form-select" onchange="updatePreferredFont(this.value)">
+                                            @foreach (var font in new[] { "Inter", "Poppins", "Roboto", "Montserrat", "Lato", "Nunito", "Open Sans" })
+                                            {
+                                                <option value="@font" selected="@(preferredFont == font)">@font</option>
+                                            }
+                                        </select>
+                                        <small class="text-muted" style="font-size: 11px;">Applied to your doctor name and banner footer typography.</small>
+                                    </div>
+                                </div>
+
+                                <!-- Live Interactive Font Sample Box -->
+                                <div class="mt-4 p-3 rounded-3 border bg-light">
+                                    <div class="small text-muted mb-1 fw-semibold">Interactive Typography & Palette Sample:</div>
+                                    <div id="liveFontSampleBox" class="p-3 rounded-2 text-white" style="background: @primaryColor; font-family: '@preferredFont', sans-serif;">
+                                        <h5 class="fw-bold mb-1" id="sampleHeading">Dr. Name — Medical Specialist</h5>
+                                        <p class="mb-0 small" style="color: @secondaryColor;" id="sampleSub">
+                                            Excellence in Clinical Care • State-of-the-art Medical Practice
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="switchTab('tab-clinic-btn')">
+                                        <i class="bi bi-arrow-left me-1"></i> Back to Clinic
+                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary rounded-pill px-3" onclick="saveBrandSettingsAjax()">
+                                            <i class="bi bi-lightning-charge me-1"></i> Instant Save Brand
+                                        </button>
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                            <i class="bi bi-save me-1"></i> Save All Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ── TAB 4: PHOTOS & ASSETS ── -->
+                            <div class="tab-pane fade" id="tab-photos" role="tabpanel">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">Photos & Digital Assets</h5>
+                                        <small class="text-muted">High-resolution medical headshot and clinic badge for AI creations.</small>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">Step 4 of 4</span>
+                                </div>
+
+                                <div class="row g-4">
+                                    <!-- Doctor Headshot Box -->
+                                    <div class="col-md-6">
+                                        <div class="p-4 rounded-4 border bg-light text-center h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="fw-bold text-dark mb-1">Doctor Profile Photo</div>
+                                                <p class="text-muted small mb-3">Square or circular portrait with white / clear background</p>
+
+                                                <div class="mb-3 d-inline-block position-relative">
+                                                    @if (!string.IsNullOrEmpty(Model?.ProfilePic))
+                                                    {
+                                                        <img id="tabPhotoPreview" src="@Model.ProfilePic" class="rounded-circle shadow border border-3 border-white"
+                                                             style="width: 120px; height: 120px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div id="tabPhotoPreview" class="rounded-circle bg-primary text-white shadow d-inline-flex align-items-center justify-content-center fw-bold fs-2"
+                                                             style="width: 120px; height: 120px; background: @primaryColor;">
+                                                            @initials
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="btn btn-primary rounded-pill px-4 w-100 mb-2">
+                                                    <i class="bi bi-upload me-1"></i> Choose New Photo
+                                                    <input type="file" accept=".jpg,.jpeg,.png" hidden onchange="uploadDoctorAvatar(this)" />
+                                                </label>
+                                                <small class="text-muted d-block" style="font-size: 11px;">Supports JPG, PNG (Max: 5 MB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Clinic Logo Box -->
+                                    <div class="col-md-6">
+                                        <div class="p-4 rounded-4 border bg-light text-center h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="fw-bold text-dark mb-1">Clinic / Hospital Logo</div>
+                                                <p class="text-muted small mb-3">High-resolution logo with transparent background</p>
+
+                                                <div class="mb-3 p-3 bg-white rounded-3 border d-inline-flex align-items-center justify-content-center"
+                                                     style="width: 180px; height: 120px;">
+                                                    @if (!string.IsNullOrEmpty(Model?.ClinicLogo))
+                                                    {
+                                                        <img id="tabLogoPreview" src="@Model.ClinicLogo" style="max-height: 80px; max-width: 150px; object-fit: contain;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div id="tabLogoPreview" class="text-muted small text-center">
+                                                            <i class="bi bi-image fs-3 d-block text-secondary"></i>
+                                                            <span>No logo set</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="btn btn-outline-secondary rounded-pill px-4 w-100 mb-2">
+                                                    <i class="bi bi-upload me-1"></i> Choose Clinic Logo
+                                                    <input type="file" accept=".jpg,.jpeg,.png,.svg" hidden onchange="uploadClinicLogo(this)" />
+                                                </label>
+                                                <small class="text-muted d-block" style="font-size: 11px;">Transparent PNG recommended (Max: 5 MB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Best Practice Tips -->
+                                <div class="mt-4 p-3 rounded-3 bg-primary-subtle border border-primary-subtle d-flex align-items-start gap-3">
+                                    <i class="bi bi-lightbulb-fill text-primary fs-4 mt-1"></i>
+                                    <div class="small">
+                                        <strong class="text-primary">Pro Tip for AI Medical Banners:</strong>
+                                        <span class="text-dark">
+                                            Using a well-lit doctor portrait in clinical attire (coat / stethoscope) and a transparent clinic logo dramatically increases the professionalism and visual authority of your generated social posts.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="switchTab('tab-brand-btn')">
+                                        <i class="bi bi-arrow-left me-1"></i> Back to Brand
+                                    </button>
+                                    <a asp-controller="AiBanner" asp-action="Index" class="btn btn-success rounded-pill px-4 shadow-sm">
+                                        <i class="bi bi-stars me-1"></i> Generate AI Banner Now
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- ── TAB 5: AI CREDITS & ACCOUNT ── -->
+                            <div class="tab-pane fade" id="tab-credits" role="tabpanel">
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">AI Credits & Account Status</h5>
+                                        <small class="text-muted">Monitor your generation credits balance and medical account details.</small>
+                                    </div>
+                                    <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-1 rounded-pill small">Active Plan</span>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="p-4 rounded-4 border bg-light h-100">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <span class="text-muted small fw-semibold">CURRENT AI CREDITS</span>
+                                                <i class="bi bi-lightning-charge-fill text-warning fs-4"></i>
+                                            </div>
+                                            <div class="display-5 fw-bold text-dark mb-1" id="tabCreditsBig">
+                                                @(Model?.AiCredits ?? 10)
+                                            </div>
+                                            <div class="small text-muted mb-3">Credits remaining in your account</div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: @(Math.Min(100, ((Model?.AiCredits ?? 10) * 10)))%"></div>
+                                            </div>
+                                            <div class="small text-muted mt-2" style="font-size: 11px;">
+                                                1 Banner Generation = 1 Credit
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-4 rounded-4 border bg-light h-100">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <span class="text-muted small fw-semibold">MEMBERSHIP DETAILS</span>
+                                                <i class="bi bi-shield-check text-success fs-4"></i>
+                                            </div>
+                                            <div class="fw-bold text-dark mb-1">Doctor Pro Plan</div>
+                                            <div class="small text-muted mb-2">Doctor ID: #@Model?.DoctorId</div>
+                                            <div class="small text-muted mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-1"></i> Unlimited Free Live Content Search
+                                            </div>
+                                            <div class="small text-muted mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-1"></i> High-Resolution Canvas Rendering
+                                            </div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-check-circle-fill text-success me-1"></i> Automatic Live Doctor Footer Branding
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div>
+                                        <strong class="text-dark">Ready to create a medical banner?</strong>
+                                        <div class="text-muted small">Choose any health topic, holiday, or disease awareness day.</div>
+                                    </div>
+                                    <a asp-controller="AiBanner" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                                        <i class="bi bi-stars me-1"></i> Open AI Banner Studio
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div><!-- end tab-content -->
+                    </div><!-- end card-body -->
+                </form>
+            </div><!-- end card -->
+
+        </div><!-- end col-lg-8 -->
+
+    </div><!-- end row -->
+
 </div>
 
 @section Scripts {
 <script>
-const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    // ── CSRF Token ──────────────────────────────────────────────────────────
+    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
-// ── Brand color live preview ──────────────────────────────────────
-document.getElementById('PrimaryColorHex').addEventListener('input', e => {
-    document.getElementById('previewPrimary').style.background = e.target.value;
-});
-document.getElementById('SecondaryColorHex').addEventListener('input', e => {
-    document.getElementById('previewSecondary').style.background = e.target.value;
-});
-document.getElementById('PreferredFont').addEventListener('change', e => {
-    document.getElementById('previewFont').style.fontFamily = e.target.value;
-    document.getElementById('previewFont').textContent = 'Font Preview — ' + e.target.value;
-});
-
-// ── Save brand via AJAX ───────────────────────────────────────────
-async function saveBrand() {
-    const body = new URLSearchParams({
-        PrimaryColorHex:   document.getElementById('PrimaryColorHex').value,
-        SecondaryColorHex: document.getElementById('SecondaryColorHex').value,
-        PreferredFont:     document.getElementById('PreferredFont').value
-    });
-    const res = await fetch('/Doctor/UpdateBrandSettings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-                   'RequestVerificationToken': token },
-        body: body.toString()
-    });
-    const data = await res.json();
-    const el = document.getElementById('brandMsg');
-    el.textContent = data.msg;
-    el.className = 'ms-3 small ' + (data.isSuccess ? 'text-success' : 'text-danger');
-}
-
-// ── File upload helper ────────────────────────────────────────────
-async function uploadFile(input, url, previewId, msgId) {
-    const file = input.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    const msgEl = document.getElementById(msgId);
-    msgEl.textContent = 'Uploading...';
-    msgEl.className = 'small mt-2 text-muted';
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'RequestVerificationToken': token },
-        body: formData
-    });
-    const data = await res.json();
-    if (data.isSuccess) {
-        const preview = document.getElementById(previewId);
-        if (preview.tagName === 'IMG') {
-            preview.src = data.filePath;
-        } else {
-            // replace the placeholder div with an img
-            const img = document.createElement('img');
-            img.id = previewId;
-            img.src = data.filePath;
-            img.className = 'rounded-circle';
-            img.width = 100; img.height = 100;
-            img.style.objectFit = 'cover';
-            preview.replaceWith(img);
+    // ── Global Helper for Tab Switching ─────────────────────────────────────
+    function switchTab(buttonId) {
+        const btn = document.getElementById(buttonId);
+        if (btn) {
+            const tabInstance = new bootstrap.Tab(btn);
+            tabInstance.show();
+            window.scrollTo({ top: 120, behavior: 'smooth' });
         }
-        msgEl.textContent = data.msg;
-        msgEl.className = 'small mt-2 text-success';
-    } else {
-        msgEl.textContent = data.msg;
-        msgEl.className = 'small mt-2 text-danger';
     }
-}
+
+    function submitMainProfileForm() {
+        const form = document.getElementById('profileForm');
+        if (form.checkValidity()) {
+            form.submit();
+        } else {
+            form.reportValidity();
+        }
+    }
+
+    // ── Real-Time Live Sync: Form Inputs -> Avatar & Banner Footer Mockup ────
+    function syncLivePreview() {
+        const fullName = document.getElementById('inputFullName')?.value.trim() || 'Dr. Full Name';
+        const displayName = document.getElementById('inputDisplayName')?.value.trim();
+        const specialty = document.getElementById('inputSpecialty')?.value.trim() || 'Medical Specialist';
+        const qualifications = document.getElementById('inputQualifications')?.value.trim() || 'MBBS, MD';
+        const clinicName = document.getElementById('inputClinicName')?.value.trim() || 'Clinic / Hospital Name';
+        const city = document.getElementById('inputCity')?.value.trim();
+        const state = document.getElementById('inputState')?.value.trim();
+        const pinCode = document.getElementById('inputPinCode')?.value.trim();
+        const mobile = document.getElementById('inputMobileNo')?.value.trim() || '+91 98765 43210';
+        const address = document.getElementById('inputClinicAddress')?.value.trim();
+
+        // 1. Doctor Avatar Card
+        const docFormattedName = fullName.toLowerCase().startsWith('dr.') ? fullName : ('Dr. ' + fullName);
+        const nameEl = document.getElementById('liveDoctorName');
+        if (nameEl) nameEl.textContent = docFormattedName;
+
+        const specBadge = document.getElementById('liveSpecialtyBadge');
+        if (specBadge) specBadge.textContent = specialty;
+
+        const clinicTxt = document.getElementById('liveClinicNameTxt');
+        if (clinicTxt) clinicTxt.textContent = clinicName;
+
+        const cityTxt = document.getElementById('liveCityTxt');
+        if (cityTxt) cityTxt.textContent = city ? (', ' + city) : '';
+
+        // Update Avatar initials if no photo
+        const initialEl = document.getElementById('liveAvatarPlaceholder');
+        if (initialEl) {
+            const raw = fullName.replace(/^dr\.?\s*/i, '').trim();
+            initialEl.textContent = (raw.length >= 2 ? raw.substring(0, 2) : (raw.substring(0, 1) || 'DR')).toUpperCase();
+        }
+
+        // 2. Mockup Footer Ribbon
+        const mockName = document.getElementById('mockupDocName');
+        if (mockName) mockName.textContent = docFormattedName;
+
+        const mockQual = document.getElementById('mockupDocQual');
+        if (mockQual) {
+            mockQual.innerHTML = qualifications + ' • <span id="mockupDocSpec">' + specialty + '</span>';
+        }
+
+        const mockClinic = document.getElementById('mockupClinicName');
+        if (mockClinic) mockClinic.textContent = clinicName;
+
+        const mockPhone = document.getElementById('mockupPhoneTxt');
+        if (mockPhone) mockPhone.textContent = mobile;
+
+        const mockAddress = document.getElementById('mockupAddressTxt');
+        if (mockAddress) {
+            const loc = [city, pinCode ? ('PIN ' + pinCode) : ''].filter(Boolean).join(' - ') || 'City, State';
+            mockAddress.textContent = loc;
+        }
+
+        const mockInitial = document.getElementById('mockupAvatarInitial');
+        if (mockInitial) {
+            const raw = fullName.replace(/^dr\.?\s*/i, '').trim();
+            mockInitial.textContent = (raw.length >= 2 ? raw.substring(0, 2) : (raw.substring(0, 1) || 'DR')).toUpperCase();
+        }
+
+        // Update Completeness
+        calculateCompleteness();
+    }
+
+    // ── Brand Color Handlers ────────────────────────────────────────────────
+    function updatePrimaryColor(hex) {
+        if (!hex) return;
+        document.getElementById('pickerPrimary').value = hex;
+        document.getElementById('inputPrimaryHex').value = hex;
+        document.getElementById('mockupFooterBox').style.backgroundColor = hex;
+        document.getElementById('lblPrimaryHex').textContent = hex;
+        const sampleBox = document.getElementById('liveFontSampleBox');
+        if (sampleBox) sampleBox.style.backgroundColor = hex;
+    }
+
+    function updateSecondaryColor(hex) {
+        if (!hex) return;
+        document.getElementById('pickerSecondary').value = hex;
+        document.getElementById('inputSecondaryHex').value = hex;
+        document.getElementById('mockupAccentLine').style.backgroundColor = hex;
+        const avatarWrap = document.getElementById('mockupAvatarWrap');
+        if (avatarWrap) avatarWrap.style.borderColor = hex;
+        const mockQual = document.getElementById('mockupDocQual');
+        if (mockQual) mockQual.style.color = hex;
+        const phoneIcon = document.querySelector('#mockupPhone i');
+        if (phoneIcon) phoneIcon.style.color = hex;
+        document.getElementById('lblSecondaryHex').textContent = hex;
+        const sampleSub = document.getElementById('sampleSub');
+        if (sampleSub) sampleSub.style.color = hex;
+    }
+
+    function updatePreferredFont(font) {
+        if (!font) return;
+        document.getElementById('selectPreferredFont').value = font;
+        document.getElementById('mockupFooterBox').style.fontFamily = `"${font}", sans-serif`;
+        document.getElementById('lblFontName').textContent = font;
+        const sampleBox = document.getElementById('liveFontSampleBox');
+        if (sampleBox) sampleBox.style.fontFamily = `"${font}", sans-serif`;
+    }
+
+    function applyBrandPreset(primary, secondary, font) {
+        updatePrimaryColor(primary);
+        updateSecondaryColor(secondary);
+        updatePreferredFont(font);
+        showToast('Applied ' + font + ' palette preset. Click "Save Changes" to persist.', 'info');
+    }
+
+    // ── Instant AJAX Save for Brand Settings ───────────────────────────────
+    async function saveBrandSettingsAjax() {
+        const primaryHex = document.getElementById('inputPrimaryHex')?.value || '#1B2B6B';
+        const secondaryHex = document.getElementById('inputSecondaryHex')?.value || '#0EA5A0';
+        const font = document.getElementById('selectPreferredFont')?.value || 'Inter';
+
+        const body = new URLSearchParams({
+            PrimaryColorHex: primaryHex,
+            SecondaryColorHex: secondaryHex,
+            PreferredFont: font
+        });
+
+        try {
+            const res = await fetch('/Doctor/UpdateBrandSettings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': csrfToken
+                },
+                body: body.toString()
+            });
+            const data = await res.json();
+            if (data.isSuccess) {
+                showToast('Brand settings & colors saved successfully!', 'success');
+            } else {
+                showToast(data.msg || 'Failed to save brand settings', 'danger');
+            }
+        } catch (err) {
+            showToast('Network error saving brand settings', 'danger');
+        }
+    }
+
+    // ── AJAX Upload: Doctor Profile Photo ──────────────────────────────────
+    async function uploadDoctorAvatar(input) {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById('avatarUploadStatus');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-primary"><span class="spinner-border spinner-border-sm me-1"></span>Uploading photo...</span>';
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/Doctor/UploadProfilePic', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': csrfToken },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.isSuccess && data.filePath) {
+                // 1. Update left avatar card
+                const liveImg = document.getElementById('liveAvatarImg');
+                const placeholder = document.getElementById('liveAvatarPlaceholder');
+                if (liveImg) {
+                    liveImg.src = data.filePath + '?t=' + new Date().getTime();
+                } else if (placeholder) {
+                    const img = document.createElement('img');
+                    img.id = 'liveAvatarImg';
+                    img.src = data.filePath;
+                    img.alt = 'Doctor';
+                    img.className = 'w-100 h-100';
+                    img.style.objectFit = 'cover';
+                    placeholder.replaceWith(img);
+                }
+
+                // 2. Update mockup footer avatar
+                const mockImg = document.getElementById('mockupAvatarImg');
+                const mockInitial = document.getElementById('mockupAvatarInitial');
+                if (mockImg) {
+                    mockImg.src = data.filePath + '?t=' + new Date().getTime();
+                } else if (mockInitial) {
+                    const img = document.createElement('img');
+                    img.id = 'mockupAvatarImg';
+                    img.src = data.filePath;
+                    img.alt = 'Doctor';
+                    img.className = 'w-100 h-100';
+                    img.style.objectFit = 'cover';
+                    mockInitial.replaceWith(img);
+                }
+
+                // 3. Update Tab 4 preview
+                const tabPreview = document.getElementById('tabPhotoPreview');
+                if (tabPreview) {
+                    if (tabPreview.tagName === 'IMG') {
+                        tabPreview.src = data.filePath + '?t=' + new Date().getTime();
+                    } else {
+                        const img = document.createElement('img');
+                        img.id = 'tabPhotoPreview';
+                        img.src = data.filePath;
+                        img.className = 'rounded-circle shadow border border-3 border-white';
+                        img.style.width = '120px';
+                        img.style.height = '120px';
+                        img.style.objectFit = 'cover';
+                        tabPreview.replaceWith(img);
+                    }
+                }
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Photo updated!</span>';
+                }
+                showToast('Doctor profile photo updated successfully!', 'success');
+                calculateCompleteness();
+            } else {
+                if (statusEl) statusEl.innerHTML = '<span class="text-danger">' + (data.msg || 'Upload failed') + '</span>';
+                showToast(data.msg || 'Upload failed', 'danger');
+            }
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = '<span class="text-danger">Network error</span>';
+            showToast('Error uploading photo', 'danger');
+        }
+    }
+
+    // ── AJAX Upload: Clinic Logo ───────────────────────────────────────────
+    async function uploadClinicLogo(input) {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById('logoUploadStatus');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-primary"><span class="spinner-border spinner-border-sm me-1"></span>Uploading logo...</span>';
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/Doctor/UploadClinicLogo', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': csrfToken },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.isSuccess && data.filePath) {
+                // Update Card 3 preview
+                const logoImg = document.getElementById('clinicLogoPreviewImg');
+                const placeholder = document.getElementById('clinicLogoPlaceholder');
+                if (placeholder) placeholder.classList.add('d-none');
+                if (logoImg) {
+                    logoImg.src = data.filePath + '?t=' + new Date().getTime();
+                    logoImg.classList.remove('d-none');
+                }
+
+                // Update Tab 4 preview
+                const tabLogo = document.getElementById('tabLogoPreview');
+                if (tabLogo) {
+                    if (tabLogo.tagName === 'IMG') {
+                        tabLogo.src = data.filePath + '?t=' + new Date().getTime();
+                    } else {
+                        const img = document.createElement('img');
+                        img.id = 'tabLogoPreview';
+                        img.src = data.filePath;
+                        img.style.maxHeight = '80px';
+                        img.style.maxWidth = '150px';
+                        img.style.objectFit = 'contain';
+                        tabLogo.replaceWith(img);
+                    }
+                }
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Logo uploaded!</span>';
+                }
+                showToast('Clinic logo uploaded successfully!', 'success');
+            } else {
+                if (statusEl) statusEl.innerHTML = '<span class="text-danger">' + (data.msg || 'Upload failed') + '</span>';
+                showToast(data.msg || 'Upload failed', 'danger');
+            }
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = '<span class="text-danger">Network error</span>';
+            showToast('Error uploading logo', 'danger');
+        }
+    }
+
+    // ── Profile Completeness Calculator ─────────────────────────────────────
+    function calculateCompleteness() {
+        const hasName = !!document.getElementById('inputFullName')?.value.trim();
+        const hasSpec = !!document.getElementById('inputSpecialty')?.value.trim();
+        const hasClinic = !!document.getElementById('inputClinicName')?.value.trim();
+        const hasPhoto = !!document.getElementById('liveAvatarImg');
+        const hasBrand = !!document.getElementById('inputPrimaryHex')?.value.trim();
+
+        updateCheckBadge('chkName', hasName);
+        updateCheckBadge('chkSpec', hasSpec);
+        updateCheckBadge('chkClinic', hasClinic);
+        updateCheckBadge('chkPhoto', hasPhoto);
+        updateCheckBadge('chkBrand', hasBrand);
+
+        const items = [hasName, hasSpec, hasClinic, hasPhoto, hasBrand];
+        const score = Math.round((items.filter(Boolean).length / items.length) * 100);
+
+        const percentEl = document.getElementById('completionPercent');
+        const barEl = document.getElementById('completionBar');
+        if (percentEl) percentEl.textContent = score + '%';
+        if (barEl) {
+            barEl.style.width = score + '%';
+            barEl.className = 'progress-bar ' + (score === 100 ? 'bg-success' : (score > 60 ? 'bg-primary' : 'bg-warning'));
+        }
+    }
+
+    function updateCheckBadge(elementId, isChecked) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const icon = el.querySelector('i');
+        if (!icon) return;
+        if (isChecked) {
+            icon.className = 'bi bi-check-circle-fill text-success';
+        } else {
+            icon.className = 'bi bi-circle text-muted';
+        }
+    }
+
+    // ── Toast Notification Helper ───────────────────────────────────────────
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('ajaxToastMsg');
+        const text = document.getElementById('ajaxToastText');
+        const icon = document.getElementById('ajaxToastIcon');
+        if (!toast || !text) return;
+
+        text.textContent = message;
+        toast.className = `alert alert-${type} alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center`;
+        if (icon) {
+            icon.className = type === 'success' ? 'bi bi-check-circle-fill fs-5 me-2' :
+                             type === 'danger' ? 'bi bi-exclamation-circle-fill fs-5 me-2' : 'bi bi-info-circle-fill fs-5 me-2';
+        }
+
+        setTimeout(() => { hideToast(); }, 5000);
+    }
+
+    function hideToast() {
+        const toast = document.getElementById('ajaxToastMsg');
+        if (toast) toast.classList.add('d-none');
+    }
+
+    // ── Initial Setup on Page Load ──────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        syncLivePreview();
+        calculateCompleteness();
+    });
 </script>
 }
-

@@ -35,9 +35,43 @@ namespace CYHBrandUI.Controllers
         {
             if (CurrentUser == null) return RedirectToAction("Login", "Account");
             model.DoctorId = CurrentUser.UserId;
+
+            // 1. Update Personal & Clinic profile details
             var result = await UOF.DoctorRepo.UpdateProfileAsync(model);
+
+            // 2. Also update brand styling if provided
+            if (!string.IsNullOrEmpty(model.PrimaryColorHex) || !string.IsNullOrEmpty(model.SecondaryColorHex) || !string.IsNullOrEmpty(model.PreferredFont))
+            {
+                await UOF.DoctorRepo.UpdateBrandSettingsAsync(model);
+            }
+
             if (result.IsSuccess)
-            { TempData["SuccessMsg"] = "Profile updated successfully!"; return RedirectToAction("Profile"); }
+            {
+                // 3. Refresh user session cookie so changes reflect everywhere immediately
+                var updated = await UOF.DoctorRepo.GetByIdAsync(CurrentUser.UserId);
+                if (updated != null)
+                {
+                    var principal = new CustomPrincipal
+                    {
+                        UserId = updated.DoctorId,
+                        Name = updated.DisplayName ?? updated.FullName,
+                        FullName = updated.FullName,
+                        Email = updated.Email,
+                        MobileNo = updated.MobileNo,
+                        Specialty = updated.Specialty,
+                        ClinicName = updated.ClinicName,
+                        ProfilePic = updated.ProfilePic,
+                        IsProfileComplete = updated.IsProfileComplete,
+                        AiCredits = updated.AiCredits,
+                        Roles = CurrentUser.Roles
+                    };
+                    await SignInUser(principal, isPersistent: true);
+                }
+
+                TempData["SuccessMsg"] = "Profile and clinic information saved successfully!";
+                return RedirectToAction("EditProfile");
+            }
+
             TempData["ErrorMsg"] = result.Message;
             return View(model);
         }
@@ -70,9 +104,14 @@ namespace CYHBrandUI.Controllers
                 await file.CopyToAsync(fs);
                 var dbPath = $"/uploads/profile/{fileName}";
                 var result = await UOF.DoctorRepo.UpdateProfilePicAsync(CurrentUser.UserId, dbPath);
-                return result.IsSuccess
-                    ? Json(new { isSuccess = true, msg = "Photo uploaded.", filePath = dbPath })
-                    : JsonFail(result.Message);
+                if (result.IsSuccess)
+                {
+                    var principal = CurrentUser;
+                    principal.ProfilePic = dbPath;
+                    await SignInUser(principal, isPersistent: true);
+                    return Json(new { isSuccess = true, msg = "Doctor photo uploaded successfully.", filePath = dbPath });
+                }
+                return JsonFail(result.Message);
             }
             catch (Exception ex) { return JsonFail(ex.Message); }
         }
