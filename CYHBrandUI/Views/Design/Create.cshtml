@@ -14,8 +14,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CYHBrand – Design Editor</title>
-<link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+<link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
@@ -349,7 +349,7 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 <input type="hidden" id="hdH"         value="@canvasH" />
 @Html.AntiForgeryToken()
 
-<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
 // ── Globals ───────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('designCanvas');
@@ -373,7 +373,14 @@ const HANDLE = 8; // resize handle size
 
 // ── Dimensions & Orientation Control ──────────────────────────────────────────
 function setCanvasDimensions(newW, newH, orientationName) {
-    saveUndo();
+    try {
+        saveUndo();
+    } catch (e) {
+        console.warn('saveUndo skipped:', e);
+    }
+
+    const oldW = W || 1080;
+    const oldH = H || 1080;
     W = parseInt(newW) || 1080;
     H = parseInt(newH) || 1080;
     canvas.width = W;
@@ -383,9 +390,12 @@ function setCanvasDimensions(newW, newH, orientationName) {
         orientationName = (W === H) ? 'Square' : (W < H) ? 'Portrait' : 'Landscape';
     }
 
-    document.getElementById('hdW').value = W;
-    document.getElementById('hdH').value = H;
-    document.getElementById('hdOrient').value = orientationName;
+    const hdW = document.getElementById('hdW');
+    const hdH = document.getElementById('hdH');
+    const hdOrient = document.getElementById('hdOrient');
+    if (hdW) hdW.value = W;
+    if (hdH) hdH.value = H;
+    if (hdOrient) hdOrient.value = orientationName;
 
     const widthInput = document.getElementById('canvasWidthInput');
     const heightInput = document.getElementById('canvasHeightInput');
@@ -409,35 +419,62 @@ function setCanvasDimensions(newW, newH, orientationName) {
         if (!found) select.value = 'Custom';
     }
 
+    // Proportional layout adjustment for elements so nothing gets lost off-canvas
+    if (oldW > 0 && oldH > 0 && (oldW !== W || oldH !== H) && elements.length > 0) {
+        const scaleX = W / oldW;
+        const scaleY = H / oldH;
+        elements.forEach(el => {
+            el.x = Math.round(el.x * scaleX);
+            el.y = Math.round(el.y * scaleY);
+            el.w = Math.max(20, Math.round(el.w * scaleX));
+            el.h = Math.max(20, Math.round(el.h * scaleY));
+            if (el.size) el.size = Math.max(10, Math.round(el.size * Math.min(scaleX, scaleY)));
+        });
+    }
+
     fitToViewport();
     render();
 }
 
 function onPresetChange(val) {
-    if (val === 'Custom') return;
+    if (!val || val === 'Custom') return;
     const parts = val.split('_');
-    const orient = parts[0];
-    const w = parseInt(parts[1]);
-    const h = parseInt(parts[2]);
-    setCanvasDimensions(w, h, orient);
+    if (parts.length >= 3) {
+        const orient = parts[0];
+        const w = parseInt(parts[1]);
+        const h = parseInt(parts[2]);
+        setCanvasDimensions(w, h, orient);
+    }
 }
 
 function applyCustomDimensions() {
-    const w = parseInt(document.getElementById('canvasWidthInput').value) || 1080;
-    const h = parseInt(document.getElementById('canvasHeightInput').value) || 1080;
+    const widthInput = document.getElementById('canvasWidthInput');
+    const heightInput = document.getElementById('canvasHeightInput');
+    const w = parseInt(widthInput?.value) || 1080;
+    const h = parseInt(heightInput?.value) || 1080;
     const orient = (w === h) ? 'Square' : (w < h) ? 'Portrait' : 'Landscape';
     setCanvasDimensions(w, h, orient);
 }
 
 function flipOrientation() {
-    const oldW = W;
-    const oldH = H;
-    const orient = (oldH === oldW) ? 'Square' : (oldH < oldW) ? 'Portrait' : 'Landscape';
-    setCanvasDimensions(oldH, oldW, orient);
+    let newW, newH, newOrient;
+    if (W === H) {
+        // Square -> Landscape
+        newW = 1920;
+        newH = 1080;
+        newOrient = 'Landscape';
+    } else {
+        // Invert dimensions
+        newW = H;
+        newH = W;
+        newOrient = (newW > newH) ? 'Landscape' : (newW < newH) ? 'Portrait' : 'Square';
+    }
+    setCanvasDimensions(newW, newH, newOrient);
 }
 
 function syncDimensionUI() {
-    const orient = document.getElementById('hdOrient').value || ((W === H) ? 'Square' : (W < H) ? 'Portrait' : 'Landscape');
+    const hdOrient = document.getElementById('hdOrient');
+    const orient = hdOrient?.value || ((W === H) ? 'Square' : (W < H) ? 'Portrait' : 'Landscape');
     const label = document.getElementById('currentDimLabel');
     if (label) label.textContent = `${orient} (${W}×${H})`;
 
@@ -477,9 +514,12 @@ if (existingJson && existingJson !== 'null') {
 // ── Fit canvas to viewport ────────────────────────────────────────────────────
 function fitToViewport() {
     const area = document.getElementById('canvasArea');
-    const maxW = area.clientWidth  - 64;
-    const maxH = area.clientHeight - 64;
-    const s = Math.min(maxW / W, maxH / H, 1);
+    if (!area) return;
+    const maxW = Math.max(100, area.clientWidth - 64);
+    const maxH = Math.max(100, area.clientHeight - 64);
+    const curW = Math.max(100, W || 1080);
+    const curH = Math.max(100, H || 1080);
+    const s = Math.min(maxW / curW, maxH / curH, 1);
     applyScale(s);
 }
 function applyScale(s) {
@@ -784,29 +824,83 @@ function moveDown() {
 
 // ── Undo / Redo ───────────────────────────────────────────────────────────────
 function saveUndo() {
-    undoStack.push(JSON.stringify({ elements, bgColor }));
-    if (undoStack.length > 50) undoStack.shift();
-    redoStack = [];
+    try {
+        const safe = elements.map(el => {
+            const { _img, ...rest } = el;
+            return rest;
+        });
+        undoStack.push(JSON.stringify({ elements: safe, bgColor, W, H, orient: document.getElementById('hdOrient')?.value }));
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+    } catch (e) {
+        console.warn('saveUndo error:', e);
+    }
 }
 function undo() {
     if (!undoStack.length) return;
-    redoStack.push(JSON.stringify({ elements, bgColor }));
-    const state = JSON.parse(undoStack.pop());
-    elements = state.elements.map(normalizeEl);
-    bgColor  = state.bgColor;
-    setBg(bgColor);
-    selected = null;
-    render();
+    try {
+        const safe = elements.map(el => {
+            const { _img, ...rest } = el;
+            return rest;
+        });
+        redoStack.push(JSON.stringify({ elements: safe, bgColor, W, H, orient: document.getElementById('hdOrient')?.value }));
+        const state = JSON.parse(undoStack.pop());
+        elements = (state.elements || []).map(normalizeEl);
+        bgColor  = state.bgColor || '#ffffff';
+        setBg(bgColor);
+        if (state.W && state.H && (state.W !== W || state.H !== H)) {
+            W = state.W;
+            H = state.H;
+            canvas.width = W;
+            canvas.height = H;
+            fitToViewport();
+            syncDimensionUI();
+        }
+        selected = null;
+        elements.forEach(el => {
+            if (el.type === 'image' && el.src) {
+                const img = new Image();
+                img.onload = () => { el._img = img; render(); };
+                img.src = el.src;
+            }
+        });
+        render();
+    } catch (e) {
+        console.warn('undo error:', e);
+    }
 }
 function redo() {
     if (!redoStack.length) return;
-    undoStack.push(JSON.stringify({ elements, bgColor }));
-    const state = JSON.parse(redoStack.pop());
-    elements = state.elements.map(normalizeEl);
-    bgColor  = state.bgColor;
-    setBg(bgColor);
-    selected = null;
-    render();
+    try {
+        const safe = elements.map(el => {
+            const { _img, ...rest } = el;
+            return rest;
+        });
+        undoStack.push(JSON.stringify({ elements: safe, bgColor, W, H, orient: document.getElementById('hdOrient')?.value }));
+        const state = JSON.parse(redoStack.pop());
+        elements = (state.elements || []).map(normalizeEl);
+        bgColor  = state.bgColor || '#ffffff';
+        setBg(bgColor);
+        if (state.W && state.H && (state.W !== W || state.H !== H)) {
+            W = state.W;
+            H = state.H;
+            canvas.width = W;
+            canvas.height = H;
+            fitToViewport();
+            syncDimensionUI();
+        }
+        selected = null;
+        elements.forEach(el => {
+            if (el.type === 'image' && el.src) {
+                const img = new Image();
+                img.onload = () => { el._img = img; render(); };
+                img.src = el.src;
+            }
+        });
+        render();
+    } catch (e) {
+        console.warn('redo error:', e);
+    }
 }
 
 // ── Property panel ────────────────────────────────────────────────────────────
