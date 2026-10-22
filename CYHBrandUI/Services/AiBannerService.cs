@@ -9,11 +9,13 @@ namespace CYHBrandUI.Services
     {
         private readonly IConfiguration _config;
         private readonly ILogger<AiBannerService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public AiBannerService(IConfiguration config, ILogger<AiBannerService> logger)
+        public AiBannerService(IConfiguration config, ILogger<AiBannerService> logger, IHttpClientFactory httpClientFactory)
         {
             _config = config;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<AiBannerResponseDTO> GenerateBannerAsync(AiBannerRequestDTO request, CustomPrincipal? doctor)
@@ -82,8 +84,8 @@ namespace CYHBrandUI.Services
                         break;
                 }
 
-                // 3. Extract Topic & Knowledge Base Content
-                var (badge, headline, tips) = ResolveMedicalContent(request.Topic, request.Language, request.CustomAdvice);
+                // 3. Extract Topic & Clinical Content (Online AI with local fallback)
+                var (badge, headline, tips) = await ResolveMedicalContentAsync(request.Topic, request.Language, request.CustomAdvice);
 
                 // 4. Build Structured Design JSON Layers
                 var elements = new List<object>();
@@ -345,12 +347,9 @@ namespace CYHBrandUI.Services
             }
         }
 
-        private static (string Badge, string Headline, List<string> Tips) ResolveMedicalContent(string? topic, string? language, string? customAdvice)
+        private async Task<(string Badge, string Headline, List<string> Tips)> ResolveMedicalContentAsync(string? topic, string? language, string? customAdvice)
         {
-            topic = (topic ?? "").ToLowerInvariant().Trim();
-            language = (language ?? "English").ToLowerInvariant().Trim();
-
-            // Custom advice takes precedence if provided
+            // 1. If custom advice is provided by user, respect it
             if (!string.IsNullOrWhiteSpace(customAdvice))
             {
                 var customTips = customAdvice.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -364,6 +363,200 @@ namespace CYHBrandUI.Services
                     return ("Health Advisory", "Doctor's Health Recommendation", customTips);
                 }
             }
+
+            // 2. Dynamic Online AI Medical Content Generation
+            try
+            {
+                var aiContent = await FetchOnlineAiMedicalContentAsync(topic, language);
+                if (aiContent != null && !string.IsNullOrWhiteSpace(aiContent.Headline) && aiContent.Tips?.Any() == true)
+                {
+                    string badgeText = !string.IsNullOrWhiteSpace(aiContent.Badge) ? aiContent.Badge : "Health Awareness";
+                    return (badgeText, aiContent.Headline, aiContent.Tips.Take(4).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Online AI medical content generation failed. Falling back to local clinical knowledge bank for topic: {Topic}", topic);
+            }
+
+            // 3. Fallback to Local Medical Knowledge Bank
+            return GetLocalFallbackMedicalContent(topic, language);
+        }
+
+        private async Task<AiMedicalContentDto?> FetchOnlineAiMedicalContentAsync(string? topic, string? language)
+        {
+            string targetTopic = string.IsNullOrWhiteSpace(topic) ? "General Wellness & Healthy Living" : topic.Trim();
+            string targetLang = string.IsNullOrWhiteSpace(language) ? "English" : language.Trim();
+
+            string provider = _config["AIContentGeneration:Provider"] ?? "OpenAI";
+            string apiKey = _config["AIContentGeneration:ApiKey"]
+                            ?? _config["AIImageGeneration:OpenAI:ApiKey"]
+                            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                            ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+                            ?? "";
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                _logger.LogInformation("No online AI API key configured in AIContentGeneration:ApiKey or OPENAI_API_KEY. Using rich local clinical knowledge bank.");
+                return null;
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            int timeoutSec = _config.GetValue<int>("AIContentGeneration:TimeoutSeconds", 15);
+            client.Timeout = TimeSpan.FromSeconds(timeoutSec > 0 ? timeoutSec : 15);
+
+            if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+            {
+                return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang);
+            }
+            else
+            {
+                // Default: OpenAI or OpenAI-compatible (Groq, OpenRouter, DeepSeek, etc.)
+                return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang);
+            }
+        }
+
+        private async Task<AiMedicalContentDto?> CallOpenAiAsync(HttpClient client, string apiKey, string topic, string language)
+        {
+            string baseUrl = _config["AIContentGeneration:BaseUrl"] ?? "https://api.openai.com/v1";
+            if (baseUrl.EndsWith("/")) baseUrl = baseUrl.TrimEnd('/');
+            string model = _config["AIContentGeneration:Model"] ?? "gpt-4o-mini";
+
+            var requestBody = new
+            {
+                model = model,
+                messages = new object[]
+                {
+                    new
+                    {
+                        role = "system",
+                        content = "You are an expert clinical medical copywriter for a doctor branding and health awareness platform. " +
+                                  "Generate high-impact, medically accurate health education content. " +
+                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
+                                  "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
+                                  "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
+                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
+                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON."
+                    },
+                    new
+                    {
+                        role = "user",
+                        content = $"Medical Topic: {topic}\nLanguage: {language}"
+                    }
+                },
+                temperature = 0.7,
+                max_tokens = 350
+            };
+
+            var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions");
+            requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            requestMessage.Content = jsonContent;
+
+            var response = await client.SendAsync(requestMessage);
+            if (!response.IsSuccessStatusCode)
+            {
+                string err = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("OpenAI API returned status {Status}: {Error}", response.StatusCode, err);
+                return null;
+            }
+
+            string respString = await response.Content.ReadAsStringAsync();
+            dynamic? parsed = JsonConvert.DeserializeObject(respString);
+            string? rawContent = parsed?.choices?[0]?.message?.content?.ToString();
+
+            if (string.IsNullOrWhiteSpace(rawContent)) return null;
+
+            return ParseAiContentJson(rawContent);
+        }
+
+        private async Task<AiMedicalContentDto?> CallGeminiAiAsync(HttpClient client, string apiKey, string topic, string language)
+        {
+            string model = _config["AIContentGeneration:Model"] ?? "gemini-1.5-flash";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+
+            var requestBody = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new
+                            {
+                                text = $"You are an expert clinical medical copywriter for a doctor awareness platform. " +
+                                       $"Generate health awareness content for Topic: '{topic}' in Language: '{language}'. " +
+                                       "Output ONLY a raw valid JSON object with keys:\n" +
+                                       "1) 'badge' (2-4 words category badge)\n" +
+                                       "2) 'headline' (under 8 words catchy medical title)\n" +
+                                       "3) 'tips' (array of 3 concise medical tips, 8-14 words each).\n" +
+                                       "Do not wrap in markdown fences or include explanations."
+                            }
+                        }
+                    }
+                },
+                generationConfig = new
+                {
+                    responseMimeType = "application/json"
+                }
+            };
+
+            var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(url, jsonContent);
+            if (!response.IsSuccessStatusCode)
+            {
+                string err = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Gemini API returned status {Status}: {Error}", response.StatusCode, err);
+                return null;
+            }
+
+            string respString = await response.Content.ReadAsStringAsync();
+            dynamic? parsed = JsonConvert.DeserializeObject(respString);
+            string? rawContent = parsed?.candidates?[0]?.content?.parts?[0]?.text?.ToString();
+
+            if (string.IsNullOrWhiteSpace(rawContent)) return null;
+
+            return ParseAiContentJson(rawContent);
+        }
+
+        private static AiMedicalContentDto? ParseAiContentJson(string raw)
+        {
+            try
+            {
+                string clean = raw.Trim();
+                if (clean.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+                {
+                    clean = clean[7..].Trim();
+                }
+                else if (clean.StartsWith("```"))
+                {
+                    clean = clean[3..].Trim();
+                }
+                if (clean.EndsWith("```"))
+                {
+                    clean = clean[..^3].Trim();
+                }
+
+                return JsonConvert.DeserializeObject<AiMedicalContentDto>(clean);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public class AiMedicalContentDto
+        {
+            public string? Badge { get; set; }
+            public string? Headline { get; set; }
+            public List<string>? Tips { get; set; }
+        }
+
+        private static (string Badge, string Headline, List<string> Tips) GetLocalFallbackMedicalContent(string? topic, string? language)
+        {
+            topic = (topic ?? "").ToLowerInvariant().Trim();
+            language = (language ?? "English").ToLowerInvariant().Trim();
 
             // Hindi language bank
             if (language == "hindi")

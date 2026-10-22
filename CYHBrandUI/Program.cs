@@ -35,6 +35,7 @@ try
         new DapperContext(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
     // ── UnitOfWork ───────────────────────────────────────────────────────────
+    builder.Services.AddHttpClient();
     builder.Services.AddTransient<IMailClient, MailClient>();
     builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<IAiBannerService, AiBannerService>();
