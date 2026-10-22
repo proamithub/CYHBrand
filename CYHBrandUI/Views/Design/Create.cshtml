@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
+body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif;
        height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── Top Bar ── */
@@ -29,7 +29,7 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 }
 .topbar .design-name {
     background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
-    border-radius: 6px; padding: .3rem .6rem; font-size: .85rem; width: 200px;
+    border-radius: 6px; padding: .3rem .6rem; font-size: .85rem; width: 220px;
 }
 .topbar .design-name:focus { outline: none; border-color: #3b82f6; }
 .btn-tool {
@@ -39,6 +39,12 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 }
 .btn-tool:hover { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 .btn-tool.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.btn-tool.btn-danger-outline {
+    color: #f87171; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);
+}
+.btn-tool.btn-danger-outline:hover {
+    background: #ef4444; border-color: #ef4444; color: #fff;
+}
 .sep { width: 1px; background: #334155; height: 28px; margin: 0 .25rem; }
 
 /* ── Body ── */
@@ -46,24 +52,32 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
 /* ── Left Toolbar ── */
 .left-panel {
-    width: 56px; background: #1e293b; border-right: 1px solid #334155;
-    display: flex; flex-direction: column; align-items: center; padding: .5rem 0; gap: .4rem;
+    width: 58px; background: #1e293b; border-right: 1px solid #334155;
+    display: flex; flex-direction: column; align-items: center; padding: .6rem 0; gap: .5rem;
 }
 .tool-icon {
-    width: 40px; height: 40px; border-radius: 8px; background: transparent;
-    border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer;
+    width: 42px; height: 42px; border-radius: 8px; background: transparent;
+    border: none; color: #94a3b8; font-size: 1.15rem; cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: all .15s;
+    position: relative;
 }
 .tool-icon:hover, .tool-icon.active { background: #3b82f6; color: #fff; }
+.tool-icon.btn-del-elem:hover { background: #ef4444 !important; color: #fff !important; }
+.tool-icon.btn-del-design {
+    color: #f87171; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.tool-icon.btn-del-design:hover {
+    background: #ef4444 !important; border-color: #ef4444 !important; color: #fff !important;
+}
 
 /* ── Canvas Area ── */
 .canvas-area {
-    flex: 1; background: #334155; display: flex; align-items: center;
+    flex: 1; background: #1e2538; display: flex; align-items: center;
     justify-content: center; overflow: auto; position: relative;
 }
 #designCanvas {
     background: #fff; cursor: default;
-    box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    box-shadow: 0 10px 45px rgba(0,0,0,.6);
 }
 #designCanvas.tool-text  { cursor: text; }
 #designCanvas.tool-rect  { cursor: crosshair; }
@@ -72,7 +86,7 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
 /* ── Right Panel ── */
 .right-panel {
-    width: 260px; background: #1e293b; border-left: 1px solid #334155;
+    width: 275px; background: #1e293b; border-left: 1px solid #334155;
     display: flex; flex-direction: column; overflow: hidden;
 }
 .rpanel-section { padding: .75rem; border-bottom: 1px solid #334155; }
@@ -87,7 +101,7 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 }
 .prop-input:focus { outline: none; border-color: #3b82f6; }
 .prop-row { display: flex; gap: .4rem; align-items: center; margin-bottom: .4rem; }
-.prop-row label { font-size: .72rem; color: #94a3b8; width: 20px; }
+.prop-row label { font-size: .72rem; color: #94a3b8; width: 22px; }
 
 /* ── Layer list ── */
 .layer-list { flex: 1; overflow-y: auto; }
@@ -108,12 +122,12 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
 <!-- ── TOP BAR ── -->
 <div class="topbar">
-    <a href="/Design" class="btn-tool" title="Back">
-        <i class="bi bi-arrow-left"></i>
+    <a href="/Design" class="btn-tool" title="Back to My Designs">
+        <i class="bi bi-arrow-left"></i> Designs
     </a>
     <div class="sep"></div>
     <input type="text" id="designName" class="design-name"
-           value="@(Model?.DesignName ?? "Untitled Design")" />
+           value="@(Model?.DesignName ?? "Untitled Design")" title="Click to rename design" />
     <div class="sep"></div>
 
     <!-- Dimensions & Orientation Dropdown -->
@@ -152,24 +166,28 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
     <button class="btn-tool" onclick="zoom(-0.1)" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
     <span id="zoomLabel" style="font-size:.75rem;min-width:38px;text-align:center">100%</span>
     <button class="btn-tool" onclick="zoom(+0.1)" title="Zoom In"><i class="bi bi-zoom-in"></i></button>
-    <button class="btn-tool" onclick="resetZoom()" title="Fit">Fit</button>
+    <button class="btn-tool" onclick="resetZoom()" title="Fit to Screen">Fit</button>
     <div class="sep"></div>
 
     <!-- Undo / Redo -->
-    <button class="btn-tool" onclick="undo()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
-    <button class="btn-tool" onclick="redo()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+    <button class="btn-tool" onclick="undo()" title="Undo (Ctrl+Z)"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button class="btn-tool" onclick="redo()" title="Redo (Ctrl+Y)"><i class="bi bi-arrow-clockwise"></i></button>
     <div class="sep"></div>
 
-    <!-- Save / Export -->
-    <button class="btn-tool" onclick="saveDesign('Draft')" title="Save Draft">
+    <!-- Save / Export / Delete -->
+    <button class="btn-tool" onclick="saveDesign('Draft')" title="Save as Draft">
         <i class="bi bi-cloud"></i> Draft
     </button>
     <button class="btn-tool" style="background:#16a34a;border-color:#16a34a;color:#fff"
-            onclick="saveDesign('Saved')" title="Save">
+            onclick="saveDesign('Saved')" title="Save Design (Ctrl+S)">
         <i class="bi bi-check-lg"></i> Save
     </button>
-    <button class="btn-tool" onclick="exportPNG()" title="Export PNG">
+    <button class="btn-tool" onclick="exportPNG()" title="Export PNG Image">
         <i class="bi bi-download"></i> Export
+    </button>
+
+    <button class="btn-tool btn-danger-outline ms-auto" onclick="deleteEntireDesign()" title="Permanently delete this entire design">
+        <i class="bi bi-trash"></i> Delete Design
     </button>
 
     <span id="saveStatus" style="font-size:.75rem;color:#64748b;margin-left:.5rem"></span>
@@ -180,7 +198,7 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
     <!-- Left Toolbar -->
     <div class="left-panel">
-        <button class="tool-icon active" id="tool-select" title="Select / Move" onclick="setTool('select')">
+        <button class="tool-icon active" id="tool-select" title="Select / Move Element" onclick="setTool('select')">
             <i class="bi bi-cursor"></i>
         </button>
         <button class="tool-icon" id="tool-text" title="Add Text" onclick="setTool('text')">
@@ -192,18 +210,25 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
         <button class="tool-icon" id="tool-circle" title="Add Circle" onclick="setTool('circle')">
             <i class="bi bi-circle"></i>
         </button>
-        <div style="width:100%;height:1px;background:#334155;margin:.25rem 0"></div>
-        <label class="tool-icon" title="Upload Image">
+        <div style="width:80%;height:1px;background:#334155;margin:.25rem 0"></div>
+        <label class="tool-icon" title="Upload Image / Picture" style="margin-bottom:0;">
             <i class="bi bi-image"></i>
             <input type="file" accept="image/*" hidden onchange="addImageFromFile(this)" />
         </label>
-        <div style="width:100%;height:1px;background:#334155;margin:.25rem 0"></div>
-        <button class="tool-icon" title="Delete selected" onclick="deleteSelected()">
+        <div style="width:80%;height:1px;background:#334155;margin:.25rem 0"></div>
+        <!-- Delete Selected Element -->
+        <button class="tool-icon btn-del-elem" id="btnDeleteSelected" title="Delete selected layer/element" onclick="deleteSelected()">
             <i class="bi bi-trash" style="color:#f87171"></i>
+        </button>
+
+        <!-- Pushed to bottom: Delete Entire Banner -->
+        <div style="flex:1;"></div>
+        <button class="tool-icon btn-del-design" id="btnDeleteDesign" title="Delete entire design permanently" onclick="deleteEntireDesign()">
+            <i class="bi bi-trash3-fill"></i>
         </button>
     </div>
 
-    <!-- Canvas -->
+    <!-- Canvas Area -->
     <div class="canvas-area" id="canvasArea">
         <canvas id="designCanvas" width="@canvasW" height="@canvasH"></canvas>
     </div>
@@ -256,7 +281,12 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
         <!-- Element Properties (shown when something selected) -->
         <div class="rpanel-section" id="propPanel" style="display:none">
-            <h6>Element Properties</h6>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="mb-0">Element Properties</h6>
+                <button type="button" class="btn btn-sm text-danger p-0" onclick="deleteSelected()" title="Delete element">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
 
             <!-- Position & Size -->
             <div class="prop-row">
@@ -272,6 +302,12 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
                 <input type="number" id="propH" class="prop-input" oninput="applyProp('h',+this.value)" />
             </div>
 
+            <!-- Corner Radius (for rect) -->
+            <div id="radiusRow" class="prop-row" style="display:none">
+                <label style="width:40px">Radius</label>
+                <input type="number" id="propRadius" class="prop-input" min="0" max="200" oninput="applyProp('radius',+this.value)" />
+            </div>
+
             <!-- Color fill -->
             <div id="colorRow" class="prop-row" style="display:none">
                 <label>Fill</label>
@@ -281,8 +317,34 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
                 <span id="propColorHex" style="font-size:.75rem;color:#94a3b8;margin-left:.3rem"></span>
             </div>
 
+            <!-- Avatar / Photo Properties -->
+            <div id="avatarProps" style="display:none;margin-top:.4rem;padding-top:.4rem;border-top:1px solid #334155;">
+                <span class="prop-label">Doctor Avatar / Border</span>
+                <div class="prop-row">
+                    <label style="width:50px">Ring</label>
+                    <input type="color" id="propBorderColor" class="prop-input" style="height:28px;width:38px;padding:1px"
+                           onchange="applyProp('borderColor',this.value)" />
+                    <label style="width:35px;margin-left:.4rem">Width</label>
+                    <input type="number" id="propBorderWidth" class="prop-input" min="0" max="30"
+                           oninput="applyProp('borderWidth',+this.value)" />
+                </div>
+                <div class="prop-row">
+                    <label style="width:50px">Initials</label>
+                    <input type="text" id="propInitials" class="prop-input" maxlength="4"
+                           oninput="applyProp('initials',this.value)" />
+                </div>
+            </div>
+
+            <!-- Replace Image Button (for image / avatar) -->
+            <div id="imageReplaceRow" style="display:none;margin-top:.5rem;">
+                <label class="btn btn-tool w-100 justify-content-center" style="font-size:0.75rem;">
+                    <i class="bi bi-camera me-1"></i> Change Picture / Photo
+                    <input type="file" accept="image/*" hidden onchange="replaceSelectedImage(this)" />
+                </label>
+            </div>
+
             <!-- Opacity -->
-            <div class="prop-row" style="margin-top:.3rem">
+            <div class="prop-row" style="margin-top:.4rem">
                 <label style="width:40px">Opacity</label>
                 <input type="range" id="propOpacity" min="0" max="1" step="0.05" value="1"
                        style="flex:1" oninput="applyProp('opacity',+this.value);document.getElementById('opacityVal').textContent=Math.round(this.value*100)+'%'" />
@@ -305,8 +367,10 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
                     <option>sans-serif</option>
                     <option>Inter</option>
                     <option>Poppins</option>
+                    <option>Roboto</option>
+                    <option>Montserrat</option>
+                    <option>Lato</option>
                     <option>Georgia</option>
-                    <option>Courier New</option>
                     <option>Arial</option>
                     <option>Verdana</option>
                 </select>
@@ -330,8 +394,8 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
         <!-- Layer Panel -->
         <div class="rpanel-section" style="padding-bottom:.3rem">
-            <h6>Layers <span style="float:right;cursor:pointer;color:#3b82f6" onclick="moveUp()">↑</span>
-                       <span style="cursor:pointer;color:#3b82f6;margin-left:.3rem" onclick="moveDown()">↓</span>
+            <h6>Layers <span style="float:right;cursor:pointer;color:#3b82f6" onclick="moveUp()" title="Bring Forward">↑</span>
+                       <span style="cursor:pointer;color:#3b82f6;margin-left:.3rem" onclick="moveDown()" title="Send Backward">↓</span>
             </h6>
         </div>
         <div class="layer-list" id="layerList"></div>
@@ -367,17 +431,26 @@ let undoStack = [], redoStack = [];
 let isDragging = false, isResizing = false;
 let dragOffX = 0, dragOffY = 0;
 let dragStartEl = null;
-let drawStart = null;        // for rect/circle drawing
+let drawStart = null;
 
 const HANDLE = 8; // resize handle size
 
+// ── Draw Rounded Rectangle Helper ─────────────────────────────────────────────
+function drawRoundRect(c, x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2;
+    if (h < 2 * r) r = h / 2;
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y + w, y, r);
+    c.closePath();
+}
+
 // ── Dimensions & Orientation Control ──────────────────────────────────────────
 function setCanvasDimensions(newW, newH, orientationName) {
-    try {
-        saveUndo();
-    } catch (e) {
-        console.warn('saveUndo skipped:', e);
-    }
+    try { saveUndo(); } catch (e) { }
 
     const oldW = W || 1080;
     const oldH = H || 1080;
@@ -419,7 +492,7 @@ function setCanvasDimensions(newW, newH, orientationName) {
         if (!found) select.value = 'Custom';
     }
 
-    // Proportional layout adjustment for elements so nothing gets lost off-canvas
+    // Proportional layout adjustment for elements
     if (oldW > 0 && oldH > 0 && (oldW !== W || oldH !== H) && elements.length > 0) {
         const scaleX = W / oldW;
         const scaleY = H / oldH;
@@ -440,10 +513,7 @@ function onPresetChange(val) {
     if (!val || val === 'Custom') return;
     const parts = val.split('_');
     if (parts.length >= 3) {
-        const orient = parts[0];
-        const w = parseInt(parts[1]);
-        const h = parseInt(parts[2]);
-        setCanvasDimensions(w, h, orient);
+        setCanvasDimensions(parseInt(parts[1]), parseInt(parts[2]), parts[0]);
     }
 }
 
@@ -459,14 +529,9 @@ function applyCustomDimensions() {
 function flipOrientation() {
     let newW, newH, newOrient;
     if (W === H) {
-        // Square -> Landscape
-        newW = 1920;
-        newH = 1080;
-        newOrient = 'Landscape';
+        newW = 1920; newH = 1080; newOrient = 'Landscape';
     } else {
-        // Invert dimensions
-        newW = H;
-        newH = W;
+        newW = H; newH = W;
         newOrient = (newW > newH) ? 'Landscape' : (newW < newH) ? 'Portrait' : 'Square';
     }
     setCanvasDimensions(newW, newH, newOrient);
@@ -498,6 +563,51 @@ function syncDimensionUI() {
     }
 }
 
+// ── Normalize Element (preserves avatar & image details) ───────────────────────
+function normalizeEl(el) {
+    return {
+        type:        el.type || 'rect',
+        x:           el.x ?? 50,
+        y:           el.y ?? 50,
+        w:           el.w ?? 200,
+        h:           el.h ?? 100,
+        color:       el.color   || '#3b82f6',
+        opacity:     el.opacity ?? 1,
+        radius:      el.radius  ?? 0,
+        // text
+        text:        el.text   || 'Text',
+        size:        el.size   || 40,
+        font:        el.font   || 'sans-serif',
+        bold:        el.bold   || false,
+        italic:      el.italic || false,
+        align:       el.align  || 'left',
+        // image & avatar
+        src:         el.src    || null,
+        _img:        el._img   || null,
+        label:       el.label  || (el.type === 'avatar' ? 'Doctor Profile Photo' : el.type),
+        initials:    el.initials || 'Dr',
+        borderColor: el.borderColor || '#FFFFFF',
+        borderWidth: el.borderWidth || 4
+    };
+}
+
+// ── Helper to Load Images / Avatars ───────────────────────────────────────────
+function loadImageForElement(el) {
+    if ((el.type === 'image' || el.type === 'avatar') && el.src && el.src.trim() !== '') {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            el._img = img;
+            render();
+        };
+        img.onerror = () => {
+            console.warn('Could not load image src:', el.src);
+            render();
+        };
+        img.src = el.src;
+    }
+}
+
 // ── Load existing JSON ────────────────────────────────────────────────────────
 const existingJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(existingJson));
 if (existingJson && existingJson !== 'null' && existingJson !== '""') {
@@ -516,6 +626,7 @@ if (existingJson && existingJson !== 'null' && existingJson !== '""') {
             }
             if (d.elements && Array.isArray(d.elements)) {
                 elements = d.elements.map(normalizeEl);
+                elements.forEach(loadImageForElement);
             }
         }
     } catch(e) { console.warn('Could not parse saved JSON', e); }
@@ -544,37 +655,17 @@ function resetZoom()  { fitToViewport(); }
 // ── Tool switching ────────────────────────────────────────────────────────────
 function setTool(t) {
     currentTool = t;
-    document.querySelectorAll('.tool-icon').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-icon').forEach(b => {
+        if (!b.classList.contains('btn-del-elem') && !b.classList.contains('btn-del-design')) {
+            b.classList.remove('active');
+        }
+    });
     const btn = document.getElementById('tool-' + t);
     if (btn) btn.classList.add('active');
     canvas.className = t === 'select' ? '' : 'tool-' + t;
 }
 
-// ── Normalise element ─────────────────────────────────────────────────────────
-function normalizeEl(el) {
-    return {
-        type:    el.type || 'rect',
-        x:       el.x ?? 50,
-        y:       el.y ?? 50,
-        w:       el.w ?? 200,
-        h:       el.h ?? 100,
-        color:   el.color   || '#3b82f6',
-        opacity: el.opacity ?? 1,
-        // text
-        text:    el.text   || 'Text',
-        size:    el.size   || 40,
-        font:    el.font   || 'sans-serif',
-        bold:    el.bold   || false,
-        italic:  el.italic || false,
-        align:   el.align  || 'left',
-        // image
-        src:     el.src    || null,
-        _img:    null,
-        label:   el.label  || el.type,
-    };
-}
-
-// ── Rendering ─────────────────────────────────────────────────────────────────
+// ── Rendering Engine ──────────────────────────────────────────────────────────
 function render() {
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = bgColor;
@@ -583,9 +674,15 @@ function render() {
     elements.forEach((el, i) => {
         ctx.save();
         ctx.globalAlpha = el.opacity ?? 1;
+
         if (el.type === 'rect') {
             ctx.fillStyle = el.color;
-            ctx.fillRect(el.x, el.y, el.w, el.h);
+            if (el.radius && el.radius > 0) {
+                drawRoundRect(ctx, el.x, el.y, el.w, el.h, el.radius);
+                ctx.fill();
+            } else {
+                ctx.fillRect(el.x, el.y, el.w, el.h);
+            }
         } else if (el.type === 'circle') {
             ctx.beginPath();
             ctx.ellipse(el.x + el.w/2, el.y + el.h/2, el.w/2, el.h/2, 0, 0, Math.PI*2);
@@ -598,14 +695,77 @@ function render() {
             ctx.fillStyle = el.color;
             ctx.textAlign = el.align || 'left';
             ctx.textBaseline = 'top';
-            // word-wrap
             wrapText(ctx, el.text, el.x, el.y, el.w, el.size * 1.25);
-        } else if (el.type === 'image' && el._img) {
-            ctx.drawImage(el._img, el.x, el.y, el.w, el.h);
+        } else if (el.type === 'avatar' || el.type === 'image') {
+            if (el.type === 'avatar') {
+                const imgX = el.x;
+                const imgY = el.y;
+                const imgW = el.w;
+                const imgH = el.h;
+                const radius = imgW / 2;
+                const cx = imgX + radius;
+                const cy = imgY + radius;
+                const bWidth = el.borderWidth || 4;
+                const bColor = el.borderColor || '#FFFFFF';
+
+                // Outer border ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = bColor;
+                ctx.fill();
+
+                if (el._img && el._img.complete && el._img.naturalWidth > 0) {
+                    // Inner clipped circle photo
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, Math.max(1, radius - bWidth), 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+                    ctx.drawImage(el._img, imgX + bWidth, imgY + bWidth, imgW - (bWidth * 2), imgH - (bWidth * 2));
+                    ctx.restore();
+                } else {
+                    // Fallback initials avatar with medical gradient
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, Math.max(1, radius - bWidth), 0, Math.PI * 2);
+                    const g = ctx.createLinearGradient(imgX, imgY, imgX + imgW, imgY + imgH);
+                    g.addColorStop(0, '#0EA5A0');
+                    g.addColorStop(1, '#0B1B3D');
+                    ctx.fillStyle = g;
+                    ctx.fill();
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = `bold ${Math.round(imgW * 0.36)}px Inter, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(el.initials || 'Dr', cx, cy);
+                    ctx.restore();
+                }
+            } else if (el._img && el._img.complete && el._img.naturalWidth > 0) {
+                if (el.radius && el.radius > 0) {
+                    ctx.save();
+                    drawRoundRect(ctx, el.x, el.y, el.w, el.h, el.radius);
+                    ctx.clip();
+                    ctx.drawImage(el._img, el.x, el.y, el.w, el.h);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(el._img, el.x, el.y, el.w, el.h);
+                }
+            } else {
+                ctx.save();
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(el.x, el.y, el.w, el.h);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Image', el.x + el.w/2, el.y + el.h/2);
+                ctx.restore();
+            }
         }
         ctx.restore();
 
-        // Draw selection
+        // Draw selection box
         if (i === selected) drawSelection(el);
     });
 
@@ -631,14 +791,14 @@ function wrapText(ctx, text, x, y, maxW, lineH) {
 
 function drawSelection(el) {
     ctx.save();
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth   = 2 / scale;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth   = 2.5 / scale;
     ctx.setLineDash([6 / scale, 3 / scale]);
     ctx.strokeRect(el.x - 1, el.y - 1, el.w + 2, el.h + 2);
     ctx.setLineDash([]);
     // corner handle
     const hs = HANDLE / scale;
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = '#38bdf8';
     ctx.fillRect(el.x + el.w - hs/2, el.y + el.h - hs/2, hs, hs);
     ctx.restore();
 }
@@ -697,7 +857,6 @@ function onMouseDown(e) {
         return;
     }
 
-    // drawing tools
     if (currentTool === 'text' || currentTool === 'rect' || currentTool === 'circle') {
         drawStart = p;
     }
@@ -720,7 +879,6 @@ function onMouseMove(e) {
         render(); return;
     }
 
-    // preview while drawing
     if (drawStart && (currentTool === 'rect' || currentTool === 'circle')) {
         render();
         const x = Math.min(p.x, drawStart.x), y = Math.min(p.y, drawStart.y);
@@ -745,7 +903,6 @@ function onMouseUp(e) {
 
         saveUndo();
         if (currentTool === 'text') {
-            // single click = use default size
             addTextAt(drawStart.x, drawStart.y, 300, 60);
         } else {
             if (w < 10) w = 150; if (h < 10) h = 100;
@@ -803,19 +960,96 @@ function addImageFromFile(input) {
     input.value = '';
 }
 
+function replaceSelectedImage(input) {
+    if (selected === null) return;
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+            saveUndo();
+            elements[selected].src = ev.target.result;
+            elements[selected]._img = img;
+            render();
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
+
 function setBg(c) {
     bgColor = c;
     document.getElementById('bgColor').value    = c;
     document.getElementById('bgColorHex').value = c;
 }
 
-// ── Delete / Layers ───────────────────────────────────────────────────────────
+// ── Robust Delete Functions ───────────────────────────────────────────────────
+// 1. Delete selected layer / element
 function deleteSelected() {
-    if (selected === null) return;
-    saveUndo();
-    elements.splice(selected, 1);
-    selected = null;
-    render();
+    if (selected !== null && elements[selected]) {
+        const elName = elements[selected].label || elements[selected].type || 'element';
+        if (confirm(`Delete selected element "${elName}"?`)) {
+            saveUndo();
+            elements.splice(selected, 1);
+            selected = null;
+            render();
+            showSaveStatus('Element deleted', '#f87171');
+        }
+        return;
+    }
+
+    // If no element is selected on the canvas, offer to delete the entire design
+    const wantDeleteDesign = confirm(
+        "No element is currently selected on the canvas.\n\nDo you want to permanently delete this entire design?"
+    );
+    if (wantDeleteDesign) {
+        deleteEntireDesign();
+    }
+}
+
+// 2. Delete entire design permanently via /Design/Delete
+async function deleteEntireDesign() {
+    const encId = document.getElementById('hdEncId')?.value;
+    const designName = document.getElementById('designName')?.value || 'this design';
+
+    if (!encId || encId.trim() === '') {
+        alert('This design has not been saved yet.');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to permanently delete "${designName}"?\nThis cannot be undone.`)) {
+        return;
+    }
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    const statusEl = document.getElementById('saveStatus');
+    if (statusEl) {
+        statusEl.textContent = 'Deleting…';
+        statusEl.style.color = '#f87171';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('id', encId);
+
+        const res = await fetch('/Design/Delete', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.isSuccess) {
+            alert('Design deleted successfully.');
+            window.location.href = '/Design';
+        } else {
+            alert(data.msg || 'Delete failed.');
+            if (statusEl) statusEl.textContent = '';
+        }
+    } catch (e) {
+        alert('Network error while deleting design.');
+        if (statusEl) statusEl.textContent = '';
+    }
 }
 
 function moveUp() {
@@ -843,9 +1077,7 @@ function saveUndo() {
         undoStack.push(JSON.stringify({ elements: safe, bgColor, W, H, orient: document.getElementById('hdOrient')?.value }));
         if (undoStack.length > 50) undoStack.shift();
         redoStack = [];
-    } catch (e) {
-        console.warn('saveUndo error:', e);
-    }
+    } catch (e) { }
 }
 function undo() {
     if (!undoStack.length) return;
@@ -868,17 +1100,9 @@ function undo() {
             syncDimensionUI();
         }
         selected = null;
-        elements.forEach(el => {
-            if (el.type === 'image' && el.src) {
-                const img = new Image();
-                img.onload = () => { el._img = img; render(); };
-                img.src = el.src;
-            }
-        });
+        elements.forEach(loadImageForElement);
         render();
-    } catch (e) {
-        console.warn('undo error:', e);
-    }
+    } catch (e) { }
 }
 function redo() {
     if (!redoStack.length) return;
@@ -901,17 +1125,9 @@ function redo() {
             syncDimensionUI();
         }
         selected = null;
-        elements.forEach(el => {
-            if (el.type === 'image' && el.src) {
-                const img = new Image();
-                img.onload = () => { el._img = img; render(); };
-                img.src = el.src;
-            }
-        });
+        elements.forEach(loadImageForElement);
         render();
-    } catch (e) {
-        console.warn('redo error:', e);
-    }
+    } catch (e) { }
 }
 
 // ── Property panel ────────────────────────────────────────────────────────────
@@ -927,13 +1143,35 @@ function updatePropPanel() {
     document.getElementById('propOpacity').value = el.opacity ?? 1;
     document.getElementById('opacityVal').textContent = Math.round((el.opacity??1)*100)+'%';
 
-    const hasColor = el.type !== 'image';
+    // Corner Radius
+    const hasRadius = el.type === 'rect';
+    document.getElementById('radiusRow').style.display = hasRadius ? 'flex' : 'none';
+    if (hasRadius) {
+        document.getElementById('propRadius').value = el.radius || 0;
+    }
+
+    // Color fill
+    const hasColor = (el.type !== 'image' && el.type !== 'avatar');
     document.getElementById('colorRow').style.display = hasColor ? 'flex' : 'none';
     if (hasColor) {
         document.getElementById('propColor').value = el.color || '#3b82f6';
         document.getElementById('propColorHex').textContent = el.color || '';
     }
 
+    // Avatar properties
+    const isAvatar = el.type === 'avatar';
+    document.getElementById('avatarProps').style.display = isAvatar ? 'block' : 'none';
+    if (isAvatar) {
+        document.getElementById('propBorderColor').value = el.borderColor || '#FFFFFF';
+        document.getElementById('propBorderWidth').value = el.borderWidth || 4;
+        document.getElementById('propInitials').value = el.initials || 'Dr';
+    }
+
+    // Image / Avatar Replace Button
+    const isMedia = (el.type === 'image' || el.type === 'avatar');
+    document.getElementById('imageReplaceRow').style.display = isMedia ? 'block' : 'none';
+
+    // Text properties
     const isText = el.type === 'text';
     document.getElementById('textProps').style.display = isText ? 'block' : 'none';
     if (isText) {
@@ -964,9 +1202,13 @@ function updateLayerList() {
         const i = elements.length - 1 - ri;
         const div = document.createElement('div');
         div.className = 'layer-item' + (i === selected ? ' selected' : '');
-        div.innerHTML = `<i class="bi bi-${el.type==='text'?'type':el.type==='image'?'image':'square'}"></i>
-                         <span>${el.label || el.type}</span>
-                         <button class="layer-del" onclick="event.stopPropagation();delLayer(${i})">✕</button>`;
+        const icon = el.type==='text' ? 'type' :
+                     el.type==='avatar' ? 'person-circle' :
+                     el.type==='image' ? 'image' :
+                     el.type==='circle' ? 'circle' : 'square';
+        div.innerHTML = `<i class="bi bi-${icon}"></i>
+                         <span class="text-truncate" style="max-width:160px;">${el.label || el.type}</span>
+                         <button class="layer-del" onclick="event.stopPropagation();delLayer(${i})" title="Delete layer">✕</button>`;
         div.onclick = () => { selected = i; render(); };
         list.appendChild(div);
     });
@@ -987,12 +1229,23 @@ function getDesignJson() {
     return JSON.stringify({ bg: bgColor, elements: safe });
 }
 
+function showSaveStatus(text, color) {
+    const statusEl = document.getElementById('saveStatus');
+    if (statusEl) {
+        statusEl.textContent = text;
+        statusEl.style.color = color || '#4ade80';
+        setTimeout(() => { if (statusEl.textContent === text) statusEl.textContent = ''; }, 3500);
+    }
+}
+
 async function saveDesign(status) {
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
     const statusEl = document.getElementById('saveStatus');
-    statusEl.textContent = 'Saving…';
+    if (statusEl) {
+        statusEl.textContent = 'Saving…';
+        statusEl.style.color = '#94a3b8';
+    }
 
-    // thumbnail — scale canvas to max 400px for thumbnail
     const thumb = canvas.toDataURL('image/jpeg', 0.7);
 
     const body = {
@@ -1019,20 +1272,17 @@ async function saveDesign(status) {
         if (data.isSuccess) {
             if (data.id)    document.getElementById('hdDesignId').value = data.id;
             if (data.encId) document.getElementById('hdEncId').value    = data.encId;
-            statusEl.textContent = '✓ Saved';
-            statusEl.style.color = '#4ade80';
-            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            showSaveStatus('✓ Saved', '#4ade80');
         } else {
-            statusEl.textContent = '✗ ' + (data.msg || 'Save failed');
-            statusEl.style.color = '#f87171';
+            showSaveStatus('✗ ' + (data.msg || 'Save failed'), '#f87171');
         }
     } catch(err) {
-        statusEl.textContent = '✗ Network error';
-        statusEl.style.color = '#f87171';
+        showSaveStatus('✗ Network error', '#f87171');
     }
 }
 
 function exportPNG() {
+    render();
     const link = document.createElement('a');
     link.download = (document.getElementById('designName').value || 'design') + '.png';
     link.href = canvas.toDataURL('image/png');
@@ -1062,16 +1312,11 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-// Pre-load any image elements
-elements.forEach(el => {
-    if (el.type === 'image' && el.src) {
-        const img = new Image();
-        img.onload = () => { el._img = img; render(); };
-        img.src = el.src;
-    }
+window.addEventListener('load', () => {
+    syncDimensionUI();
+    fitToViewport();
+    render();
 });
-
-window.addEventListener('load', () => { syncDimensionUI(); fitToViewport(); render(); });
 window.addEventListener('resize', fitToViewport);
 </script>
 </body>

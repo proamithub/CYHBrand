@@ -133,9 +133,14 @@ namespace CYHBrandUI.Controllers
 
         // POST /Design/Delete  (AJAX)
         [HttpPost]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string? id)
         {
             if (CurrentUser == null) return JsonFail("Session expired");
+            if (string.IsNullOrEmpty(id) && Request.HasFormContentType && Request.Form.ContainsKey("id"))
+            {
+                id = Request.Form["id"].ToString();
+            }
+            if (string.IsNullOrEmpty(id)) return JsonFail("Invalid ID");
             var realId = Enc.Decrypt(id);
             if (realId == null) return JsonFail("Invalid ID");
             var result = await UOF.DesignRepo.DeleteAsync(realId.Value, CurrentUser.UserId);
