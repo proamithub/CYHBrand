@@ -4,6 +4,7 @@ using CYHBrandModel;
 using CYHBrandRepo;
 using CYHBrandRepo.Utilities;
 using CYHBrandUI.Helpers;
+using CYHBrandUI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
@@ -36,6 +37,7 @@ try
     // ── UnitOfWork ───────────────────────────────────────────────────────────
     builder.Services.AddTransient<IMailClient, MailClient>();
     builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+    builder.Services.AddScoped<IAiBannerService, AiBannerService>();
     builder.Services.AddSingleton<IUrlEncryptor, UrlEncryptor>();   // URL ID encryption
 
     // ── HttpContext / Session ─────────────────────────────────────────────────

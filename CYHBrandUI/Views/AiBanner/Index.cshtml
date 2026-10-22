@@ -1,90 +1,502 @@
 @{
     ViewData["Title"] = "AI Banner Creator";
-    ViewData["PageSubtitle"] = "Create stunning health-awareness banners with AI in seconds.";
+    ViewData["PageSubtitle"] = "Create branded, high-impact medical awareness banners with AI in seconds.";
+    var doctor = ViewBag.Doctor as CYHBrandUI.Helpers.CustomPrincipal;
+    string docName = !string.IsNullOrWhiteSpace(doctor?.FullName) ? doctor.FullName : (!string.IsNullOrWhiteSpace(doctor?.Name) ? doctor.Name : "Dr. Specialist");
+    if (!docName.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase)) docName = "Dr. " + docName;
 }
 
-<div class="cyh-card mb-4">
-    <div class="cyh-card-header">
-        <h6 class="cyh-card-title"><i class="bi bi-stars me-2" style="color:#3B82F6;"></i>AI Banner Creator</h6>
-        <!-- Step indicator -->
-        <div class="d-flex align-items-center gap-3">
-            @foreach (var (step, label) in new[]{("1","Topic"),("2","Brand"),("3","Style"),("4","Size"),("5","Generate")})
-            {
-                <div class="d-flex align-items-center gap-1">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                         style="width:26px;height:26px;font-size:.75rem;
-                                background:@(step=="1"?"#1B2B6B":"#E2E8F4");
-                                color:@(step=="1"?"#fff":"#94A3B8");">
-                        @step
+<div class="row g-4">
+    <!-- ── Left Column: AI Prompt & Configuration ── -->
+    <div class="col-lg-5">
+        <div class="cyh-card shadow-sm mb-4">
+            <div class="cyh-card-header d-flex align-items-center justify-content-between">
+                <h6 class="cyh-card-title mb-0">
+                    <i class="bi bi-stars me-2" style="color:#0EA5A0;"></i>AI Creative Controls
+                </h6>
+                <span class="badge rounded-pill bg-light text-primary border" style="font-size:0.75rem;">
+                    <i class="bi bi-cpu me-1"></i>Medical Engine v2.0
+                </span>
+            </div>
+            
+            <div class="cyh-card-body">
+                <!-- 1. Topic & Quick Chips -->
+                <div class="mb-3">
+                    <label class="cyh-form-label fw-bold">1. Select or Enter Medical Topic</label>
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Heart Health & Blood Pressure')">
+                            ❤️ Heart Care
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Diabetes Management & Sugar Control')">
+                            🩸 Diabetes
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Monsoon & Flu Prevention Tips')">
+                            🌧️ Seasonal Flu
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Balanced Nutrition & Daily Diet')">
+                            🥗 Nutrition
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Child Growth & Vaccination Schedule')">
+                            👶 Pediatric Care
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Daily Dental Hygiene & Oral Care')">
+                            🦷 Dental Care
+                        </button>
                     </div>
-                    <span style="font-size:.78rem;color:@(step=="1"?"#1B2B6B":"#94A3B8");">@label</span>
+                    <textarea id="aiTopic" class="form-control cyh-form-control" rows="2"
+                              placeholder="e.g. 5 essential tips to prevent high blood pressure..."></textarea>
                 </div>
-            }
+
+                <!-- 2. Language Selection -->
+                <div class="mb-3">
+                    <label class="cyh-form-label fw-bold">2. Banner Language</label>
+                    <select id="aiLanguage" class="form-select cyh-form-control">
+                        <option value="English" selected>English</option>
+                        <option value="Hindi">हिंदी (Hindi)</option>
+                        <option value="Marathi">मराठी (Marathi)</option>
+                        <option value="Tamil">தமிழ் (Tamil)</option>
+                        <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                        <option value="Bengali">বাংলা (Bengali)</option>
+                    </select>
+                </div>
+
+                <!-- 3. Design Style -->
+                <div class="mb-3">
+                    <label class="cyh-form-label fw-bold">3. Design Palette &amp; Style</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="style-card p-2 border rounded-3 text-center cursor-pointer active" onclick="selectStyle(this, 'Modern')" style="cursor:pointer;border:2px solid #0EA5A0 !important;background:#F0FDFA;">
+                                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#0B1B3D;display:inline-block;"></span>
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#0EA5A0;display:inline-block;"></span>
+                                </div>
+                                <div class="fw-semibold small text-dark">Modern Medical</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Navy &amp; Teal Accent</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="style-card p-2 border rounded-3 text-center cursor-pointer" onclick="selectStyle(this, 'Minimal')" style="cursor:pointer;">
+                                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#F8FAFC;border:1px solid #ccc;display:inline-block;"></span>
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#2563EB;display:inline-block;"></span>
+                                </div>
+                                <div class="fw-semibold small text-dark">Clean Minimal</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Light &amp; Royal Blue</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="style-card p-2 border rounded-3 text-center cursor-pointer" onclick="selectStyle(this, 'Colorful')" style="cursor:pointer;">
+                                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#064E3B;display:inline-block;"></span>
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#F59E0B;display:inline-block;"></span>
+                                </div>
+                                <div class="fw-semibold small text-dark">Energetic Green</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Emerald &amp; Warm Gold</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="style-card p-2 border rounded-3 text-center cursor-pointer" onclick="selectStyle(this, 'Professional')" style="cursor:pointer;">
+                                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#0F172A;display:inline-block;"></span>
+                                    <span style="width:14px;height:14px;border-radius:50%;background:#38BDF8;display:inline-block;"></span>
+                                </div>
+                                <div class="fw-semibold small text-dark">Midnight Slate</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Dark &amp; Cyan Glow</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Dimensions & Aspect Ratio -->
+                <div class="mb-3">
+                    <label class="cyh-form-label fw-bold">4. Dimensions &amp; Orientation</label>
+                    <select id="aiOrientation" class="form-select cyh-form-control">
+                        <option value="Square" selected>Square (1:1) – 1080 × 1080 px (Instagram &amp; WhatsApp Post)</option>
+                        <option value="Portrait">Portrait / Story (9:16) – 1080 × 1920 px (Stories &amp; Status)</option>
+                        <option value="Landscape">Landscape / Banner (16:9) – 1920 × 1080 px (Twitter &amp; Web)</option>
+                        <option value="Facebook">Facebook Feed (1.91:1) – 1200 × 630 px (Facebook &amp; LinkedIn)</option>
+                    </select>
+                </div>
+
+                <!-- 5. Doctor Branding Context -->
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="chkIncludeBranding" checked />
+                        <label class="form-check-label fw-semibold small text-dark" for="chkIncludeBranding">
+                            Embed My Doctor Branding Footer
+                        </label>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-muted" style="font-size:0.75rem;">
+                        <i class="bi bi-person-badge fs-5 text-teal"></i>
+                        <div>
+                            <div><strong>@docName</strong> · @(doctor?.Specialty ?? "Medical Specialist")</div>
+                            <div>@(doctor?.ClinicName ?? "Clinic") · @(doctor?.MobileNo ?? "Contact")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Action Button -->
+                <button type="button" id="btnGenerate" class="btn btn-cyh-teal w-100 py-3 d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="triggerAiGeneration()">
+                    <i class="bi bi-stars fs-5"></i>
+                    <span id="btnGenText" class="fw-bold">Generate Branded Banner with AI</span>
+                </button>
+
+            </div>
         </div>
     </div>
-    <div class="cyh-card-body">
-        <div class="row g-4">
-            <!-- Left: Form -->
-            <div class="col-lg-5">
-                <div class="mb-4">
-                    <label class="cyh-form-label">Enter Your Topic</label>
-                    <textarea class="form-control cyh-form-control" rows="3"
-                              placeholder="e.g. Diabetes Awareness, Heart Health, Seasonal Tips..."></textarea>
+
+    <!-- ── Right Column: Interactive Live Preview ── -->
+    <div class="col-lg-7">
+        <div class="cyh-card shadow-sm h-100 d-flex flex-column">
+            <div class="cyh-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-1 rounded bg-teal-subtle text-teal">
+                        <i class="bi bi-eye-fill" style="color:#0EA5A0;"></i>
+                    </span>
+                    <h6 class="cyh-card-title mb-0">Generated Preview</h6>
+                    <span id="previewStatusBadge" class="badge rounded-pill bg-light text-muted border ms-2" style="font-size:.7rem;">
+                        Ready
+                    </span>
                 </div>
-                <div class="mb-4">
-                    <label class="cyh-form-label">Select Design Style</label>
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach (var style in new[]{"Modern","Minimal","Colorful","Professional"})
-                        {
-                            <div class="cyh-filter-tab @(style=="Modern"?"active":"")">@style</div>
-                        }
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="cyh-form-label">Select Language</label>
-                    <select class="form-select cyh-form-control">
-                        <option>English</option>
-                        <option>Hindi</option>
-                        <option>Marathi</option>
-                        <option>Tamil</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="cyh-form-label">Image Size</label>
-                    <select class="form-select cyh-form-control">
-                        <option>Instagram Post (1080 x 1080)</option>
-                        <option>Facebook Post (1200 x 628)</option>
-                        <option>WhatsApp Status (1080 x 1920)</option>
-                        <option>Twitter Post (1600 x 900)</option>
-                    </select>
-                </div>
-                <button class="btn btn-cyh-teal w-100 py-2" style="border-radius:10px;">
-                    <i class="bi bi-stars me-2"></i>Generate with AI
-                </button>
-                <div class="alert alert-info mt-3 rounded-3" style="font-size:.8rem;">
-                    <i class="bi bi-info-circle me-1"></i>
-                    AI generation is in <strong>Stub mode</strong>. Configure an OpenAI API key in <code>appsettings.json</code> to enable real generation.
+                
+                <!-- Zoom & Action Controls -->
+                <div class="d-flex align-items-center gap-1" id="previewControls" style="display:none !important;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="zoomAiPreview(-0.1)" title="Zoom Out">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <span id="aiZoomLabel" style="font-size:0.75rem;min-width:38px;text-align:center;font-weight:600;color:#64748B;">100%</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="zoomAiPreview(0.1)" title="Zoom In">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="resetAiZoom()" title="Fit">
+                        Fit
+                    </button>
                 </div>
             </div>
-            <!-- Right: Preview -->
-            <div class="col-lg-7">
-                <div class="cyh-card h-100" style="min-height:380px;">
-                    <div class="cyh-card-header">
-                        <h6 class="cyh-card-title">Preview</h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-cyh-outline btn-sm"><i class="bi bi-pencil me-1"></i>Edit</button>
-                            <button class="btn btn-cyh-teal btn-sm"><i class="bi bi-download me-1"></i>Download</button>
-                        </div>
+
+            <!-- Viewport Stage -->
+            <div class="cyh-card-body flex-grow-1 d-flex align-items-center justify-content-center position-relative p-4"
+                 style="min-height:500px;background:#F8FAFC;background-image:radial-gradient(#CBD5E1 1.2px, transparent 1.2px);background-size:20px 20px;border-radius:0 0 14px 14px;overflow:auto;">
+                
+                <!-- Empty Placeholder -->
+                <div id="aiEmptyState" class="text-center py-5">
+                    <div style="width:260px;height:260px;margin:auto;
+                                background:linear-gradient(135deg,#1B2B6B,#0EA5A0);
+                                border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 14px 35px rgba(27,43,107,.2);">
+                        <i class="bi bi-stars text-white" style="font-size:4.5rem;opacity:.95;"></i>
+                        <span class="text-white mt-2 fw-semibold opacity-90">AI Banner Studio</span>
                     </div>
-                    <div class="cyh-card-body d-flex align-items-center justify-content-center" style="min-height:320px;">
-                        <div class="cyh-empty">
-                            <span class="cyh-empty-icon"><i class="bi bi-image-alt"></i></span>
-                            <div class="cyh-empty-title">Your banner will appear here</div>
-                            <div class="cyh-empty-desc">Fill in the form and click Generate to create your banner</div>
-                        </div>
+                    <h5 class="mt-4 fw-bold text-dark">Your Banner Will Appear Here</h5>
+                    <p class="text-muted small mx-auto" style="max-width:380px;">
+                        Choose a medical topic on the left, pick your favorite language and style, then click <strong>Generate with AI</strong>.
+                    </p>
+                </div>
+
+                <!-- Loading Animation -->
+                <div id="aiLoadingState" class="text-center py-5" style="display:none;">
+                    <div class="spinner-border text-teal mb-3" style="width:3.5rem;height:3.5rem;color:#0EA5A0 !important;" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
+                    <h5 class="fw-bold text-dark" id="aiLoadingStep">Generating Branded Medical Concept...</h5>
+                    <p class="text-muted small">Synthesizing clinical advice, typography, and doctor branding...</p>
+                </div>
+
+                <!-- Live Canvas Display -->
+                <div id="aiCanvasWrapper" style="display:none;transition:transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);transform-origin:center center;">
+                    <canvas id="aiCanvas" class="rounded-3 shadow-lg" style="max-width:100%;max-height:520px;background:#ffffff;border:1px solid #E2E8F0;"></canvas>
+                </div>
+
+            </div>
+
+            <!-- Bottom Actions Bar (Shown once generated) -->
+            <div id="aiActionBar" class="p-3 border-top bg-white d-flex align-items-center justify-content-between flex-wrap gap-2" style="display:none !important;border-radius:0 0 14px 14px;">
+                <div class="d-flex align-items-center gap-2">
+                    <span id="canvasDimInfo" class="badge bg-light text-secondary border">1080 × 1080 px</span>
+                    <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-1"></i>Generated Ready</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="triggerAiGeneration()">
+                        <i class="bi bi-arrow-repeat me-1"></i>Regenerate
+                    </button>
+                    <button type="button" class="btn btn-cyh-outline btn-sm" onclick="downloadAiBannerPng()">
+                        <i class="bi bi-download me-1"></i>Download PNG
+                    </button>
+                    <button type="button" class="btn btn-cyh-teal btn-sm" onclick="saveToMyDesigns(false)">
+                        <i class="bi bi-bookmark-check me-1"></i>Save Design
+                    </button>
+                    <button type="button" class="btn btn-cyh-primary btn-sm" onclick="saveToMyDesigns(true)">
+                        <i class="bi bi-pencil-square me-1"></i>Open in Editor
+                    </button>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+const _token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+let currentAiStyle = 'Modern';
+let generatedData = null;
+let currentZoom = 1.0;
+
+function selectTopic(btn, topic) {
+    document.querySelectorAll('.topic-chip').forEach(b => {
+        b.classList.remove('btn-teal', 'text-white');
+        b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-teal', 'text-white');
+    btn.style.backgroundColor = '#0EA5A0';
+    btn.style.borderColor = '#0EA5A0';
+    document.getElementById('aiTopic').value = topic;
+}
+
+function selectStyle(el, styleName) {
+    currentAiStyle = styleName;
+    document.querySelectorAll('.style-card').forEach(c => {
+        c.style.border = '1px solid #E2E8F0';
+        c.style.background = '#FFFFFF';
+    });
+    el.style.border = '2px solid #0EA5A0';
+    el.style.background = '#F0FDFA';
+}
+
+async function triggerAiGeneration() {
+    const topic = document.getElementById('aiTopic').value.trim();
+    if (!topic) {
+        alert('Please enter a medical topic or click one of the quick topic chips.');
+        document.getElementById('aiTopic').focus();
+        return;
+    }
+
+    const btn = document.getElementById('btnGenerate');
+    const btnText = document.getElementById('btnGenText');
+    const emptyState = document.getElementById('aiEmptyState');
+    const loadingState = document.getElementById('aiLoadingState');
+    const canvasWrapper = document.getElementById('aiCanvasWrapper');
+    const controls = document.getElementById('previewControls');
+    const actionBar = document.getElementById('aiActionBar');
+    const statusBadge = document.getElementById('previewStatusBadge');
+
+    // UI Loading state
+    btn.disabled = true;
+    btnText.textContent = 'Generating with AI...';
+    emptyState.style.display = 'none';
+    canvasWrapper.style.display = 'none';
+    loadingState.style.display = 'block';
+    statusBadge.textContent = 'Processing...';
+    statusBadge.className = 'badge rounded-pill bg-warning text-dark border ms-2';
+
+    const reqBody = {
+        Topic: topic,
+        Style: currentAiStyle,
+        Language: document.getElementById('aiLanguage').value,
+        Orientation: document.getElementById('aiOrientation').value,
+        IncludeBranding: document.getElementById('chkIncludeBranding').checked
+    };
+
+    try {
+        const res = await fetch('/AiBanner/Generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': _token
+            },
+            body: JSON.stringify(reqBody)
+        });
+
+        const json = await res.json();
+        if (!json.isSuccess || !json.data) {
+            alert(json.msg || 'Could not generate banner. Please try again.');
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'block';
+            statusBadge.textContent = 'Failed';
+            return;
+        }
+
+        generatedData = json.data;
+        renderGeneratedBanner(generatedData);
+
+        loadingState.style.display = 'none';
+        canvasWrapper.style.display = 'block';
+        controls.style.setProperty('display', 'flex', 'important');
+        actionBar.style.setProperty('display', 'flex', 'important');
+        statusBadge.textContent = 'Completed';
+        statusBadge.className = 'badge rounded-pill bg-success text-white border ms-2';
+
+    } catch (e) {
+        console.error("AI Generation error:", e);
+        alert('Network or server error while generating banner.');
+        loadingState.style.display = 'none';
+        emptyState.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Generate Branded Banner with AI';
+    }
+}
+
+function renderGeneratedBanner(data) {
+    const canvas = document.getElementById('aiCanvas');
+    if (!canvas || !data) return;
+
+    const W = data.WidthPx || 1080;
+    const H = data.HeightPx || 1080;
+    canvas.width = W;
+    canvas.height = H;
+
+    const dimLabel = document.getElementById('canvasDimInfo');
+    if (dimLabel) dimLabel.textContent = `${W} × ${H} px (${data.Orientation})`;
+
+    const ctx = canvas.getContext('2d');
+    let elements = [];
+    let bg = data.BgColor || '#0B1B3D';
+
+    if (data.DesignJson) {
+        try {
+            const parsed = JSON.parse(data.DesignJson);
+            if (parsed.bg) bg = parsed.bg;
+            if (parsed.elements) elements = parsed.elements;
+        } catch (e) {
+            console.warn("Could not parse DesignJson:", e);
+        }
+    }
+
+    // Render Canvas
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    elements.forEach(el => {
+        ctx.save();
+        ctx.globalAlpha = el.opacity ?? 1;
+
+        if (el.type === 'rect') {
+            ctx.fillStyle = el.color || '#0EA5A0';
+            // Round corners for modern cards
+            roundRect(ctx, el.x, el.y, el.w, el.h, 16);
+            ctx.fill();
+        } else if (el.type === 'circle') {
+            ctx.beginPath();
+            ctx.ellipse(el.x + el.w / 2, el.y + el.h / 2, el.w / 2, el.h / 2, 0, 0, Math.PI * 2);
+            ctx.fillStyle = el.color || '#0EA5A0';
+            ctx.fill();
+        } else if (el.type === 'text') {
+            const weight = el.bold ? 'bold ' : '';
+            ctx.font = `${weight}${el.size || 30}px ${el.font || 'sans-serif'}`;
+            ctx.fillStyle = el.color || '#FFFFFF';
+            ctx.textAlign = el.align || 'left';
+            ctx.textBaseline = 'top';
+
+            const words = (el.text || '').split(' ');
+            let line = '';
+            let cy = el.y;
+            const maxW = el.w || (W - el.x);
+            const lineH = (el.size || 30) * 1.28;
+
+            for (let n = 0; n < words.length; n++) {
+                const test = line + words[n] + ' ';
+                if (ctx.measureText(test).width > maxW && n > 0) {
+                    ctx.fillText(line, el.align === 'center' ? (el.x + el.w / 2) : el.x, cy);
+                    line = words[n] + ' ';
+                    cy += lineH;
+                } else {
+                    line = test;
+                }
+            }
+            ctx.fillText(line, el.align === 'center' ? (el.x + el.w / 2) : el.x, cy);
+        }
+        ctx.restore();
+    });
+
+    resetAiZoom();
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+// Zoom controls
+function zoomAiPreview(delta) {
+    currentZoom = Math.min(Math.max(0.3, currentZoom + delta), 2.5);
+    updateAiZoom();
+}
+function resetAiZoom() {
+    currentZoom = 1.0;
+    updateAiZoom();
+}
+function updateAiZoom() {
+    const wrapper = document.getElementById('aiCanvasWrapper');
+    const label = document.getElementById('aiZoomLabel');
+    if (wrapper) wrapper.style.transform = `scale(${currentZoom})`;
+    if (label) label.textContent = `${Math.round(currentZoom * 100)}%`;
+}
+
+// Download
+function downloadAiBannerPng() {
+    const canvas = document.getElementById('aiCanvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    const title = (generatedData?.DesignName || 'ai-banner').replace(/[^a-zA-Z0-9_-]/g, '_');
+    link.download = `${title}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Save to DB and Optionally Open in Editor
+async function saveToMyDesigns(openInEditor) {
+    if (!generatedData) return;
+    const canvas = document.getElementById('aiCanvas');
+    const thumb = canvas.toDataURL('image/jpeg', 0.7);
+
+    const body = {
+        DesignName: generatedData.DesignName || 'AI Generated Banner',
+        DesignJson: generatedData.DesignJson,
+        ThumbnailPath: thumb,
+        Status: 'Saved',
+        Orientation: generatedData.Orientation || 'Square',
+        WidthPx: generatedData.WidthPx || 1080,
+        HeightPx: generatedData.HeightPx || 1080
+    };
+
+    try {
+        const res = await fetch('/AiBanner/SaveDesign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': _token
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (data.isSuccess) {
+            if (openInEditor) {
+                window.location.href = `/Design/Edit/${data.encId}`;
+            } else {
+                alert('Success! Banner has been saved to "My Designs".');
+            }
+        } else {
+            alert(data.msg || 'Could not save banner.');
+        }
+    } catch (e) {
+        alert('Network error while saving banner.');
+    }
+}
+</script>
+}
