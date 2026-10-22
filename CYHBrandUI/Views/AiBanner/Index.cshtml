@@ -2,9 +2,14 @@
     ViewData["Title"] = "AI Banner Creator";
     ViewData["PageSubtitle"] = "Create branded, high-impact medical awareness banners with AI in seconds.";
     var doctor = ViewBag.Doctor as CYHBrandUI.Helpers.CustomPrincipal;
-    string docName = !string.IsNullOrWhiteSpace(doctor?.FullName) ? doctor.FullName : (!string.IsNullOrWhiteSpace(doctor?.Name) ? doctor.Name : "Dr. Specialist");
+    var doctorDto = ViewBag.DoctorDto as CYHBrandModel.DTO.DoctorMasterDTO;
+    string docName = !string.IsNullOrWhiteSpace(doctorDto?.FullName) ? doctorDto.FullName : (!string.IsNullOrWhiteSpace(doctor?.FullName) ? doctor.FullName : (!string.IsNullOrWhiteSpace(doctor?.Name) ? doctor.Name : "Dr. Specialist"));
     if (!docName.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase)) docName = "Dr. " + docName;
-    int userCredits = ViewBag.AiCredits != null ? (int)ViewBag.AiCredits : 10;
+    string docPhoto = !string.IsNullOrEmpty(doctorDto?.ProfilePic) ? doctorDto.ProfilePic : (!string.IsNullOrEmpty(doctor?.ProfilePic) ? doctor.ProfilePic : "");
+    string docSpecialty = !string.IsNullOrWhiteSpace(doctorDto?.Specialty) ? doctorDto.Specialty : (!string.IsNullOrWhiteSpace(doctor?.Specialty) ? doctor.Specialty : "Medical Specialist");
+    string docClinic = !string.IsNullOrWhiteSpace(doctorDto?.ClinicName) ? doctorDto.ClinicName : (!string.IsNullOrWhiteSpace(doctor?.ClinicName) ? doctor.ClinicName : "City Health Clinic");
+    string docMobile = !string.IsNullOrWhiteSpace(doctorDto?.MobileNo) ? doctorDto.MobileNo : (!string.IsNullOrWhiteSpace(doctor?.MobileNo) ? doctor.MobileNo : "Consultation");
+    int userCredits = ViewBag.AiCredits != null ? (int)ViewBag.AiCredits : (doctorDto?.AiCredits ?? 10);
 }
 
 <div class="row g-4">
@@ -154,19 +159,40 @@
                     </select>
                 </div>
 
-                <!-- 5. Doctor Branding Context -->
+                <!-- 5. Doctor Branding Context (With Profile Picture) -->
                 <div class="p-3 bg-light rounded-3 mb-4 border">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="chkIncludeBranding" checked />
-                        <label class="form-check-label fw-semibold small text-dark" for="chkIncludeBranding">
-                            Embed My Doctor Branding Footer
-                        </label>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 text-muted" style="font-size:0.75rem;">
-                        <i class="bi bi-person-badge fs-5 text-teal"></i>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="chkIncludeBranding" checked />
+                            <label class="form-check-label fw-semibold small text-dark" for="chkIncludeBranding">
+                                Embed My Doctor Branding Footer
+                            </label>
+                        </div>
                         <div>
-                            <div><strong>@docName</strong> · @(doctor?.Specialty ?? "Medical Specialist")</div>
-                            <div>@(doctor?.ClinicName ?? "Clinic") · @(doctor?.MobileNo ?? "Contact")</div>
+                            <input type="file" id="brandPhotoUploadInput" accept="image/*" style="display:none;" onchange="uploadDoctorBrandPhoto(this)" />
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.72rem;" onclick="document.getElementById('brandPhotoUploadInput').click()" title="Upload or change profile picture">
+                                <i class="bi bi-camera me-1"></i>Change Photo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3 text-muted" style="font-size:0.75rem;">
+                        <div class="position-relative flex-shrink-0">
+                            @if (!string.IsNullOrEmpty(docPhoto))
+                            {
+                                <img id="previewDoctorThumb" src="@docPhoto" class="rounded-circle border" style="width:50px;height:50px;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,0.12);" alt="Doctor photo" />
+                            }
+                            else
+                            {
+                                <div id="previewDoctorThumbFallback" class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center" style="width:50px;height:50px;background:linear-gradient(135deg,#0EA5A0,#0B1B3D);font-size:1.15rem;box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+                                    Dr
+                                </div>
+                            }
+                        </div>
+                        <div>
+                            <div class="text-dark"><strong>@docName</strong> · @docSpecialty</div>
+                            <div>@docClinic · @docMobile</div>
+                            <div class="text-teal small mt-1" style="font-size:0.7rem;color:#0EA5A0;"><i class="bi bi-image me-1"></i>Doctor photo is embedded in banner footer</div>
                         </div>
                     </div>
                 </div>
@@ -358,6 +384,66 @@ async function rechargeFreeTestCredits() {
     } catch(e) {
         console.error(e);
         alert('Network error while adding credits.');
+    }
+}
+
+async function uploadDoctorBrandPhoto(input) {
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await fetch('/Doctor/UploadProfilePic', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': _token
+            },
+            body: formData
+        });
+        const json = await res.json();
+        if (json.isSuccess && json.filePath) {
+            // Update preview thumbnail in left column
+            let thumb = document.getElementById('previewDoctorThumb');
+            const fallback = document.getElementById('previewDoctorThumbFallback');
+            if (!thumb) {
+                if (fallback) {
+                    thumb = document.createElement('img');
+                    thumb.id = 'previewDoctorThumb';
+                    thumb.className = 'rounded-circle border';
+                    thumb.style.width = '50px';
+                    thumb.style.height = '50px';
+                    thumb.style.objectFit = 'cover';
+                    thumb.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+                    fallback.parentNode.replaceChild(thumb, fallback);
+                }
+            }
+            if (thumb) thumb.src = json.filePath + '?t=' + new Date().getTime();
+
+            // Also update banner canvas live if already generated!
+            if (generatedData && (generatedData.designJson || generatedData.DesignJson)) {
+                try {
+                    let parsed = typeof generatedData.designJson === 'string' ? JSON.parse(generatedData.designJson) : generatedData.designJson;
+                    while (typeof parsed === 'string') parsed = JSON.parse(parsed);
+                    if (parsed && parsed.elements) {
+                        parsed.elements.forEach(el => {
+                            if (el.type === 'avatar' || el.type === 'image') {
+                                el.src = json.filePath;
+                            }
+                        });
+                        generatedData.designJson = JSON.stringify(parsed);
+                        generatedData.DesignJson = generatedData.designJson;
+                        renderGeneratedBanner(generatedData);
+                    }
+                } catch(e) { console.warn(e); }
+            }
+            alert('Doctor profile photo uploaded successfully! It is now embedded in your banner.');
+        } else {
+            alert(json.msg || 'Could not upload photo.');
+        }
+    } catch(e) {
+        console.error(e);
+        alert('Network error while uploading photo.');
     }
 }
 
@@ -601,6 +687,69 @@ function renderGeneratedBanner(data) {
             ctx.beginPath();
             ctx.arc(el.x + (el.w / 2), el.y + (el.h / 2), el.w / 2, 0, Math.PI * 2);
             ctx.fill();
+        } else if (el.type === 'avatar' || el.type === 'image') {
+            const imgX = el.x;
+            const imgY = el.y;
+            const imgW = el.w;
+            const imgH = el.h;
+            const radius = imgW / 2;
+            const cx = imgX + radius;
+            const cy = imgY + radius;
+            const bWidth = el.borderWidth || 4;
+            const bColor = el.borderColor || '#FFFFFF';
+
+            const drawAvatarFallback = () => {
+                ctx.save();
+                // Outer ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = bColor;
+                ctx.fill();
+
+                // Inner circle with gradient
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius - bWidth, 0, Math.PI * 2);
+                const g = ctx.createLinearGradient(imgX, imgY, imgX + imgW, imgY + imgH);
+                g.addColorStop(0, '#0EA5A0');
+                g.addColorStop(1, '#0B1B3D');
+                ctx.fillStyle = g;
+                ctx.fill();
+
+                // Initials / Doctor Text
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `bold ${Math.round(imgW * 0.36)}px Inter, -apple-system, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(el.initials || 'Dr', cx, cy);
+                ctx.restore();
+            };
+
+            if (el.src && el.src.trim() !== '') {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    ctx.save();
+                    // Draw outer border ring
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = bColor;
+                    ctx.fill();
+
+                    // Clip inner photo
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius - bWidth, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+                    ctx.drawImage(img, imgX + bWidth, imgY + bWidth, imgW - (bWidth * 2), imgH - (bWidth * 2));
+                    ctx.restore();
+                };
+                img.onerror = () => {
+                    drawAvatarFallback();
+                };
+                img.src = el.src;
+            } else {
+                drawAvatarFallback();
+            }
         } else if (el.type === 'text') {
             ctx.fillStyle = el.color || '#ffffff';
             const fontWeight = el.bold ? 'bold' : 'normal';

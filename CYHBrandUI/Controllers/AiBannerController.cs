@@ -32,14 +32,19 @@ namespace CYHBrandUI.Controllers
         {
             ViewData["Title"] = "AI Banner Creator";
             ViewData["PageSubtitle"] = "Create professional, branded health-awareness banners with AI in seconds.";
-            ViewBag.Doctor = CurrentUser;
             ViewBag.PreloadTopic = topic;
             ViewBag.PreloadLang = lang;
 
             int credits = 10;
             if (CurrentUser != null)
             {
-                credits = await UOF.DoctorRepo.GetAiCreditsAsync(CurrentUser.UserId);
+                var doc = await UOF.DoctorRepo.GetByIdAsync(CurrentUser.UserId);
+                if (doc != null)
+                {
+                    ViewBag.DoctorDto = doc;
+                    credits = doc.AiCredits;
+                }
+                ViewBag.Doctor = CurrentUser;
             }
             ViewBag.AiCredits = credits;
             return View();
@@ -78,7 +83,19 @@ namespace CYHBrandUI.Controllers
             if (string.IsNullOrWhiteSpace(request?.Topic))
                 return JsonFail("Please enter a medical topic or select a suggestion chip.");
 
-            var result = await _aiService.GenerateBannerAsync(request, CurrentUser);
+            // Always fetch the freshest doctor profile from DB so ProfilePic, Name, Specialty, Clinic are 100% current
+            var doc = await UOF.DoctorRepo.GetByIdAsync(CurrentUser.UserId);
+            var principal = CurrentUser;
+            if (doc != null)
+            {
+                principal.ProfilePic = doc.ProfilePic;
+                principal.FullName = !string.IsNullOrWhiteSpace(doc.FullName) ? doc.FullName : principal.FullName;
+                principal.Specialty = !string.IsNullOrWhiteSpace(doc.Specialty) ? doc.Specialty : principal.Specialty;
+                principal.ClinicName = !string.IsNullOrWhiteSpace(doc.ClinicName) ? doc.ClinicName : principal.ClinicName;
+                principal.MobileNo = !string.IsNullOrWhiteSpace(doc.MobileNo) ? doc.MobileNo : principal.MobileNo;
+            }
+
+            var result = await _aiService.GenerateBannerAsync(request, principal);
             if (!result.IsSuccess)
                 return JsonFail(result.Message);
 

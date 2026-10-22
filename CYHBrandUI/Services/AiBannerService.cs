@@ -295,7 +295,8 @@ namespace CYHBrandUI.Services
                         w = footerW,
                         h = footerH,
                         color = (request.Style == "Minimal" ? "#FFFFFF" : "#0EA5A0"),
-                        opacity = (request.Style == "Minimal" ? 0.95 : 0.9),
+                        opacity = 0.95,
+                        radius = 16,
                         label = "Doctor Branding Footer"
                     });
 
@@ -309,13 +310,45 @@ namespace CYHBrandUI.Services
                     string footerTextColor = (request.Style == "Minimal" ? "#0F172A" : "#FFFFFF");
                     string footerSubColor = (request.Style == "Minimal" ? "#475569" : "#E0F2FE");
 
+                    // Profile Picture Avatar Frame on the left side of footer
+                    int avatarSize = Math.Min(footerH - 40, 160);
+                    int avatarX = footerX + 30;
+                    int avatarY = footerY + (footerH - avatarSize) / 2;
+
+                    string docInitials = "Dr";
+                    var nameParts = docName.Replace("Dr.", "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length > 0 && nameParts[0].Length > 0)
+                    {
+                        docInitials = nameParts[0][0].ToString().ToUpperInvariant();
+                        if (nameParts.Length > 1 && nameParts[1].Length > 0)
+                            docInitials += nameParts[1][0].ToString().ToUpperInvariant();
+                    }
+
+                    elements.Add(new
+                    {
+                        type = "avatar",
+                        x = avatarX,
+                        y = avatarY,
+                        w = avatarSize,
+                        h = avatarSize,
+                        src = doctor?.ProfilePic ?? "",
+                        initials = docInitials,
+                        borderColor = (request.Style == "Minimal" ? "#0EA5A0" : "#FFFFFF"),
+                        borderWidth = 5,
+                        label = "Doctor Profile Photo"
+                    });
+
+                    // Text block to the right of avatar
+                    int textX = avatarX + avatarSize + 28;
+                    int textW = footerW - (textX - footerX) - 28;
+
                     // Doctor Name
                     elements.Add(new
                     {
                         type = "text",
-                        x = footerX + 40,
-                        y = footerY + 24,
-                        w = footerW - 80,
+                        x = textX,
+                        y = footerY + 28,
+                        w = textW,
                         h = 44,
                         text = docName,
                         color = footerTextColor,
@@ -330,9 +363,9 @@ namespace CYHBrandUI.Services
                     elements.Add(new
                     {
                         type = "text",
-                        x = footerX + 40,
-                        y = footerY + 70,
-                        w = footerW - 80,
+                        x = textX,
+                        y = footerY + 76,
+                        w = textW,
                         h = 36,
                         text = $"{specialty} · {clinic}",
                         color = footerSubColor,
@@ -347,9 +380,9 @@ namespace CYHBrandUI.Services
                     elements.Add(new
                     {
                         type = "text",
-                        x = footerX + 40,
-                        y = footerY + 110,
-                        w = footerW - 80,
+                        x = textX,
+                        y = footerY + 116,
+                        w = textW,
                         h = 32,
                         text = contact,
                         color = footerTextColor,
