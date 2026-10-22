@@ -88,6 +88,31 @@ namespace CYHBrandUI.Services
                 // 4. Build Structured Design JSON Layers
                 var elements = new List<object>();
 
+                // (0) Ambient Decorative Glow Circles (adds visual depth)
+                elements.Add(new
+                {
+                    type = "circle",
+                    x = width - 160,
+                    y = -100,
+                    w = 340,
+                    h = 340,
+                    color = accentColor,
+                    opacity = 0.12,
+                    label = "Ambient Glow Top-Right"
+                });
+
+                elements.Add(new
+                {
+                    type = "circle",
+                    x = -80,
+                    y = (int)(height * 0.45),
+                    w = 240,
+                    h = 240,
+                    color = accentColor,
+                    opacity = 0.08,
+                    label = "Ambient Glow Mid-Left"
+                });
+
                 // (A) Top Header Category Badge
                 int badgeW = Math.Min(440, width - 100);
                 int badgeH = 48;
@@ -379,6 +404,24 @@ namespace CYHBrandUI.Services
                         "स्क्रीन टाइम सीमित रखें और खेलकूद को बढ़ावा दें"
                     });
                 }
+                if (topic.Contains("eye") || topic.Contains("vision") || topic.Contains("aankh"))
+                {
+                    return ("नेत्र सुरक्षा सुझाव", "स्वस्थ आंखें, उज्ज्वल भविष्य", new List<string>
+                    {
+                        "डिजिटल स्क्रीन पर 20-20-20 नियम का पालन करें",
+                        "पर्याप्त रोशनी में पढ़ें और आंखों को बार-बार न मलें",
+                        "वर्ष में एक बार आंखों की जांच अवश्य कराएं"
+                    });
+                }
+                if (topic.Contains("dent") || topic.Contains("oral") || topic.Contains("daant"))
+                {
+                    return ("दंत स्वास्थ्य सुरक्षा", "मजबूत दांत, सुंदर मुस्कान", new List<string>
+                    {
+                        "दिन में दो बार ब्रश करें और कुल्ला अवश्य करें",
+                        "मीठी और चिपचिपी चीजों का सेवन सीमित करें",
+                        "हर 6 महीने में दंत चिकित्सक से जांच कराएं"
+                    });
+                }
 
                 // General Hindi fallback
                 return ("स्वास्थ्य सलाह", "स्वस्थ जीवनशैली अपनाएं, निरोगी रहें", new List<string>
@@ -477,6 +520,26 @@ namespace CYHBrandUI.Services
                     "Practice 10 minutes of deep breathing or mindfulness daily",
                     "Maintain a consistent 7-8 hour sleep schedule every night",
                     "Take regular breaks and consult a specialist when overwhelmed"
+                });
+            }
+
+            if (topic.Contains("eye") || topic.Contains("vision") || topic.Contains("screen"))
+            {
+                return ("Eye Care & Vision Protection", "Protect Your Eyes in the Digital Age", new List<string>
+                {
+                    "Follow the 20-20-20 rule during screen usage (look 20 ft away)",
+                    "Adjust screen brightness and keep monitor at arm's length",
+                    "Undergo comprehensive annual dilated eye examinations"
+                });
+            }
+
+            if (topic.Contains("bone") || topic.Contains("joint") || topic.Contains("ortho") || topic.Contains("calcium"))
+            {
+                return ("Bone & Joint Wellness", "Build Strong Bones, Stay Active Longer", new List<string>
+                {
+                    "Ensure adequate daily intake of Calcium and Vitamin D3",
+                    "Incorporate weight-bearing exercises to boost bone density",
+                    "Practice good posture during desk work and driving"
                 });
             }
 

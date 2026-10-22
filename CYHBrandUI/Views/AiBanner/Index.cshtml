@@ -9,6 +9,59 @@
 <div class="row g-4">
     <!-- ── Left Column: AI Prompt & Configuration ── -->
     <div class="col-lg-5">
+        <!-- ── ⚡ 1-Click Auto-Generate Banner Feature Card ── -->
+        <div class="card border-0 text-white shadow-sm mb-4" style="background:linear-gradient(135deg, #091E42 0%, #173873 55%, #0EA5A0 100%); border-radius:14px; overflow:hidden;">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size:0.75rem;">
+                        <i class="bi bi-lightning-charge-fill me-1"></i>INSTANT 1-CLICK AI
+                    </span>
+                    <span class="badge rounded-pill bg-white text-dark bg-opacity-25" style="font-size:0.7rem;">
+                        Zero Effort Required
+                    </span>
+                </div>
+                <h5 class="fw-bold text-white mb-1">Auto-Generate Full Banner</h5>
+                <p class="text-white-50 small mb-3">
+                    Click below to immediately generate a complete, ready-to-share clinical awareness banner with your doctor branding.
+                </p>
+
+                <!-- Big 1-Click Action Button -->
+                <button type="button" class="btn btn-warning text-dark fw-bold w-100 py-2 mb-3 d-flex align-items-center justify-content-center gap-2 shadow" onclick="instantAutoGenerate()" style="border-radius:10px;">
+                    <i class="bi bi-magic fs-5"></i>
+                    <span>⚡ 1-Click Auto-Generate Full Banner</span>
+                </button>
+
+                <!-- Quick Ready Themes Pills -->
+                <div class="small fw-semibold text-white-50 mb-2">Or pick a 1-click clinical campaign:</div>
+                <div class="d-flex flex-wrap gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(0)" title="Auto-generate Heart Health banner">
+                        ❤️ Heart
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(1)" title="Auto-generate Diabetes banner">
+                        🩸 Diabetes
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(2)" title="Auto-generate Monsoon Flu banner">
+                        🌧️ Flu/Monsoon
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(3)" title="Auto-generate Nutrition banner">
+                        🥗 Nutrition
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(4)" title="Auto-generate Child Health banner">
+                        👶 Pediatric
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(5)" title="Auto-generate Eye Care banner">
+                        👁️ Eye Care
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(6)" title="Auto-generate Mental Wellness banner">
+                        🧠 Mental Peace
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill bg-white bg-opacity-10 border-white-50 text-white" onclick="instantAutoGenerate(8)" title="Auto-generate Hindi Heart Banner">
+                        🇮🇳 हिंदी हृदय
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="cyh-card shadow-sm mb-4">
             <div class="cyh-card-header d-flex align-items-center justify-content-between">
                 <h6 class="cyh-card-title mb-0">
@@ -22,7 +75,12 @@
             <div class="cyh-card-body">
                 <!-- 1. Topic & Quick Chips -->
                 <div class="mb-3">
-                    <label class="cyh-form-label fw-bold">1. Select or Enter Medical Topic</label>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="cyh-form-label fw-bold mb-0">1. Select or Enter Medical Topic</label>
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-teal fw-semibold" onclick="shuffleTopic()" title="Suggest a random medical awareness topic" style="font-size:0.75rem;color:#0EA5A0 !important;">
+                            <i class="bi bi-shuffle me-1"></i>Suggest Topic
+                        </button>
+                    </div>
                     <div class="d-flex flex-wrap gap-1 mb-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill topic-chip" onclick="selectTopic(this, 'Heart Health & Blood Pressure')">
                             ❤️ Heart Care
@@ -242,6 +300,76 @@ const _token = document.querySelector('input[name="__RequestVerificationToken"]'
 let currentAiStyle = 'Modern';
 let generatedData = null;
 let currentZoom = 1.0;
+
+// Curated 1-Click Campaigns for Auto-Generation
+const AUTO_CAMPAIGNS = [
+    { topic: 'Heart Health & Blood Pressure: 3 Proven Rules', style: 'Modern', lang: 'English', orient: 'Square' },
+    { topic: 'Diabetes Management & Sugar Control Habits', style: 'Minimal', lang: 'English', orient: 'Square' },
+    { topic: 'Monsoon Flu & Waterborne Disease Prevention', style: 'Modern', lang: 'English', orient: 'Square' },
+    { topic: 'Healthy Daily Nutrition & Clean Eating Plate', style: 'Colorful', lang: 'English', orient: 'Square' },
+    { topic: 'Child Vaccination & Physical Growth Milestones', style: 'Minimal', lang: 'English', orient: 'Square' },
+    { topic: 'Preventing Digital Eye Strain & 20-20-20 Rule', style: 'Professional', lang: 'English', orient: 'Square' },
+    { topic: 'Mental Wellness, Stress Relief & Sleep Hygiene', style: 'Professional', lang: 'English', orient: 'Square' },
+    { topic: 'Strong Bones, Joint Care & Vitamin D3', style: 'Modern', lang: 'English', orient: 'Square' },
+    { topic: 'हृदय स्वास्थ्य और उच्च रक्तचाप से बचाव के उपाय', style: 'Modern', lang: 'Hindi', orient: 'Square' },
+    { topic: 'मधुमेह नियंत्रण और संतुलित खानपान के नियम', style: 'Colorful', lang: 'Hindi', orient: 'Square' },
+    { topic: 'मानसून स्वास्थ्य और संक्रामक बीमारियों से बचाव', style: 'Professional', lang: 'Hindi', orient: 'Square' },
+    { topic: 'दंत स्वच्छता और मसूड़ों की दैनिक सुरक्षा', style: 'Minimal', lang: 'Hindi', orient: 'Square' }
+];
+
+function instantAutoGenerate(presetIdx = null) {
+    let item;
+    if (presetIdx !== null && presetIdx !== undefined && presetIdx >= 0 && presetIdx < AUTO_CAMPAIGNS.length) {
+        item = AUTO_CAMPAIGNS[presetIdx];
+    } else {
+        const randIdx = Math.floor(Math.random() * AUTO_CAMPAIGNS.length);
+        item = AUTO_CAMPAIGNS[randIdx];
+    }
+
+    // Set topic
+    document.getElementById('aiTopic').value = item.topic;
+
+    // Reset topic chips active styling
+    document.querySelectorAll('.topic-chip').forEach(b => {
+        b.classList.remove('btn-teal', 'text-white');
+        b.classList.add('btn-outline-secondary');
+        b.style.backgroundColor = '';
+        b.style.borderColor = '';
+    });
+
+    // Set language
+    const langSelect = document.getElementById('aiLanguage');
+    if (langSelect) langSelect.value = item.lang;
+
+    // Set orientation
+    const orientSelect = document.getElementById('aiOrientation');
+    if (orientSelect) orientSelect.value = item.orient;
+
+    // Set style
+    setAiStyleByName(item.style);
+
+    // Trigger AI Generation immediately
+    triggerAiGeneration();
+}
+
+function shuffleTopic() {
+    const rand = AUTO_CAMPAIGNS[Math.floor(Math.random() * AUTO_CAMPAIGNS.length)];
+    const el = document.getElementById('aiTopic');
+    el.value = rand.topic;
+    el.focus();
+}
+
+function setAiStyleByName(styleName) {
+    currentAiStyle = styleName;
+    document.querySelectorAll('.style-card').forEach(c => {
+        c.style.border = '1px solid #E2E8F0';
+        c.style.background = '#FFFFFF';
+        if (c.getAttribute('onclick')?.includes(`'${styleName}'`)) {
+            c.style.border = '2px solid #0EA5A0';
+            c.style.background = '#F0FDFA';
+        }
+    });
+}
 
 function selectTopic(btn, topic) {
     document.querySelectorAll('.topic-chip').forEach(b => {
