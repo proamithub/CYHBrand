@@ -28,14 +28,46 @@ namespace CYHBrandUI.Controllers
 
         // GET /AiBanner
         [HttpGet]
-        public IActionResult Index(string? topic = null, string? lang = null)
+        public async Task<IActionResult> Index(string? topic = null, string? lang = null)
         {
             ViewData["Title"] = "AI Banner Creator";
             ViewData["PageSubtitle"] = "Create professional, branded health-awareness banners with AI in seconds.";
             ViewBag.Doctor = CurrentUser;
             ViewBag.PreloadTopic = topic;
             ViewBag.PreloadLang = lang;
+
+            int credits = 10;
+            if (CurrentUser != null)
+            {
+                credits = await UOF.DoctorRepo.GetAiCreditsAsync(CurrentUser.UserId);
+            }
+            ViewBag.AiCredits = credits;
             return View();
+        }
+
+        // GET /AiBanner/GetCredits
+        [HttpGet]
+        public async Task<IActionResult> GetCredits()
+        {
+            if (CurrentUser == null) return JsonFail("Session expired. Please log in again.");
+            int credits = await UOF.DoctorRepo.GetAiCreditsAsync(CurrentUser.UserId);
+            return Json(new { isSuccess = true, credits });
+        }
+
+        // POST /AiBanner/RechargeCredits
+        [HttpPost]
+        public async Task<IActionResult> RechargeCredits([FromBody] RechargeCreditsRequestDTO? req)
+        {
+            if (CurrentUser == null) return JsonFail("Session expired. Please log in again.");
+            int add = (req?.Amount > 0) ? req.Amount : 10;
+            bool ok = await UOF.DoctorRepo.AddAiCreditsAsync(CurrentUser.UserId, add, "User recharged AI credits");
+            int credits = await UOF.DoctorRepo.GetAiCreditsAsync(CurrentUser.UserId);
+            return Json(new { isSuccess = ok, credits, msg = $"Successfully added {add} AI Credits!" });
+        }
+
+        public class RechargeCreditsRequestDTO
+        {
+            public int Amount { get; set; } = 10;
         }
 
         // POST /AiBanner/Generate

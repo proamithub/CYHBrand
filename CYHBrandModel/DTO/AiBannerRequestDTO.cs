@@ -9,6 +9,7 @@ namespace CYHBrandModel.DTO
         public int      WidthPx         { get; set; } = 1080;
         public int      HeightPx        { get; set; } = 1080;
         public bool     IncludeBranding { get; set; } = true;
+        public string   EngineMode      { get; set; } = "Free";        // Free | Paid
         public string?  CustomAdvice    { get; set; }
     }
 
@@ -26,5 +27,7 @@ namespace CYHBrandModel.DTO
         public string   Orientation     { get; set; } = "Square";
         public string?  BgColor         { get; set; } = "#0F172A";
         public string?  AccentColor     { get; set; } = "#0EA5A0";
+        public int      RemainingCredits { get; set; } = 0;
+        public string   EngineUsed      { get; set; } = "Free";
     }
 }

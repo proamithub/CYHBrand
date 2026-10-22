@@ -21,5 +21,10 @@ namespace CYHBrandRepo.IRepository
         // ── Admin ─────────────────────────────────────────────────────────
         Task<PagedResult<DoctorMasterDTO>> GetListAsync(string? searchKey, int pageNo, int pageSize);
         Task<ApiResponse>                  ToggleStatusAsync(int doctorId, bool isActive, int updatedBy);
+
+        // ── AI Credits ─────────────────────────────────────────────────────
+        Task<int>  GetAiCreditsAsync(int doctorId);
+        Task<bool> DeductAiCreditAsync(int doctorId, string description);
+        Task<bool> AddAiCreditsAsync(int doctorId, int credits, string description);
     }
 }

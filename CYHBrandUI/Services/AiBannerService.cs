@@ -1,4 +1,5 @@
 using CYHBrandModel.DTO;
+using CYHBrandRepo;
 using CYHBrandUI.Helpers;
 using Newtonsoft.Json;
 using System.Text;
@@ -10,18 +11,43 @@ namespace CYHBrandUI.Services
         private readonly IConfiguration _config;
         private readonly ILogger<AiBannerService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IUnitOfWork _uof;
 
-        public AiBannerService(IConfiguration config, ILogger<AiBannerService> logger, IHttpClientFactory httpClientFactory)
+        public AiBannerService(IConfiguration config, ILogger<AiBannerService> logger, IHttpClientFactory httpClientFactory, IUnitOfWork uof)
         {
             _config = config;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _uof = uof;
         }
 
         public async Task<AiBannerResponseDTO> GenerateBannerAsync(AiBannerRequestDTO request, CustomPrincipal? doctor)
         {
             try
             {
+                int currentCredits = 0;
+                if (doctor != null)
+                {
+                    currentCredits = await _uof.DoctorRepo.GetAiCreditsAsync(doctor.UserId);
+                }
+
+                bool isPaidMode = string.Equals(request.EngineMode, "Paid", StringComparison.OrdinalIgnoreCase);
+
+                // If Paid Mode, verify user has at least 1 credit in database
+                if (isPaidMode)
+                {
+                    if (currentCredits < 1)
+                    {
+                        return new AiBannerResponseDTO
+                        {
+                            IsSuccess = false,
+                            Message = "Insufficient AI Credits! You have 0 credits remaining. Please recharge your credits or switch to Free Instant Mode.",
+                            RemainingCredits = currentCredits,
+                            EngineUsed = "Paid"
+                        };
+                    }
+                }
+
                 // 1. Calculate dimensions based on orientation or user inputs
                 int width = request.WidthPx > 0 ? request.WidthPx : 1080;
                 int height = request.HeightPx > 0 ? request.HeightPx : 1080;
@@ -84,8 +110,33 @@ namespace CYHBrandUI.Services
                         break;
                 }
 
-                // 3. Extract Topic & Clinical Content (Online AI with local fallback)
-                var (badge, headline, tips) = await ResolveMedicalContentAsync(request.Topic, request.Language, request.CustomAdvice);
+                // 3. Extract Topic & Clinical Content based on EngineMode
+                string badge, headline;
+                List<string> tips;
+
+                if (isPaidMode)
+                {
+                    // Paid Mode: Call official paid API (OpenAI GPT-4o-mini / Gemini)
+                    var paidResult = await ResolvePaidMedicalContentAsync(request.Topic, request.Language, request.CustomAdvice);
+                    badge = paidResult.Badge;
+                    headline = paidResult.Headline;
+                    tips = paidResult.Tips;
+
+                    // Deduct 1 credit from database
+                    if (doctor != null)
+                    {
+                        await _uof.DoctorRepo.DeductAiCreditAsync(doctor.UserId, $"Paid AI Banner: {request.Topic}");
+                        currentCredits = await _uof.DoctorRepo.GetAiCreditsAsync(doctor.UserId);
+                    }
+                }
+                else
+                {
+                    // Free Mode: ZERO network latency! Instant, ultra-fast 0.001s local clinical intelligence engine
+                    var freeResult = ResolveFreeMedicalContent(request.Topic, request.Language, request.CustomAdvice);
+                    badge = freeResult.Badge;
+                    headline = freeResult.Headline;
+                    tips = freeResult.Tips;
+                }
 
                 // 4. Build Structured Design JSON Layers
                 var elements = new List<object>();
@@ -325,7 +376,7 @@ namespace CYHBrandUI.Services
                 return new AiBannerResponseDTO
                 {
                     IsSuccess = true,
-                    Message = "AI Banner generated successfully!",
+                    Message = isPaidMode ? "Banner generated with Paid AI! (1 credit deducted)" : "Banner generated with Instant Free AI!",
                     Headline = headline,
                     AdvicePoints = tips,
                     BadgeText = badge,
@@ -335,7 +386,9 @@ namespace CYHBrandUI.Services
                     HeightPx = height,
                     Orientation = request.Orientation ?? "Square",
                     BgColor = bgColor,
-                    AccentColor = accentColor
+                    AccentColor = accentColor,
+                    RemainingCredits = currentCredits,
+                    EngineUsed = isPaidMode ? "Paid" : "Free"
                 };
             }
             catch (Exception ex)
@@ -349,9 +402,8 @@ namespace CYHBrandUI.Services
             }
         }
 
-        private async Task<(string Badge, string Headline, List<string> Tips)> ResolveMedicalContentAsync(string? topic, string? language, string? customAdvice)
+        private (string Badge, string Headline, List<string> Tips) ResolveFreeMedicalContent(string? topic, string? language, string? customAdvice)
         {
-            // 1. If custom advice is provided by user, respect it
             if (!string.IsNullOrWhiteSpace(customAdvice))
             {
                 var customTips = customAdvice.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -366,90 +418,71 @@ namespace CYHBrandUI.Services
                 }
             }
 
-            // 2. Dynamic Online AI Medical Content Generation
+            // Zero network calls - instant local clinical intelligence engine (< 1ms)
+            return GetLocalFallbackMedicalContent(topic, language);
+        }
+
+        private async Task<(string Badge, string Headline, List<string> Tips)> ResolvePaidMedicalContentAsync(string? topic, string? language, string? customAdvice)
+        {
+            if (!string.IsNullOrWhiteSpace(customAdvice))
+            {
+                var customTips = customAdvice.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                             .Select(t => t.Trim().TrimStart('-', '*', '•'))
+                                             .Where(t => !string.IsNullOrWhiteSpace(t))
+                                             .Take(4)
+                                             .ToList();
+
+                if (customTips.Any())
+                {
+                    return ("Health Advisory", "Doctor's Health Recommendation", customTips);
+                }
+            }
+
             try
             {
-                var aiContent = await FetchOnlineAiMedicalContentAsync(topic, language);
-                if (aiContent != null && !string.IsNullOrWhiteSpace(aiContent.Headline) && aiContent.Tips?.Any() == true)
+                string targetTopic = (topic ?? "").Trim();
+                string targetLang = string.IsNullOrWhiteSpace(language) ? "English" : language.Trim();
+
+                bool isRandom = string.IsNullOrWhiteSpace(targetTopic)
+                                || targetTopic.Equals("RANDOM", StringComparison.OrdinalIgnoreCase)
+                                || targetTopic.Equals("AUTO_RANDOM", StringComparison.OrdinalIgnoreCase);
+
+                string provider = _config["AIContentGeneration:Provider"] ?? "OpenAI";
+                string apiKey = _config["AIContentGeneration:ApiKey"]
+                                ?? _config["AIImageGeneration:OpenAI:ApiKey"]
+                                ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                                ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+                                ?? "";
+
+                if (!string.IsNullOrWhiteSpace(apiKey))
                 {
-                    string badgeText = !string.IsNullOrWhiteSpace(aiContent.Badge) ? aiContent.Badge : "Health Awareness";
-                    return (badgeText, aiContent.Headline, aiContent.Tips.Take(4).ToList());
+                    var client = _httpClientFactory.CreateClient();
+                    client.Timeout = TimeSpan.FromSeconds(3.5);
+
+                    AiMedicalContentDto? aiContent = null;
+                    if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+                    {
+                        aiContent = await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
+                    }
+                    else
+                    {
+                        aiContent = await CallOpenAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
+                    }
+
+                    if (aiContent != null && !string.IsNullOrWhiteSpace(aiContent.Headline) && aiContent.Tips?.Any() == true)
+                    {
+                        string badgeText = !string.IsNullOrWhiteSpace(aiContent.Badge) ? aiContent.Badge : "Health Awareness";
+                        return (badgeText, aiContent.Headline, aiContent.Tips.Take(4).ToList());
+                    }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Online AI medical content generation failed. Falling back to local clinical knowledge bank for topic: {Topic}", topic);
+                _logger.LogWarning(ex, "Paid AI API call failed or timed out. Falling back to clinical bank for topic: {Topic}", topic);
             }
 
-            // 3. Fallback to Local Medical Knowledge Bank
+            // Fallback to high-quality clinical knowledge bank
             return GetLocalFallbackMedicalContent(topic, language);
-        }
-
-        private async Task<AiMedicalContentDto?> FetchOnlineAiMedicalContentAsync(string? topic, string? language)
-        {
-            string targetTopic = (topic ?? "").Trim();
-            string targetLang = string.IsNullOrWhiteSpace(language) ? "English" : language.Trim();
-
-            bool isRandom = string.IsNullOrWhiteSpace(targetTopic)
-                            || targetTopic.Equals("RANDOM", StringComparison.OrdinalIgnoreCase)
-                            || targetTopic.Equals("AUTO_RANDOM", StringComparison.OrdinalIgnoreCase)
-                            || targetTopic.Contains("random", StringComparison.OrdinalIgnoreCase)
-                            || targetTopic.Contains("surprise", StringComparison.OrdinalIgnoreCase);
-
-            string provider = _config["AIContentGeneration:Provider"] ?? "OpenAI";
-            string apiKey = _config["AIContentGeneration:ApiKey"]
-                            ?? _config["AIImageGeneration:OpenAI:ApiKey"]
-                            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-                            ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
-                            ?? "";
-
-            var client = _httpClientFactory.CreateClient();
-            // Fast timeout to guarantee zero UI freezing / hanging
-            client.Timeout = TimeSpan.FromSeconds(3);
-
-            // If an API key is provided, use the configured official provider (OpenAI or Gemini)
-            if (!string.IsNullOrWhiteSpace(apiKey))
-            {
-                if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
-                {
-                    return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
-                }
-                else
-                {
-                    // Default: OpenAI or OpenAI-compatible (Groq, OpenRouter, DeepSeek, etc.)
-                    return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
-                }
-            }
-
-            // If no API key configured, use Free Online AI with fast 2-second timeout and instant fallback
-            return await CallFreeOnlineAiAsync(client, targetTopic, targetLang, isRandom);
-        }
-
-        private async Task<AiMedicalContentDto?> CallFreeOnlineAiAsync(HttpClient client, string topic, string language, bool isRandom)
-        {
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.5));
-                string prompt = isRandom
-                    ? $"Generate random doctor clinic awareness banner in {language}. Return JSON with badge (2-4 words), headline (under 8 words), and tips (array of 3 prevention tips, 8-14 words each)."
-                    : $"Medical topic: {topic}. Language: {language}. Generate medical awareness banner for doctor clinic. Return JSON with badge (2-4 words), headline (under 8 words), and tips (array of 3 prevention tips, 8-14 words each).";
-
-                string url = $"https://text.pollinations.ai/{Uri.EscapeDataString(prompt)}?json=true&model=openai";
-                var response = await client.GetAsync(url, cts.Token);
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Rate limit or service busy - fallback immediately with zero delay
-                    return null;
-                }
-
-                string respString = await response.Content.ReadAsStringAsync(cts.Token);
-                return ParseAiContentJson(respString);
-            }
-            catch
-            {
-                // Instant fallback on timeout or connection lag
-                return null;
-            }
         }
 
         private async Task<AiMedicalContentDto?> CallOpenAiAsync(HttpClient client, string apiKey, string topic, string language, bool isRandom)

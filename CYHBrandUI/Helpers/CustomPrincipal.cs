@@ -11,6 +11,7 @@ namespace CYHBrandUI.Helpers
         public string?  FullName          { get; set; }
         public string?  Specialty         { get; set; }
         public string?  ClinicName        { get; set; }
+        public int      AiCredits         { get; set; } = 10;
         public bool     IsProfileComplete { get; set; }
     }
 }

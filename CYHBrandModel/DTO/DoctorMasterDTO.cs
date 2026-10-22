@@ -35,6 +35,7 @@ namespace CYHBrandModel.DTO
         public bool IsVerified { get; set; }
         public bool IsProfileComplete { get; set; }
         public int RoleId { get; set; } = 1;
+        public int AiCredits { get; set; } = 10;
         public string[]? Roles { get; set; }
         public DateTime? CreatedDate { get; set; }
     }

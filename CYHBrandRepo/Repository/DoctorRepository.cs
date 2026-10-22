@@ -237,5 +237,96 @@ namespace CYHBrandRepo.Repository
                 return ApiResponse.ServerErrorResult(ex.Message);
             }
         }
+
+        // ── AI Credits ─────────────────────────────────────────────────────
+
+        public async Task<int> GetAiCreditsAsync(int doctorId)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_conn);
+                return await con.ExecuteScalarAsync<int>(
+                    "SELECT ISNULL(AiCredits, 0) FROM DoctorMaster WHERE DoctorId = @DoctorId",
+                    new { DoctorId = doctorId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAiCreditsAsync failed for DoctorId {DoctorId}", doctorId);
+                return 0;
+            }
+        }
+
+        public async Task<bool> DeductAiCreditAsync(int doctorId, string description)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_conn);
+                await con.OpenAsync();
+                await using var trans = await con.BeginTransactionAsync();
+
+                // 1. Check current balance
+                int current = await con.ExecuteScalarAsync<int>(
+                    "SELECT ISNULL(AiCredits, 0) FROM DoctorMaster WITH (UPDLOCK) WHERE DoctorId = @DoctorId",
+                    new { DoctorId = doctorId }, trans);
+
+                if (current < 1)
+                {
+                    await trans.RollbackAsync();
+                    return false;
+                }
+
+                // 2. Deduct credit
+                int newBal = current - 1;
+                await con.ExecuteAsync(
+                    "UPDATE DoctorMaster SET AiCredits = @NewBal WHERE DoctorId = @DoctorId",
+                    new { NewBal = newBal, DoctorId = doctorId }, trans);
+
+                // 3. Insert transaction log
+                await con.ExecuteAsync(
+                    @"INSERT INTO DoctorCreditTransaction (DoctorId, ChangeAmount, BalanceAfter, ActionType, Description, CreatedDate)
+                      VALUES (@DoctorId, -1, @NewBal, 'AI_BANNER_GENERATION', @Description, GETDATE())",
+                    new { DoctorId = doctorId, NewBal = newBal, Description = description }, trans);
+
+                await trans.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeductAiCreditAsync failed for DoctorId {DoctorId}", doctorId);
+                return false;
+            }
+        }
+
+        public async Task<bool> AddAiCreditsAsync(int doctorId, int credits, string description)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_conn);
+                await con.OpenAsync();
+                await using var trans = await con.BeginTransactionAsync();
+
+                int current = await con.ExecuteScalarAsync<int>(
+                    "SELECT ISNULL(AiCredits, 0) FROM DoctorMaster WITH (UPDLOCK) WHERE DoctorId = @DoctorId",
+                    new { DoctorId = doctorId }, trans);
+
+                int newBal = current + credits;
+                await con.ExecuteAsync(
+                    "UPDATE DoctorMaster SET AiCredits = @NewBal WHERE DoctorId = @DoctorId",
+                    new { NewBal = newBal, DoctorId = doctorId }, trans);
+
+                await con.ExecuteAsync(
+                    @"INSERT INTO DoctorCreditTransaction (DoctorId, ChangeAmount, BalanceAfter, ActionType, Description, CreatedDate)
+                      VALUES (@DoctorId, @Amount, @NewBal, 'CREDIT_RECHARGE', @Description, GETDATE())",
+                    new { DoctorId = doctorId, Amount = credits, NewBal = newBal, Description = description }, trans);
+
+                await trans.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "AddAiCreditsAsync failed for DoctorId {DoctorId}", doctorId);
+                return false;
+            }
+        }
     }
 }

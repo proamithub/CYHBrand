@@ -4,6 +4,7 @@
     var doctor = ViewBag.Doctor as CYHBrandUI.Helpers.CustomPrincipal;
     string docName = !string.IsNullOrWhiteSpace(doctor?.FullName) ? doctor.FullName : (!string.IsNullOrWhiteSpace(doctor?.Name) ? doctor.Name : "Dr. Specialist");
     if (!docName.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase)) docName = "Dr. " + docName;
+    int userCredits = ViewBag.AiCredits != null ? (int)ViewBag.AiCredits : 10;
 }
 
 <div class="row g-4">
@@ -17,12 +18,38 @@
                     </span>
                     <h6 class="cyh-card-title mb-0">AI Banner Studio</h6>
                 </div>
-                <span class="badge rounded-pill bg-light text-primary border" style="font-size:0.75rem;">
-                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Live AI Search
-                </span>
+                <div class="d-flex align-items-center gap-1">
+                    <span class="badge rounded-pill bg-warning-subtle text-dark border px-2 py-1" style="font-size:0.75rem;">
+                        <i class="bi bi-coin text-warning me-1"></i>Credits: <strong id="lblAiCredits">@userCredits</strong>
+                    </span>
+                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 fw-semibold" onclick="rechargeFreeTestCredits()" style="font-size:0.72rem;color:#0EA5A0 !important;" title="Top-up 10 test credits">
+                        +Add 10
+                    </button>
+                </div>
             </div>
             
             <div class="cyh-card-body">
+                <!-- AI Engine Mode Switcher (Free Instant vs Paid Cloud AI) -->
+                <div class="p-2 mb-3 rounded-3 border" style="background:#F8FAFC;">
+                    <div class="small fw-bold text-dark mb-1">
+                        <i class="bi bi-cpu me-1" style="color:#0EA5A0;"></i>Choose Engine Mode:
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="engine-card p-2 border rounded-3 cursor-pointer text-center" id="modeFree" onclick="selectEngineMode('Free')" style="cursor:pointer;border:2px solid #0EA5A0 !important;background:#F0FDFA;">
+                                <div class="fw-bold small text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Free Mode</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Instant 0.01s · Unlimited Free</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="engine-card p-2 border rounded-3 cursor-pointer text-center" id="modePaid" onclick="selectEngineMode('Paid')" style="cursor:pointer;border:1px solid #CBD5E1;background:#FFFFFF;">
+                                <div class="fw-bold small text-dark"><i class="bi bi-stars text-primary me-1"></i>Paid Cloud AI</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Official API · 1 Credit / Banner</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 1. Topic Input with Live Search -->
                 <div class="mb-3">
                     <div class="d-flex align-items-center justify-content-between mb-1">
@@ -147,7 +174,7 @@
                 <!-- Generate Action Button -->
                 <button type="button" id="btnGenerate" class="btn btn-cyh-teal w-100 py-3 d-flex align-items-center justify-content-center gap-2 shadow-sm" onclick="triggerAiGeneration()">
                     <i class="bi bi-stars fs-5"></i>
-                    <span id="btnGenText" class="fw-bold">Generate Branded Banner with AI</span>
+                    <span id="btnGenText" class="fw-bold">Generate Free Instant Banner</span>
                 </button>
 
             </div>
@@ -253,6 +280,7 @@
             <div id="aiActionBar" class="p-3 border-top bg-white d-flex align-items-center justify-content-between flex-wrap gap-2" style="display:none !important;border-radius:0 0 14px 14px;">
                 <div class="d-flex align-items-center gap-2">
                     <span id="canvasDimInfo" class="badge bg-light text-secondary border">1080 × 1080 px</span>
+                    <span id="engineBadgeInfo" class="badge bg-teal-subtle text-teal border">Free Mode</span>
                     <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-1"></i>Generated Ready</span>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -281,8 +309,57 @@
 <script>
 const _token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 let currentAiStyle = 'Modern';
+let currentEngineMode = 'Free';
 let generatedData = null;
 let currentZoom = 1.0;
+
+function selectEngineMode(mode) {
+    currentEngineMode = mode;
+    const btnFree = document.getElementById('modeFree');
+    const btnPaid = document.getElementById('modePaid');
+    const btnGenText = document.getElementById('btnGenText');
+    const btnSearchText = document.getElementById('btnSearchText');
+
+    if (mode === 'Paid') {
+        btnPaid.style.border = '2px solid #0EA5A0';
+        btnPaid.style.background = '#F0FDFA';
+        btnFree.style.border = '1px solid #CBD5E1';
+        btnFree.style.background = '#FFFFFF';
+        if (btnGenText) btnGenText.textContent = 'Generate with Paid AI (Uses 1 Credit)';
+        if (btnSearchText) btnSearchText.textContent = 'Search Paid';
+    } else {
+        btnFree.style.border = '2px solid #0EA5A0';
+        btnFree.style.background = '#F0FDFA';
+        btnPaid.style.border = '1px solid #CBD5E1';
+        btnPaid.style.background = '#FFFFFF';
+        if (btnGenText) btnGenText.textContent = 'Generate Free Instant Banner';
+        if (btnSearchText) btnSearchText.textContent = 'Search Free';
+    }
+}
+
+async function rechargeFreeTestCredits() {
+    try {
+        const res = await fetch('/AiBanner/RechargeCredits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': _token
+            },
+            body: JSON.stringify({ Amount: 10 })
+        });
+        const json = await res.json();
+        if (json.isSuccess) {
+            const lbl = document.getElementById('lblAiCredits');
+            if (lbl) lbl.textContent = json.credits;
+            alert(json.msg || 'Added 10 AI Credits successfully!');
+        } else {
+            alert(json.msg || 'Could not add credits.');
+        }
+    } catch(e) {
+        console.error(e);
+        alert('Network error while adding credits.');
+    }
+}
 
 const SAMPLE_TOPICS = [
     'Heart Health & Blood Pressure Control',
@@ -337,12 +414,13 @@ async function triggerAiGeneration() {
     const controls = document.getElementById('previewControls');
     const actionBar = document.getElementById('aiActionBar');
     const statusBadge = document.getElementById('previewStatusBadge');
+    const engineBadgeInfo = document.getElementById('engineBadgeInfo');
 
     // UI Loading state
     if (btn) btn.disabled = true;
     if (btnLiveSearch) btnLiveSearch.disabled = true;
-    if (btnText) btnText.textContent = 'Searching & Generating Live...';
-    if (btnSearchText) btnSearchText.textContent = 'Searching...';
+    if (btnText) btnText.textContent = (currentEngineMode === 'Paid') ? 'Processing Paid Cloud AI...' : 'Generating Instant Banner...';
+    if (btnSearchText) btnSearchText.textContent = 'Generating...';
 
     emptyState.style.display = 'none';
     canvasWrapper.style.display = 'none';
@@ -355,7 +433,8 @@ async function triggerAiGeneration() {
         Style: currentAiStyle,
         Language: document.getElementById('aiLanguage').value,
         Orientation: document.getElementById('aiOrientation').value,
-        IncludeBranding: document.getElementById('chkIncludeBranding').checked
+        IncludeBranding: document.getElementById('chkIncludeBranding').checked,
+        EngineMode: currentEngineMode
     };
 
     try {
@@ -371,6 +450,9 @@ async function triggerAiGeneration() {
         const json = await res.json();
         if (!json.isSuccess || !json.data) {
             alert(json.msg || 'Could not generate banner. Please try again.');
+            if ((json.msg || '').includes('0 credits')) {
+                selectEngineMode('Free');
+            }
             loadingState.style.display = 'none';
             emptyState.style.display = 'block';
             statusBadge.textContent = 'Failed';
@@ -378,6 +460,18 @@ async function triggerAiGeneration() {
         }
 
         generatedData = json.data;
+
+        // Update remaining credits live from response
+        if (generatedData.remainingCredits !== undefined && generatedData.remainingCredits !== null) {
+            const lbl = document.getElementById('lblAiCredits');
+            if (lbl) lbl.textContent = generatedData.remainingCredits;
+        }
+
+        if (engineBadgeInfo) {
+            engineBadgeInfo.textContent = (generatedData.engineUsed === 'Paid') ? 'Paid AI (1 Credit)' : 'Free Instant Mode';
+            engineBadgeInfo.className = (generatedData.engineUsed === 'Paid') ? 'badge bg-warning-subtle text-dark border' : 'badge bg-teal-subtle text-teal border';
+        }
+
         renderGeneratedBanner(generatedData);
 
         loadingState.style.display = 'none';
@@ -397,11 +491,11 @@ async function triggerAiGeneration() {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btnText.textContent = 'Generate Branded Banner with AI';
+            btnText.textContent = (currentEngineMode === 'Paid') ? 'Generate with Paid AI (Uses 1 Credit)' : 'Generate Free Instant Banner';
         }
         if (btnLiveSearch) {
             btnLiveSearch.disabled = false;
-            btnSearchText.textContent = 'Search AI';
+            btnSearchText.textContent = (currentEngineMode === 'Paid') ? 'Search Paid' : 'Search Free';
         }
     }
 }

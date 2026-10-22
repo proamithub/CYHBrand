@@ -31,6 +31,7 @@ namespace CYHBrandData.Entities
         public bool IsVerified { get; set; } = false;
         public bool IsProfileComplete { get; set; } = false;
         public int RoleId { get; set; } = 1;
+        public int AiCredits { get; set; } = 10;
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
     }
