@@ -395,24 +395,72 @@ namespace CYHBrandUI.Services
                             ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
                             ?? "";
 
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                _logger.LogInformation("No online AI API key configured in AIContentGeneration:ApiKey or OPENAI_API_KEY. Using rich local clinical knowledge bank.");
-                return null;
-            }
-
             var client = _httpClientFactory.CreateClient();
             int timeoutSec = _config.GetValue<int>("AIContentGeneration:TimeoutSeconds", 15);
             client.Timeout = TimeSpan.FromSeconds(timeoutSec > 0 ? timeoutSec : 15);
 
-            if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+            // If an API key is provided, use the configured official provider (OpenAI or Gemini)
+            if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang);
+                if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang);
+                }
+                else
+                {
+                    // Default: OpenAI or OpenAI-compatible (Groq, OpenRouter, DeepSeek, etc.)
+                    return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang);
+                }
             }
-            else
+
+            // If no API key configured, use 100% Free Online AI Engine (Zero Cost, No Key Needed)
+            _logger.LogInformation("No API key configured; using 100% Free Online AI Engine for topic: {Topic}", targetTopic);
+            return await CallFreeOnlineAiAsync(client, targetTopic, targetLang);
+        }
+
+        private async Task<AiMedicalContentDto?> CallFreeOnlineAiAsync(HttpClient client, string topic, string language)
+        {
+            try
             {
-                // Default: OpenAI or OpenAI-compatible (Groq, OpenRouter, DeepSeek, etc.)
-                return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang);
+                var requestBody = new
+                {
+                    messages = new object[]
+                    {
+                        new
+                        {
+                            role = "system",
+                            content = "You are an expert clinical medical copywriter for a doctor branding platform. " +
+                                      "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
+                                      "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
+                                      "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
+                                      "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
+                                      "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON."
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = $"Medical Topic: {topic}\nLanguage: {language}"
+                        }
+                    },
+                    jsonMode = true
+                };
+
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://text.pollinations.ai/", jsonContent);
+                if (!response.IsSuccessStatusCode)
+                {
+                    string err = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Free Online AI returned status {Status}: {Error}", response.StatusCode, err);
+                    return null;
+                }
+
+                string respString = await response.Content.ReadAsStringAsync();
+                return ParseAiContentJson(respString);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "CallFreeOnlineAiAsync failed for topic: {Topic}", topic);
+                return null;
             }
         }
 
@@ -538,7 +586,15 @@ namespace CYHBrandUI.Services
                     clean = clean[..^3].Trim();
                 }
 
-                return JsonConvert.DeserializeObject<AiMedicalContentDto>(clean);
+                var result = JsonConvert.DeserializeObject<AiMedicalContentDto>(clean);
+                if (result?.Tips != null)
+                {
+                    result.Tips = result.Tips
+                        .Select(t => System.Text.RegularExpressions.Regex.Replace(t, @"^(\d+[\.\)]\s*|[-*•]\s*)", "").Trim())
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .ToList();
+                }
+                return result;
             }
             catch
             {
