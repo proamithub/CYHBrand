@@ -6,6 +6,7 @@
     int canvasW = Model?.WidthPx  ?? template?.WidthPx  ?? 1080;
     int canvasH = Model?.HeightPx ?? template?.HeightPx ?? 1080;
     var existingJson = Model?.DesignJson ?? template?.TemplateJson ?? "null";
+    string orientation = Model?.Orientation ?? template?.Orientation ?? ((canvasW == canvasH) ? "Square" : (canvasW < canvasH) ? "Portrait" : "Landscape");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -13,8 +14,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CYHBrand – Design Editor</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
@@ -115,6 +116,38 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
            value="@(Model?.DesignName ?? "Untitled Design")" />
     <div class="sep"></div>
 
+    <!-- Dimensions & Orientation Dropdown -->
+    <div class="dropdown">
+        <button class="btn-tool dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="topbarDimBtn" style="white-space:nowrap;font-weight:600;">
+            <i class="bi bi-aspect-ratio" style="color:#0EA5A0;"></i>
+            <span id="currentDimLabel">@(orientation) (@(canvasW)×@(canvasH))</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark shadow-lg" style="font-size:0.82rem;background:#1e293b;border-color:#334155;min-width:260px;padding:.5rem 0;">
+            <li><h6 class="dropdown-header text-uppercase" style="font-size:0.68rem;letter-spacing:0.06em;color:#94a3b8;">Preset Aspect Ratios</h6></li>
+            <li><a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2" href="javascript:void(0)" onclick="setCanvasDimensions(1080, 1080, 'Square')">
+                <span><i class="bi bi-square me-2" style="color:#38bdf8;"></i>Square (1:1)</span>
+                <span class="text-secondary small">1080 × 1080</span>
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2" href="javascript:void(0)" onclick="setCanvasDimensions(1080, 1920, 'Portrait')">
+                <span><i class="bi bi-phone me-2" style="color:#fbbf24;"></i>Portrait / Story (9:16)</span>
+                <span class="text-secondary small">1080 × 1920</span>
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2" href="javascript:void(0)" onclick="setCanvasDimensions(1920, 1080, 'Landscape')">
+                <span><i class="bi bi-display me-2" style="color:#34d399;"></i>Landscape / Banner (16:9)</span>
+                <span class="text-secondary small">1920 × 1080</span>
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2" href="javascript:void(0)" onclick="setCanvasDimensions(1200, 630, 'Landscape')">
+                <span><i class="bi bi-facebook me-2" style="color:#60a5fa;"></i>Facebook / Feed (1.91:1)</span>
+                <span class="text-secondary small">1200 × 630</span>
+            </a></li>
+            <li><hr class="dropdown-divider" style="border-color:#334155;" /></li>
+            <li><a class="dropdown-item d-flex align-items-center text-light py-2" href="javascript:void(0)" onclick="flipOrientation()">
+                <i class="bi bi-arrow-left-right me-2" style="color:#0EA5A0;"></i>Flip Orientation (W ⇄ H)
+            </a></li>
+        </ul>
+    </div>
+    <div class="sep"></div>
+
     <!-- Zoom -->
     <button class="btn-tool" onclick="zoom(-0.1)" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
     <span id="zoomLabel" style="font-size:.75rem;min-width:38px;text-align:center">100%</span>
@@ -177,6 +210,35 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 
     <!-- Right Panel -->
     <div class="right-panel">
+
+        <!-- Dimensions & Orientation -->
+        <div class="rpanel-section">
+            <h6>Dimensions &amp; Orientation</h6>
+            <div style="margin-bottom:.5rem;">
+                <label class="prop-label">Preset Size</label>
+                <select id="canvasPresetSelect" class="prop-input" onchange="onPresetChange(this.value)">
+                    <option value="Square_1080_1080">Square (1:1) – 1080 × 1080</option>
+                    <option value="Portrait_1080_1920">Portrait / Story (9:16) – 1080 × 1920</option>
+                    <option value="Landscape_1920_1080">Landscape (16:9) – 1920 × 1080</option>
+                    <option value="Landscape_1200_630">Facebook Post (1.91:1) – 1200 × 630</option>
+                    <option value="Custom">Custom Dimensions</option>
+                </select>
+            </div>
+            <div class="prop-row">
+                <label style="width:18px;">W</label>
+                <input type="number" id="canvasWidthInput" class="prop-input" value="@canvasW" min="200" max="4000" step="10" onchange="applyCustomDimensions()" />
+                <label style="width:18px;margin-left:6px;">H</label>
+                <input type="number" id="canvasHeightInput" class="prop-input" value="@canvasH" min="200" max="4000" step="10" onchange="applyCustomDimensions()" />
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <button type="button" class="btn-tool flex-fill justify-content-center" onclick="flipOrientation()" title="Swap Width & Height">
+                    <i class="bi bi-arrow-left-right me-1"></i> Flip
+                </button>
+                <button type="button" class="btn-tool flex-fill justify-content-center" onclick="applyCustomDimensions()" style="background:#0EA5A0;border-color:#0EA5A0;color:#fff;">
+                    <i class="bi bi-check2 me-1"></i> Apply
+                </button>
+            </div>
+        </div>
 
         <!-- Background -->
         <div class="rpanel-section">
@@ -287,12 +349,12 @@ body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif;
 <input type="hidden" id="hdH"         value="@canvasH" />
 @Html.AntiForgeryToken()
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
 // ── Globals ───────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('designCanvas');
 const ctx    = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+let W = canvas.width, H = canvas.height;
 
 let elements  = [];
 let selected  = null;   // index of selected element
@@ -306,6 +368,98 @@ let isDragging = false, isResizing = false;
 let dragOffX = 0, dragOffY = 0;
 let dragStartEl = null;
 let drawStart = null;        // for rect/circle drawing
+
+const HANDLE = 8; // resize handle size
+
+// ── Dimensions & Orientation Control ──────────────────────────────────────────
+function setCanvasDimensions(newW, newH, orientationName) {
+    saveUndo();
+    W = parseInt(newW) || 1080;
+    H = parseInt(newH) || 1080;
+    canvas.width = W;
+    canvas.height = H;
+
+    if (!orientationName) {
+        orientationName = (W === H) ? 'Square' : (W < H) ? 'Portrait' : 'Landscape';
+    }
+
+    document.getElementById('hdW').value = W;
+    document.getElementById('hdH').value = H;
+    document.getElementById('hdOrient').value = orientationName;
+
+    const widthInput = document.getElementById('canvasWidthInput');
+    const heightInput = document.getElementById('canvasHeightInput');
+    if (widthInput) widthInput.value = W;
+    if (heightInput) heightInput.value = H;
+
+    const label = document.getElementById('currentDimLabel');
+    if (label) label.textContent = `${orientationName} (${W}×${H})`;
+
+    const select = document.getElementById('canvasPresetSelect');
+    if (select) {
+        let found = false;
+        for (let i = 0; i < select.options.length; i++) {
+            const optVal = select.options[i].value;
+            if (optVal === `${orientationName}_${W}_${H}` || optVal.endsWith(`_${W}_${H}`)) {
+                select.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) select.value = 'Custom';
+    }
+
+    fitToViewport();
+    render();
+}
+
+function onPresetChange(val) {
+    if (val === 'Custom') return;
+    const parts = val.split('_');
+    const orient = parts[0];
+    const w = parseInt(parts[1]);
+    const h = parseInt(parts[2]);
+    setCanvasDimensions(w, h, orient);
+}
+
+function applyCustomDimensions() {
+    const w = parseInt(document.getElementById('canvasWidthInput').value) || 1080;
+    const h = parseInt(document.getElementById('canvasHeightInput').value) || 1080;
+    const orient = (w === h) ? 'Square' : (w < h) ? 'Portrait' : 'Landscape';
+    setCanvasDimensions(w, h, orient);
+}
+
+function flipOrientation() {
+    const oldW = W;
+    const oldH = H;
+    const orient = (oldH === oldW) ? 'Square' : (oldH < oldW) ? 'Portrait' : 'Landscape';
+    setCanvasDimensions(oldH, oldW, orient);
+}
+
+function syncDimensionUI() {
+    const orient = document.getElementById('hdOrient').value || ((W === H) ? 'Square' : (W < H) ? 'Portrait' : 'Landscape');
+    const label = document.getElementById('currentDimLabel');
+    if (label) label.textContent = `${orient} (${W}×${H})`;
+
+    const widthInput = document.getElementById('canvasWidthInput');
+    const heightInput = document.getElementById('canvasHeightInput');
+    if (widthInput) widthInput.value = W;
+    if (heightInput) heightInput.value = H;
+
+    const select = document.getElementById('canvasPresetSelect');
+    if (select) {
+        let found = false;
+        for (let i = 0; i < select.options.length; i++) {
+            const optVal = select.options[i].value;
+            if (optVal === `${orient}_${W}_${H}` || optVal.endsWith(`_${W}_${H}`)) {
+                select.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) select.value = 'Custom';
+    }
+}
 
 const HANDLE = 8; // resize handle size
 
@@ -812,7 +966,7 @@ elements.forEach(el => {
     }
 });
 
-window.addEventListener('load', () => { fitToViewport(); render(); });
+window.addEventListener('load', () => { syncDimensionUI(); fitToViewport(); render(); });
 window.addEventListener('resize', fitToViewport);
 </script>
 </body>
