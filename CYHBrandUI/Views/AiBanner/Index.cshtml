@@ -343,23 +343,30 @@ function renderGeneratedBanner(data) {
     const canvas = document.getElementById('aiCanvas');
     if (!canvas || !data) return;
 
-    const W = data.WidthPx || 1080;
-    const H = data.HeightPx || 1080;
+    const W = data.widthPx || data.WidthPx || 1080;
+    const H = data.heightPx || data.HeightPx || 1080;
+    const orient = data.orientation || data.Orientation || 'Square';
     canvas.width = W;
     canvas.height = H;
 
     const dimLabel = document.getElementById('canvasDimInfo');
-    if (dimLabel) dimLabel.textContent = `${W} × ${H} px (${data.Orientation})`;
+    if (dimLabel) dimLabel.textContent = `${W} × ${H} px (${orient})`;
 
     const ctx = canvas.getContext('2d');
     let elements = [];
-    let bg = data.BgColor || '#0B1B3D';
+    let bg = data.bgColor || data.BgColor || '#0B1B3D';
 
-    if (data.DesignJson) {
+    const rawJson = data.designJson || data.DesignJson;
+    if (rawJson) {
         try {
-            const parsed = JSON.parse(data.DesignJson);
-            if (parsed.bg) bg = parsed.bg;
-            if (parsed.elements) elements = parsed.elements;
+            let parsed = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
+            while (typeof parsed === 'string') {
+                parsed = JSON.parse(parsed);
+            }
+            if (parsed && typeof parsed === 'object') {
+                if (parsed.bg) bg = parsed.bg;
+                if (parsed.elements && Array.isArray(parsed.elements)) elements = parsed.elements;
+            }
         } catch (e) {
             console.warn("Could not parse DesignJson:", e);
         }
@@ -450,7 +457,7 @@ function downloadAiBannerPng() {
     const canvas = document.getElementById('aiCanvas');
     if (!canvas) return;
     const link = document.createElement('a');
-    const title = (generatedData?.DesignName || 'ai-banner').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const title = (generatedData?.designName || generatedData?.DesignName || 'ai-banner').replace(/[^a-zA-Z0-9_-]/g, '_');
     link.download = `${title}.png`;
     link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link);
@@ -462,16 +469,25 @@ function downloadAiBannerPng() {
 async function saveToMyDesigns(openInEditor) {
     if (!generatedData) return;
     const canvas = document.getElementById('aiCanvas');
-    const thumb = canvas.toDataURL('image/jpeg', 0.7);
+    const thumb = canvas.toDataURL('image/jpeg', 0.8);
+
+    const rawJson = generatedData.designJson || generatedData.DesignJson;
+    const rawName = generatedData.designName || generatedData.DesignName || (document.getElementById('aiTopic')?.value || 'AI Generated Banner');
+    const rawOrient = generatedData.orientation || generatedData.Orientation || 'Square';
+    const rawW = generatedData.widthPx || generatedData.WidthPx || 1080;
+    const rawH = generatedData.heightPx || generatedData.HeightPx || 1080;
+
+    let dJsonStr = rawJson;
+    if (typeof dJsonStr === 'object') dJsonStr = JSON.stringify(dJsonStr);
 
     const body = {
-        DesignName: generatedData.DesignName || 'AI Generated Banner',
-        DesignJson: generatedData.DesignJson,
+        DesignName: rawName,
+        DesignJson: dJsonStr,
         ThumbnailPath: thumb,
         Status: 'Saved',
-        Orientation: generatedData.Orientation || 'Square',
-        WidthPx: generatedData.WidthPx || 1080,
-        HeightPx: generatedData.HeightPx || 1080
+        Orientation: rawOrient,
+        WidthPx: rawW,
+        HeightPx: rawH
     };
 
     try {
@@ -485,7 +501,7 @@ async function saveToMyDesigns(openInEditor) {
         });
 
         const data = await res.json();
-        if (data.isSuccess) {
+        if (data.isSuccess && data.encId) {
             if (openInEditor) {
                 window.location.href = `/Design/Edit/${data.encId}`;
             } else {

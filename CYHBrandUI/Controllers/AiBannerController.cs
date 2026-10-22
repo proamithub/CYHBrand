@@ -59,6 +59,11 @@ namespace CYHBrandUI.Controllers
             model.DoctorId = CurrentUser.UserId;
             model.Status ??= "Saved";
 
+            if (string.IsNullOrWhiteSpace(model.DesignJson))
+            {
+                return JsonFail("Design data is missing. Please regenerate the banner.");
+            }
+
             // Save thumbnail if base64
             if (!string.IsNullOrEmpty(model.ThumbnailPath) && model.ThumbnailPath.StartsWith("data:image"))
             {

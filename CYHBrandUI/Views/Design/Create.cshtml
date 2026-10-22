@@ -500,19 +500,23 @@ function syncDimensionUI() {
 
 // ── Load existing JSON ────────────────────────────────────────────────────────
 const existingJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(existingJson));
-if (existingJson && existingJson !== 'null') {
+if (existingJson && existingJson !== 'null' && existingJson !== '""') {
     try {
         let d = JSON.parse(existingJson);
-        if (typeof d === 'string') d = JSON.parse(d);
-        if (d.bg) {
-            bgColor = d.bg;
-            const bgEl = document.getElementById('bgColor');
-            const bgHexEl = document.getElementById('bgColorHex');
-            if (bgEl) bgEl.value = bgColor;
-            if (bgHexEl) bgHexEl.value = bgColor;
+        while (typeof d === 'string') {
+            d = JSON.parse(d);
         }
-        if (d.elements && Array.isArray(d.elements)) {
-            elements = d.elements.map(normalizeEl);
+        if (d && typeof d === 'object') {
+            if (d.bg) {
+                bgColor = d.bg;
+                const bgEl = document.getElementById('bgColor');
+                const bgHexEl = document.getElementById('bgColorHex');
+                if (bgEl) bgEl.value = bgColor;
+                if (bgHexEl) bgHexEl.value = bgColor;
+            }
+            if (d.elements && Array.isArray(d.elements)) {
+                elements = d.elements.map(normalizeEl);
+            }
         }
     } catch(e) { console.warn('Could not parse saved JSON', e); }
 }
@@ -613,15 +617,16 @@ function wrapText(ctx, text, x, y, maxW, lineH) {
     const words = (text || '').split(' ');
     let line = '';
     let cy = y;
+    const drawX = (ctx.textAlign === 'center') ? (x + maxW / 2) : (ctx.textAlign === 'right' ? (x + maxW) : x);
     for (let n = 0; n < words.length; n++) {
         const test = line + words[n] + ' ';
         if (ctx.measureText(test).width > maxW && n > 0) {
-            ctx.fillText(line, x, cy);
+            ctx.fillText(line.trim(), drawX, cy);
             line = words[n] + ' ';
             cy += lineH;
         } else { line = test; }
     }
-    ctx.fillText(line, x, cy);
+    ctx.fillText(line.trim(), drawX, cy);
 }
 
 function drawSelection(el) {
