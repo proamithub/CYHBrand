@@ -498,8 +498,6 @@ function syncDimensionUI() {
     }
 }
 
-const HANDLE = 8; // resize handle size
-
 // ── Load existing JSON ────────────────────────────────────────────────────────
 const existingJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(existingJson));
 if (existingJson && existingJson !== 'null') {
