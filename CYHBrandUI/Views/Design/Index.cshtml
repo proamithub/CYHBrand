@@ -45,7 +45,14 @@
             var bgGradient   = d.Status == "Published"
                              ? "linear-gradient(135deg,#1B2B6B,#0EA5A0)"
                              : "linear-gradient(135deg,#1e3a8a,#4f46e5)";
-            var hasThumbnail = !string.IsNullOrEmpty(d.ThumbnailPath) && !d.ThumbnailPath.StartsWith("data:");
+            string thumbUrl = "";
+            if (!string.IsNullOrWhiteSpace(d.ThumbnailPath))
+            {
+                thumbUrl = d.ThumbnailPath.StartsWith("data:") || d.ThumbnailPath.StartsWith("http")
+                         ? d.ThumbnailPath
+                         : "/" + d.ThumbnailPath.TrimStart('/');
+            }
+            var hasThumbnail = !string.IsNullOrEmpty(thumbUrl);
 
             <div class="col-sm-6 col-lg-4 col-xl-3">
                 <div class="cyh-banner-card">
@@ -54,7 +61,7 @@
                     <div style="position:relative;overflow:hidden;border-radius:14px 14px 0 0;">
                         @if (hasThumbnail)
                         {
-                            <img src="/@d.ThumbnailPath" alt="@d.DesignName"
+                            <img src="@thumbUrl" alt="@d.DesignName"
                                  style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
                         }
                         else

@@ -1,45 +1,64 @@
 @model CYHBrandModel.DTO.BannerDesignDTO
 @{
-    var designName  = Model?.DesignName ?? "Design Preview";
-    ViewData["Title"]       = designName;
-    ViewData["PageSubtitle"] = "View and manage your design.";
+    var designName = string.IsNullOrWhiteSpace(Model?.DesignName) ? "Untitled Design" : Model.DesignName;
+    ViewData["Title"] = designName;
+    ViewData["PageSubtitle"] = "View, inspect, and manage your brand banner.";
 
     var badgeClass = Model?.Status == "Published" ? "cyh-badge-success"
                    : Model?.Status == "Saved"     ? "cyh-badge-teal"
                    :                                "cyh-badge-secondary";
-    var hasThumbnail = !string.IsNullOrEmpty(Model?.ThumbnailPath)
-                    && !Model.ThumbnailPath.StartsWith("data:");
+
+    string thumbUrl = "";
+    if (!string.IsNullOrWhiteSpace(Model?.ThumbnailPath))
+    {
+        thumbUrl = Model.ThumbnailPath.StartsWith("data:") || Model.ThumbnailPath.StartsWith("http")
+                 ? Model.ThumbnailPath
+                 : "/" + Model.ThumbnailPath.TrimStart('/');
+    }
+
+    string exportUrl = "";
+    if (!string.IsNullOrWhiteSpace(Model?.ExportedFilePath))
+    {
+        exportUrl = Model.ExportedFilePath.StartsWith("http")
+                  ? Model.ExportedFilePath
+                  : "/" + Model.ExportedFilePath.TrimStart('/');
+    }
+
+    var hasThumbnail = !string.IsNullOrEmpty(thumbUrl);
+    var hasJson = !string.IsNullOrWhiteSpace(Model?.DesignJson) && Model.DesignJson != "null" && Model.DesignJson.Length > 10;
+    int canvasW = (Model?.WidthPx > 0) ? Model.WidthPx.Value : 1080;
+    int canvasH = (Model?.HeightPx > 0) ? Model.HeightPx.Value : 1080;
 }
 
 <!-- Back button + title row -->
-<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-    <a asp-action="Index" class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
-        <i class="bi bi-arrow-left"></i> Back
-    </a>
-    <div class="flex-grow-1">
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-arrow-left"></i> Back to Designs
+        </a>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h5 class="fw-bold mb-0">@designName</h5>
+            <h5 class="fw-bold mb-0 text-dark">@designName</h5>
             <span class="cyh-badge @badgeClass">@(Model?.Status ?? "Draft")</span>
+            <span class="badge bg-light text-secondary border" style="font-size:0.75rem;">
+                <i class="bi bi-aspect-ratio me-1"></i>@(canvasW) × @(canvasH) px
+            </span>
         </div>
     </div>
+    
     <!-- Top action buttons -->
     <div class="d-flex gap-2 flex-wrap">
         <a asp-action="Edit" asp-route-id="@Model?.EncId"
-           class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
-            <i class="bi bi-pencil"></i> Edit
+           class="btn btn-cyh-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <i class="bi bi-pencil-square"></i> Open Editor
         </a>
-        @if (!string.IsNullOrEmpty(Model?.ExportedFilePath))
-        {
-            <a href="/@Model.ExportedFilePath" download
-               class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1">
-                <i class="bi bi-download"></i> Download
-            </a>
-        }
+        <button type="button" class="btn btn-cyh-outline btn-sm d-flex align-items-center gap-1 shadow-sm" onclick="downloadBannerImage()">
+            <i class="bi bi-download"></i> Download PNG
+        </button>
         @if (Model?.Status != "Published")
         {
-            <button class="btn btn-cyh-teal btn-sm d-flex align-items-center gap-1"
+            <button type="button" class="btn btn-cyh-teal btn-sm d-flex align-items-center gap-1 shadow-sm"
                     onclick="publishDesign('@Model?.EncId')">
-                <i class="bi bi-send"></i> Publish
+                <i class="bi bi-send-check"></i> Publish
             </button>
         }
     </div>
@@ -47,38 +66,85 @@
 
 <div class="row g-4">
 
-    <!-- ── Left: Preview ── -->
+    <!-- ── Left: Preview Stage ── -->
     <div class="col-lg-8">
-        <div class="cyh-card">
-            <div class="cyh-card-header">
-                <h6 class="cyh-card-title"><i class="bi bi-eye me-2" style="color:#0EA5A0;"></i>Design Preview</h6>
-                <div class="d-flex gap-2">
-                    <span class="cyh-badge cyh-badge-secondary" style="font-size:.7rem;">
-                        @(Model?.WidthPx > 0 ? $"{Model.WidthPx} × {Model.HeightPx} px" : "Standard")
+        <div class="cyh-card shadow-sm h-100 d-flex flex-column">
+            <div class="cyh-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-1 rounded bg-teal-subtle text-teal">
+                        <i class="bi bi-eye-fill" style="color:#0EA5A0;"></i>
+                    </span>
+                    <h6 class="cyh-card-title mb-0">Banner Preview</h6>
+                    <span id="previewModeBadge" class="badge rounded-pill bg-light text-muted border ms-2" style="font-size:.7rem;">
+                        @(hasThumbnail ? "High-Res Image" : hasJson ? "Canvas Live Render" : "Standard")
                     </span>
                 </div>
+                
+                <!-- Stage Controls -->
+                <div class="d-flex align-items-center gap-1">
+                    @if (hasJson && hasThumbnail)
+                    {
+                        <button type="button" id="btnToggleSource" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="togglePreviewSource()" title="Switch between saved image and dynamic canvas">
+                            <i class="bi bi-arrow-repeat me-1"></i><span id="toggleSourceText">View Canvas</span>
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="zoomPreview(-0.1)" title="Zoom Out">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <span id="zoomLevelText" style="font-size:0.75rem;min-width:38px;text-align:center;font-weight:600;color:#64748B;">100%</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="zoomPreview(0.1)" title="Zoom In">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="resetPreviewZoom()" title="Fit to Screen">
+                        Fit
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 ms-1" style="font-size:0.75rem;" onclick="openFullscreenModal()" title="Fullscreen Preview">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
             </div>
-            <div class="cyh-card-body d-flex align-items-center justify-content-center"
-                 style="min-height:420px;background:#F4F7FC;border-radius:0 0 14px 14px;">
-                @if (hasThumbnail)
-                {
-                    <div style="position:relative;display:inline-block;">
-                        <img src="/@Model!.ThumbnailPath" alt="@designName"
-                             style="max-width:100%;max-height:500px;object-fit:contain;
-                                    border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);" />
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <div style="width:300px;height:300px;margin:auto;
+
+            <!-- Preview Viewport -->
+            <div class="cyh-card-body flex-grow-1 d-flex align-items-center justify-content-center position-relative p-4"
+                 style="min-height:480px;background:#F8FAFC;background-image:radial-gradient(#CBD5E1 1.2px, transparent 1.2px);background-size:20px 20px;border-radius:0 0 14px 14px;overflow:auto;">
+                
+                <div id="previewWrapper" style="transition:transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);transform-origin:center center;display:flex;align-items:center;justify-content:center;position:relative;">
+                    
+                    @if (hasThumbnail)
+                    {
+                        <img id="designPreviewImg" src="@thumbUrl" alt="@designName"
+                             class="rounded-3 shadow"
+                             style="max-width:100%;max-height:520px;object-fit:contain;background:#ffffff;border:1px solid #E2E8F0;"
+                             onerror="handleImgLoadError()" />
+                    }
+
+                    <canvas id="designCanvasPreview"
+                            width="@canvasW"
+                            height="@canvasH"
+                            class="rounded-3 shadow"
+                            style="display:@(hasThumbnail ? "none" : hasJson ? "block" : "none");max-width:100%;max-height:520px;background:#ffffff;border:1px solid #E2E8F0;">
+                    </canvas>
+
+                    <div id="emptyPreviewNotice" class="text-center py-5" style="display:@(!hasThumbnail && !hasJson ? "block" : "none");">
+                        <div style="width:240px;height:240px;margin:auto;
                                     background:linear-gradient(135deg,#1B2B6B,#0EA5A0);
-                                    border-radius:16px;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-image text-white opacity-50" style="font-size:4rem;"></i>
+                                    border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(27,43,107,.2);">
+                            <i class="bi bi-card-image text-white" style="font-size:4rem;opacity:.9;"></i>
+                            <span class="text-white mt-2 small opacity-75">No preview captured yet</span>
                         </div>
-                        <p class="mt-3 text-muted small">No preview available — open the editor to generate one.</p>
+                        <p class="mt-3 text-muted small">Open the editor to design or regenerate this banner.</p>
+                        <a asp-action="Edit" asp-route-id="@Model?.EncId" class="btn btn-cyh-teal btn-sm mt-1">
+                            <i class="bi bi-pencil-square me-1"></i> Open in Editor
+                        </a>
                     </div>
-                }
+
+                </div>
+
+            </div>
+            
+            <div class="px-4 py-2 border-top bg-white d-flex align-items-center justify-content-between text-muted" style="font-size:0.75rem;border-radius:0 0 14px 14px;">
+                <span><i class="bi bi-info-circle me-1"></i>Tip: Click 'Open Editor' to customize fonts, colors, and logos.</span>
+                <span>Canvas: <strong>@(canvasW) × @(canvasH)</strong></span>
             </div>
         </div>
     </div>
@@ -87,54 +153,47 @@
     <div class="col-lg-4">
 
         <!-- Design Info -->
-        <div class="cyh-card mb-3">
+        <div class="cyh-card mb-3 shadow-sm">
             <div class="cyh-card-header">
-                <h6 class="cyh-card-title">Design Info</h6>
+                <h6 class="cyh-card-title mb-0">Design Details</h6>
             </div>
             <div class="cyh-card-body p-0">
-                <div class="cyh-info-row px-4">
+                <div class="cyh-info-row px-4 py-3">
                     <div class="cyh-info-icon"><i class="bi bi-tag"></i></div>
                     <div>
-                        <div class="cyh-info-label">Design Name</div>
-                        <div class="cyh-info-value">@(Model?.DesignName ?? "—")</div>
+                        <div class="cyh-info-label">Design Title</div>
+                        <div class="cyh-info-value fw-semibold text-dark">@(designName)</div>
                     </div>
                 </div>
-                <div class="cyh-info-row px-4">
-                    <div class="cyh-info-icon"><i class="bi bi-circle-fill" style="font-size:.5rem;color:@(Model?.Status=="Published"?"#10B981":"#94A3B8");"></i></div>
+                <div class="cyh-info-row px-4 py-3">
+                    <div class="cyh-info-icon"><i class="bi bi-shield-check" style="color:@(Model?.Status=="Published"?"#10B981":"#0EA5A0");"></i></div>
                     <div>
-                        <div class="cyh-info-label">Status</div>
+                        <div class="cyh-info-label">Publish Status</div>
                         <div class="cyh-info-value">
                             <span class="cyh-badge @badgeClass">@(Model?.Status ?? "Draft")</span>
                         </div>
                     </div>
                 </div>
-                <div class="cyh-info-row px-4">
+                <div class="cyh-info-row px-4 py-3">
                     <div class="cyh-info-icon"><i class="bi bi-aspect-ratio"></i></div>
                     <div>
-                        <div class="cyh-info-label">Canvas Size</div>
+                        <div class="cyh-info-label">Dimensions &amp; Orientation</div>
                         <div class="cyh-info-value">
-                            @(Model?.WidthPx > 0 ? $"{Model.WidthPx} × {Model.HeightPx} px" : "—")
+                            @(canvasW) × @(canvasH) px (@(Model?.Orientation ?? "Square"))
                         </div>
                     </div>
                 </div>
-                <div class="cyh-info-row px-4">
-                    <div class="cyh-info-icon"><i class="bi bi-phone"></i></div>
-                    <div>
-                        <div class="cyh-info-label">Orientation</div>
-                        <div class="cyh-info-value">@(Model?.Orientation ?? "—")</div>
-                    </div>
-                </div>
-                <div class="cyh-info-row px-4">
+                <div class="cyh-info-row px-4 py-3">
                     <div class="cyh-info-icon"><i class="bi bi-calendar3"></i></div>
                     <div>
-                        <div class="cyh-info-label">Created</div>
+                        <div class="cyh-info-label">Created At</div>
                         <div class="cyh-info-value">@Model?.CreatedAt.ToString("dd MMM yyyy, h:mm tt")</div>
                     </div>
                 </div>
-                <div class="cyh-info-row px-4" style="border-bottom:none;">
-                    <div class="cyh-info-icon"><i class="bi bi-pencil-square"></i></div>
+                <div class="cyh-info-row px-4 py-3" style="border-bottom:none;">
+                    <div class="cyh-info-icon"><i class="bi bi-clock-history"></i></div>
                     <div>
-                        <div class="cyh-info-label">Last Updated</div>
+                        <div class="cyh-info-label">Last Modified</div>
                         <div class="cyh-info-value">@Model?.UpdatedAt.ToString("dd MMM yyyy, h:mm tt")</div>
                     </div>
                 </div>
@@ -142,47 +201,43 @@
         </div>
 
         <!-- Actions -->
-        <div class="cyh-card mb-3">
+        <div class="cyh-card mb-3 shadow-sm">
             <div class="cyh-card-header">
-                <h6 class="cyh-card-title">Actions</h6>
+                <h6 class="cyh-card-title mb-0">Quick Actions</h6>
             </div>
             <div class="cyh-card-body d-flex flex-column gap-2">
                 <a asp-action="Edit" asp-route-id="@Model?.EncId"
-                   class="btn btn-cyh-primary w-100 d-flex align-items-center justify-content-center gap-2">
+                   class="btn btn-cyh-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2">
                     <i class="bi bi-pencil-square"></i> Open in Editor
                 </a>
 
+                <button type="button" onclick="downloadBannerImage()"
+                        class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2 py-2">
+                    <i class="bi bi-download"></i> Download Banner PNG
+                </button>
+
                 @if (Model?.Status != "Published")
                 {
-                    <button onclick="publishDesign('@Model?.EncId')"
-                            class="btn btn-cyh-teal w-100 d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-send"></i> Publish Design
-                    </button>
-                }
-
-                @if (!string.IsNullOrEmpty(Model?.ExportedFilePath))
-                {
-                    <a href="/@Model.ExportedFilePath" download
-                       class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-download"></i> Download Image
-                    </a>
-                }
-                else
-                {
-                    <button class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2" disabled>
-                        <i class="bi bi-download"></i> Download (Export from Editor)
+                    <button type="button" onclick="publishDesign('@Model?.EncId')"
+                            class="btn btn-cyh-teal w-100 d-flex align-items-center justify-content-center gap-2 py-2">
+                        <i class="bi bi-send-check"></i> Publish Design
                     </button>
                 }
 
                 <a asp-controller="Share" asp-action="Index"
-                   class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-share"></i> Share &amp; Publish
+                   class="btn btn-cyh-outline w-100 d-flex align-items-center justify-content-center gap-2 py-2">
+                    <i class="bi bi-share"></i> Share to Social Media
                 </a>
 
-                <hr class="cyh-divider my-1" />
+                <button type="button" onclick="copyDesignLink()"
+                        class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2" style="border-radius:8px;font-size:0.875rem;">
+                    <i class="bi bi-link-45deg fs-6"></i> <span id="btnCopyText">Copy Preview Link</span>
+                </button>
 
-                <button class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
-                        style="border:1.5px solid #FEE2E2;background:#FFF5F5;color:#EF4444;border-radius:8px;padding:8px;"
+                <hr class="cyh-divider my-2" />
+
+                <button type="button" class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                        style="border:1.5px solid #FEE2E2;background:#FFF5F5;color:#EF4444;border-radius:8px;padding:9px;font-weight:600;"
                         onclick="deleteThis('@Model?.EncId')">
                     <i class="bi bi-trash"></i> Delete Design
                 </button>
@@ -192,16 +247,18 @@
         <!-- Template Info (if from template) -->
         @if (Model?.SourceTemplateId > 0)
         {
-            <div class="cyh-card">
+            <div class="cyh-card shadow-sm">
                 <div class="cyh-card-header">
-                    <h6 class="cyh-card-title">Based on Template</h6>
+                    <h6 class="cyh-card-title mb-0">Based on Template</h6>
                 </div>
                 <div class="cyh-card-body">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-grid-1x2 fs-5" style="color:#0EA5A0;"></i>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:rgba(14,165,160,.12);color:#0EA5A0;">
+                            <i class="bi bi-grid-1x2 fs-5"></i>
+                        </div>
                         <div>
-                            <div style="font-size:.85rem;font-weight:600;">@(Model?.TemplateName ?? "Custom Template")</div>
-                            <div style="font-size:.75rem;color:#94A3B8;">@(Model?.CategoryName ?? "—")</div>
+                            <div class="fw-semibold text-dark" style="font-size:.9rem;">@(Model?.TemplateName ?? "Custom Template")</div>
+                            <div style="font-size:.78rem;color:#64748B;">Category: @(Model?.CategoryName ?? "General Medical")</div>
                         </div>
                     </div>
                 </div>
@@ -210,34 +267,302 @@
     </div>
 </div>
 
+<!-- Fullscreen Lightbox Modal -->
+<div class="modal fade" id="fullscreenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background:#0F172A;border-radius:16px;">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title text-white fw-semibold">
+                    <i class="bi bi-image me-2 text-info"></i>@designName
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4 d-flex align-items-center justify-content-center" style="min-height:500px;">
+                <img id="modalPreviewImg" src="" alt="@designName" class="rounded shadow-lg" style="max-width:100%;max-height:80vh;object-fit:contain;" />
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-between">
+                <span class="text-secondary small">@(canvasW) × @(canvasH) px</span>
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="downloadBannerImage()">
+                    <i class="bi bi-download me-1"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @Html.AntiForgeryToken()
 
 @section Scripts {
 <script>
 const _token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+const _rawDesignJson = @Html.Raw(string.IsNullOrWhiteSpace(Model?.DesignJson) ? "null" : Model.DesignJson);
+const _thumbUrl = '@Html.Raw(thumbUrl)';
+const _exportUrl = '@Html.Raw(exportUrl)';
+const _designName = '@Html.Raw(designName.Replace("'", "\\'"))';
+const _canvasW = @canvasW;
+const _canvasH = @canvasH;
 
-async function publishDesign(encId) {
-    if (!confirm('Publish this design? It will be marked as Published.')) return;
-    const res = await fetch('/Design/UpdateStatus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
-        body: `id=${encId}&status=Published`
-    });
-    const data = await res.json();
-    if (data?.isSuccess) location.reload();
-    else alert(data?.msg || 'Could not publish. Please try again.');
+let currentZoom = 1.0;
+let isCanvasMode = false;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function () {
+    // If no thumbnail but JSON is present, render canvas immediately
+    if (!_thumbUrl && _rawDesignJson) {
+        renderLiveCanvas();
+    }
+});
+
+// Image load error fallback
+function handleImgLoadError() {
+    console.warn("Thumbnail image failed to load, falling back to Canvas renderer...");
+    const img = document.getElementById('designPreviewImg');
+    if (img) img.style.display = 'none';
+    
+    if (_rawDesignJson) {
+        renderLiveCanvas();
+    } else {
+        const notice = document.getElementById('emptyPreviewNotice');
+        if (notice) notice.style.display = 'block';
+    }
 }
 
+// Live Canvas Renderer
+function renderLiveCanvas() {
+    const canvas = document.getElementById('designCanvasPreview');
+    const img = document.getElementById('designPreviewImg');
+    const notice = document.getElementById('emptyPreviewNotice');
+    
+    if (!canvas || !_rawDesignJson) return;
+
+    try {
+        const ctx = canvas.getContext('2d');
+        const data = typeof _rawDesignJson === 'string' ? JSON.parse(_rawDesignJson) : _rawDesignJson;
+        
+        const bgColor = data.bg || data.bgColor || '#ffffff';
+        const elements = data.elements || [];
+
+        ctx.clearRect(0, 0, _canvasW, _canvasH);
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, _canvasW, _canvasH);
+
+        elements.forEach(el => {
+            ctx.save();
+            ctx.globalAlpha = el.opacity ?? 1;
+
+            if (el.type === 'rect') {
+                ctx.fillStyle = el.color || '#3b82f6';
+                ctx.fillRect(el.x, el.y, el.w, el.h);
+            } else if (el.type === 'circle') {
+                ctx.beginPath();
+                ctx.ellipse(el.x + el.w / 2, el.y + el.h / 2, el.w / 2, el.h / 2, 0, 0, Math.PI * 2);
+                ctx.fillStyle = el.color || '#3b82f6';
+                ctx.fill();
+            } else if (el.type === 'text') {
+                const weight = el.bold ? 'bold ' : '';
+                const style = el.italic ? 'italic ' : '';
+                ctx.font = `${style}${weight}${el.size || 40}px ${el.font || 'sans-serif'}`;
+                ctx.fillStyle = el.color || '#1e293b';
+                ctx.textAlign = el.align || 'left';
+                ctx.textBaseline = 'top';
+
+                const words = (el.text || '').split(' ');
+                let line = '';
+                let cy = el.y;
+                const maxW = el.w || (_canvasW - el.x);
+                const lineH = (el.size || 40) * 1.25;
+
+                for (let n = 0; n < words.length; n++) {
+                    const test = line + words[n] + ' ';
+                    if (ctx.measureText(test).width > maxW && n > 0) {
+                        ctx.fillText(line, el.x, cy);
+                        line = words[n] + ' ';
+                        cy += lineH;
+                    } else {
+                        line = test;
+                    }
+                }
+                ctx.fillText(line, el.x, cy);
+            } else if (el.type === 'image' && el.src) {
+                const im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.src = el.src;
+                if (im.complete) {
+                    ctx.drawImage(im, el.x, el.y, el.w, el.h);
+                } else {
+                    im.onload = () => {
+                        ctx.save();
+                        ctx.globalAlpha = el.opacity ?? 1;
+                        ctx.drawImage(im, el.x, el.y, el.w, el.h);
+                        ctx.restore();
+                    };
+                }
+            }
+            ctx.restore();
+        });
+
+        if (img) img.style.display = 'none';
+        if (notice) notice.style.display = 'none';
+        canvas.style.display = 'block';
+        isCanvasMode = true;
+
+        const badge = document.getElementById('previewModeBadge');
+        if (badge) badge.textContent = 'Canvas Live Render';
+
+        const toggleBtn = document.getElementById('toggleSourceText');
+        if (toggleBtn) toggleBtn.textContent = 'View Image';
+    } catch (err) {
+        console.error("Canvas render error:", err);
+    }
+}
+
+// Toggle between saved image and dynamic canvas
+function togglePreviewSource() {
+    const canvas = document.getElementById('designCanvasPreview');
+    const img = document.getElementById('designPreviewImg');
+    const badge = document.getElementById('previewModeBadge');
+    const toggleBtn = document.getElementById('toggleSourceText');
+
+    if (isCanvasMode) {
+        if (img) img.style.display = 'block';
+        if (canvas) canvas.style.display = 'none';
+        if (badge) badge.textContent = 'High-Res Image';
+        if (toggleBtn) toggleBtn.textContent = 'View Canvas';
+        isCanvasMode = false;
+    } else {
+        renderLiveCanvas();
+    }
+}
+
+// Zoom controls
+function zoomPreview(delta) {
+    currentZoom = Math.min(Math.max(0.3, currentZoom + delta), 2.5);
+    updateZoom();
+}
+
+function resetPreviewZoom() {
+    currentZoom = 1.0;
+    updateZoom();
+}
+
+function updateZoom() {
+    const wrapper = document.getElementById('previewWrapper');
+    const label = document.getElementById('zoomLevelText');
+    if (wrapper) wrapper.style.transform = `scale(${currentZoom})`;
+    if (label) label.textContent = `${Math.round(currentZoom * 100)}%`;
+}
+
+// Fullscreen Lightbox
+function openFullscreenModal() {
+    const modalImg = document.getElementById('modalPreviewImg');
+    const canvas = document.getElementById('designCanvasPreview');
+    const img = document.getElementById('designPreviewImg');
+
+    if (isCanvasMode && canvas) {
+        modalImg.src = canvas.toDataURL('image/png');
+    } else if (img && img.src) {
+        modalImg.src = img.src;
+    } else if (_thumbUrl) {
+        modalImg.src = _thumbUrl;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('fullscreenModal'));
+    modal.show();
+}
+
+// Download image
+function downloadBannerImage() {
+    const canvas = document.getElementById('designCanvasPreview');
+    const img = document.getElementById('designPreviewImg');
+    const fileName = (_designName || 'banner-design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
+
+    // 1. If exported file path exists
+    if (_exportUrl) {
+        const a = document.createElement('a');
+        a.href = _exportUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+    }
+
+    // 2. If canvas mode or canvas is ready
+    if (canvas && (isCanvasMode || !_thumbUrl)) {
+        try {
+            const dataUrl = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            return;
+        } catch (e) {
+            console.warn("Canvas export failed:", e);
+        }
+    }
+
+    // 3. If thumbnail image exists
+    if (_thumbUrl) {
+        const a = document.createElement('a');
+        a.href = _thumbUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+    }
+
+    alert('No image data available to download.');
+}
+
+// Copy preview link
+function copyDesignLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        const btnText = document.getElementById('btnCopyText');
+        if (btnText) {
+            const prev = btnText.textContent;
+            btnText.textContent = 'Link Copied!';
+            setTimeout(() => { btnText.textContent = prev; }, 2000);
+        }
+    }).catch(() => {
+        alert('Copied link: ' + window.location.href);
+    });
+}
+
+// Publish
+async function publishDesign(encId) {
+    if (!confirm('Publish this design? It will be marked as Published.')) return;
+    try {
+        const res = await fetch('/Design/UpdateStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
+            body: `id=${encId}&status=Published`
+        });
+        const data = await res.json();
+        if (data?.isSuccess) location.reload();
+        else alert(data?.msg || 'Could not publish. Please try again.');
+    } catch (e) {
+        alert('Request failed. Please check connection.');
+    }
+}
+
+// Delete
 async function deleteThis(encId) {
     if (!confirm('Permanently delete this design? This cannot be undone.')) return;
-    const res = await fetch('/Design/Delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
-        body: 'id=' + encId
-    });
-    const data = await res.json();
-    if (data?.isSuccess) window.location.href = '/Design';
-    else alert(data?.msg || 'Delete failed.');
+    try {
+        const res = await fetch('/Design/Delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': _token },
+            body: 'id=' + encId
+        });
+        const data = await res.json();
+        if (data?.isSuccess) window.location.href = '/Design';
+        else alert(data?.msg || 'Delete failed.');
+    } catch (e) {
+        alert('Request failed. Please check connection.');
+    }
 }
 </script>
 }

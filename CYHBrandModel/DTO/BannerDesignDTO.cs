@@ -16,8 +16,10 @@ namespace CYHBrandModel.DTO
         public string?  Orientation       { get; set; }
         public int?     WidthPx           { get; set; }
         public int?     HeightPx          { get; set; }
-        public DateTime CreatedAt         { get; set; }
-        public DateTime UpdatedAt         { get; set; }
+        public DateTime CreatedDate       { get; set; }
+        public DateTime? UpdatedDate      { get; set; }
+        public DateTime CreatedAt         { get => CreatedDate; set => CreatedDate = value; }
+        public DateTime UpdatedAt         { get => (UpdatedDate.HasValue && UpdatedDate.Value != default) ? UpdatedDate.Value : CreatedDate; set => UpdatedDate = value; }
 
         // Encrypted ID for URLs (not stored in DB)
         public string?  EncId             { get; set; }

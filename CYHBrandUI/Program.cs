@@ -96,6 +96,12 @@ try
         })
         .AddNewtonsoftJson();
 
+    // ── In-Memory Cache (templates, categories, dashboard stats) ──────────────
+    builder.Services.AddMemoryCache();
+
+    // ── Response Compression ──────────────────────────────────────────────────
+    builder.Services.AddResponseCompression(o => { o.EnableForHttps = true; });
+
 #if DEBUG
     if (builder.Environment.IsDevelopment())
         mvc.AddRazorRuntimeCompilation();
@@ -111,8 +117,20 @@ try
         app.UseHsts();
     }
 
+    app.UseResponseCompression();
     app.UseHttpsRedirection();
-    app.UseStaticFiles();
+
+    // Static files — aggressive browser caching (1 year for lib assets)
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            var path = ctx.File.PhysicalPath ?? "";
+            // Cache lib/ assets for 1 year, others for 1 day
+            var maxAge = path.Contains("\\lib\\") ? 31536000 : 86400;
+            ctx.Context.Response.Headers.Append("Cache-Control", $"public,max-age={maxAge},immutable");
+        }
+    });
     app.UseSerilogRequestLogging();
     app.UseSession();
     app.UseCookiePolicy();
