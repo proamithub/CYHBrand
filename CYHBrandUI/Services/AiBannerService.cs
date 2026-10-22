@@ -317,7 +317,9 @@ namespace CYHBrandUI.Services
                 };
 
                 string designJson = JsonConvert.SerializeObject(designObject);
-                string designName = $"{request.Topic.Trim()} - AI Banner";
+                string designName = (!string.IsNullOrWhiteSpace(headline) && !headline.StartsWith("Doctor", StringComparison.OrdinalIgnoreCase))
+                    ? $"{headline} - AI Banner"
+                    : (!string.IsNullOrWhiteSpace(request.Topic) ? $"{request.Topic.Trim()} - AI Banner" : "AI Health Banner");
                 if (designName.Length > 60) designName = designName[..60];
 
                 return new AiBannerResponseDTO
@@ -385,8 +387,14 @@ namespace CYHBrandUI.Services
 
         private async Task<AiMedicalContentDto?> FetchOnlineAiMedicalContentAsync(string? topic, string? language)
         {
-            string targetTopic = string.IsNullOrWhiteSpace(topic) ? "General Wellness & Healthy Living" : topic.Trim();
+            string targetTopic = (topic ?? "").Trim();
             string targetLang = string.IsNullOrWhiteSpace(language) ? "English" : language.Trim();
+
+            bool isRandom = string.IsNullOrWhiteSpace(targetTopic)
+                            || targetTopic.Equals("RANDOM", StringComparison.OrdinalIgnoreCase)
+                            || targetTopic.Equals("AUTO_RANDOM", StringComparison.OrdinalIgnoreCase)
+                            || targetTopic.Contains("random", StringComparison.OrdinalIgnoreCase)
+                            || targetTopic.Contains("surprise", StringComparison.OrdinalIgnoreCase);
 
             string provider = _config["AIContentGeneration:Provider"] ?? "OpenAI";
             string apiKey = _config["AIContentGeneration:ApiKey"]
@@ -404,43 +412,63 @@ namespace CYHBrandUI.Services
             {
                 if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
                 {
-                    return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang);
+                    return await CallGeminiAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
                 }
                 else
                 {
                     // Default: OpenAI or OpenAI-compatible (Groq, OpenRouter, DeepSeek, etc.)
-                    return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang);
+                    return await CallOpenAiAsync(client, apiKey, targetTopic, targetLang, isRandom);
                 }
             }
 
             // If no API key configured, use 100% Free Online AI Engine (Zero Cost, No Key Needed)
-            _logger.LogInformation("No API key configured; using 100% Free Online AI Engine for topic: {Topic}", targetTopic);
-            return await CallFreeOnlineAiAsync(client, targetTopic, targetLang);
+            _logger.LogInformation("Using 100% Free Online AI Engine (isRandom: {IsRandom}) for topic: {Topic}", isRandom, targetTopic);
+            return await CallFreeOnlineAiAsync(client, targetTopic, targetLang, isRandom);
         }
 
-        private async Task<AiMedicalContentDto?> CallFreeOnlineAiAsync(HttpClient client, string topic, string language)
+        private async Task<AiMedicalContentDto?> CallFreeOnlineAiAsync(HttpClient client, string topic, string language, bool isRandom)
         {
             try
             {
+                string systemPrompt;
+                string userPrompt;
+                string seed = $"{DateTime.UtcNow:HHmmssfff}_{Guid.NewGuid():N}";
+
+                if (isRandom)
+                {
+                    systemPrompt = "You are an expert creative clinical medical copywriter for doctors and healthcare clinics in India. " +
+                                  "Pick a completely RANDOM, FRESH and UNIQUE medical awareness or healthcare domain out of 40+ clinical fields " +
+                                  "(such as Nephrology, Endocrinology, Dermatology, Ophthalmology, Sleep Science, Geriatrics, Cardiology, Orthopedics, " +
+                                  "Pediatrics, Gastroenterology, Pulmonology, Mental Health, Seasonal Infections, Ayurveda & Yoga, Dental Hygiene, Ergonomics, etc.). " +
+                                  "Every single response MUST choose a distinct health topic. " +
+                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
+                                  "1) \"badge\": Short category name or campaign tag (2-4 words).\n" +
+                                  "2) \"headline\": Catchy, inspiring, patient-friendly medical headline (under 8 words).\n" +
+                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
+                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON.";
+
+                    userPrompt = $"Generate a fresh, completely random, unexpected clinical medical awareness banner for a doctor in {language}. " +
+                                 $"Random Seed / Unique ID: {seed}";
+                }
+                else
+                {
+                    systemPrompt = "You are an expert clinical medical copywriter for a doctor branding platform. " +
+                                  "Generate high-impact, medically accurate health education content. " +
+                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
+                                  "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
+                                  "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
+                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
+                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON.";
+
+                    userPrompt = $"Medical Topic: {topic}\nLanguage: {language}\nUnique Seed: {seed}";
+                }
+
                 var requestBody = new
                 {
                     messages = new object[]
                     {
-                        new
-                        {
-                            role = "system",
-                            content = "You are an expert clinical medical copywriter for a doctor branding platform. " +
-                                      "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
-                                      "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
-                                      "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
-                                      "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
-                                      "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON."
-                        },
-                        new
-                        {
-                            role = "user",
-                            content = $"Medical Topic: {topic}\nLanguage: {language}"
-                        }
+                        new { role = "system", content = systemPrompt },
+                        new { role = "user", content = userPrompt }
                     },
                     jsonMode = true
                 };
@@ -464,35 +492,30 @@ namespace CYHBrandUI.Services
             }
         }
 
-        private async Task<AiMedicalContentDto?> CallOpenAiAsync(HttpClient client, string apiKey, string topic, string language)
+        private async Task<AiMedicalContentDto?> CallOpenAiAsync(HttpClient client, string apiKey, string topic, string language, bool isRandom)
         {
             string baseUrl = _config["AIContentGeneration:BaseUrl"] ?? "https://api.openai.com/v1";
             if (baseUrl.EndsWith("/")) baseUrl = baseUrl.TrimEnd('/');
             string model = _config["AIContentGeneration:Model"] ?? "gpt-4o-mini";
+            string seed = $"{DateTime.UtcNow:HHmmssfff}_{Guid.NewGuid():N}";
+
+            string systemPrompt = isRandom
+                ? "You are an expert creative clinical medical copywriter. Pick a completely RANDOM and UNIQUE medical awareness domain out of 40+ clinical fields. Return ONLY a raw valid JSON object with: 1) 'badge' (2-4 words), 2) 'headline' (under 8 words), 3) 'tips' (array of 3 tips, 8-14 words each). No markdown."
+                : "You are an expert clinical medical copywriter for a doctor branding and health awareness platform. Return ONLY a raw valid JSON object with: 1) 'badge', 2) 'headline', 3) 'tips' (array of 3 tips). No markdown.";
+
+            string userPrompt = isRandom
+                ? $"Generate a completely fresh random medical awareness banner for a doctor in {language}. Random Seed: {seed}"
+                : $"Medical Topic: {topic}\nLanguage: {language}\nSeed: {seed}";
 
             var requestBody = new
             {
                 model = model,
                 messages = new object[]
                 {
-                    new
-                    {
-                        role = "system",
-                        content = "You are an expert clinical medical copywriter for a doctor branding and health awareness platform. " +
-                                  "Generate high-impact, medically accurate health education content. " +
-                                  "Return ONLY a raw valid JSON object with EXACTLY three fields:\n" +
-                                  "1) \"badge\": Short category name or campaign tag (2-4 words, e.g. 'HEART HEALTH CARE', 'मधुमेह नियंत्रण').\n" +
-                                  "2) \"headline\": Inspiring, patient-friendly medical headline (under 8 words).\n" +
-                                  "3) \"tips\": An array of exactly 3 concise, practical, medically sound prevention tips (each 8-14 words).\n" +
-                                  "Respond in the specified language. Do NOT use markdown code blocks or any explanation outside JSON."
-                    },
-                    new
-                    {
-                        role = "user",
-                        content = $"Medical Topic: {topic}\nLanguage: {language}"
-                    }
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userPrompt }
                 },
-                temperature = 0.7,
+                temperature = 0.8,
                 max_tokens = 350
             };
 
@@ -518,10 +541,15 @@ namespace CYHBrandUI.Services
             return ParseAiContentJson(rawContent);
         }
 
-        private async Task<AiMedicalContentDto?> CallGeminiAiAsync(HttpClient client, string apiKey, string topic, string language)
+        private async Task<AiMedicalContentDto?> CallGeminiAiAsync(HttpClient client, string apiKey, string topic, string language, bool isRandom)
         {
             string model = _config["AIContentGeneration:Model"] ?? "gemini-1.5-flash";
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+            string seed = $"{DateTime.UtcNow:HHmmssfff}_{Guid.NewGuid():N}";
+
+            string promptText = isRandom
+                ? $"You are an expert clinical medical copywriter. Pick a RANDOM medical awareness domain out of 40+ clinical specialties. Generate an awareness banner in {language}. Seed: {seed}. Output ONLY raw valid JSON: {{\"badge\": \"...\", \"headline\": \"...\", \"tips\": [\"...\", \"...\", \"...\"]}}"
+                : $"You are an expert clinical medical copywriter. Topic: '{topic}', Language: '{language}'. Seed: {seed}. Output ONLY raw valid JSON: {{\"badge\": \"...\", \"headline\": \"...\", \"tips\": [\"...\", \"...\", \"...\"]}}";
 
             var requestBody = new
             {
@@ -531,16 +559,7 @@ namespace CYHBrandUI.Services
                     {
                         parts = new[]
                         {
-                            new
-                            {
-                                text = $"You are an expert clinical medical copywriter for a doctor awareness platform. " +
-                                       $"Generate health awareness content for Topic: '{topic}' in Language: '{language}'. " +
-                                       "Output ONLY a raw valid JSON object with keys:\n" +
-                                       "1) 'badge' (2-4 words category badge)\n" +
-                                       "2) 'headline' (under 8 words catchy medical title)\n" +
-                                       "3) 'tips' (array of 3 concise medical tips, 8-14 words each).\n" +
-                                       "Do not wrap in markdown fences or include explanations."
-                            }
+                            new { text = promptText }
                         }
                     }
                 },
@@ -613,6 +632,18 @@ namespace CYHBrandUI.Services
         {
             topic = (topic ?? "").ToLowerInvariant().Trim();
             language = (language ?? "English").ToLowerInvariant().Trim();
+
+            bool isRandom = string.IsNullOrWhiteSpace(topic)
+                            || topic.Equals("random", StringComparison.OrdinalIgnoreCase)
+                            || topic.Equals("auto_random", StringComparison.OrdinalIgnoreCase)
+                            || topic.Contains("random")
+                            || topic.Contains("surprise");
+
+            if (isRandom)
+            {
+                var randomKeys = new[] { "heart", "diabet", "yoga", "doctor", "diwali", "blood", "dengue", "child", "eye", "dent", "mental", "bone", "monsoon" };
+                topic = randomKeys[Random.Shared.Next(randomKeys.Length)];
+            }
 
             // Hindi language bank
             if (language == "hindi")
