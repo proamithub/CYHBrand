@@ -1,48 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0C4A6E"/>
-      <stop offset="100%" stop-color="#082F49"/>
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="50%" stop-color="#0369A1"/>
+      <stop offset="100%" stop-color="#075985"/>
     </linearGradient>
-    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
+    <linearGradient id="pinkGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F43F5E"/>
     </linearGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
   </defs>
-  <rect width="500" height="500" fill="url(#bg)"/>
-  <circle cx="450" cy="50" r="160" fill="#38BDF8" opacity="0.15"/>
-  <circle cx="50" cy="450" r="120" fill="#38BDF8" opacity="0.1"/>
-  
-  <!-- Header Badge -->
-  <rect x="50" y="45" width="200" height="28" rx="14" fill="#38BDF8" opacity="0.9"/>
-  <text x="150" y="64" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">PEDIATRICS</text>
-  
-  <!-- Headline -->
-  <text x="50" y="125" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold">Child Vaccine Chart</text>
-  
-  <!-- Content Container Card -->
-  <rect x="50" y="160" width="400" height="190" rx="14" fill="#FFFFFF" opacity="0.12"/>
-  
-  <!-- Bullet 1 -->
-  <circle cx="75" cy="200" r="7" fill="#38BDF8"/>
-  <text x="95" y="205" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13">Essential Milestones for Newborns</text>
-  
-  <!-- Bullet 2 -->
-  <circle cx="75" cy="245" r="7" fill="#38BDF8"/>
-  <text x="95" y="250" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Daily clinical guidelines & precautions</text>
-  
-  <!-- Bullet 3 -->
-  <circle cx="75" cy="290" r="7" fill="#38BDF8"/>
-  <text x="95" y="295" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Consult qualified doctor for early diagnosis</text>
-  
-  <!-- Doctor Footer Ribbon -->
-  <rect x="50" y="375" width="400" height="80" rx="12" fill="#38BDF8" opacity="0.95"/>
-  <!-- Avatar -->
-  <circle cx="95" cy="415" r="26" fill="#FFFFFF"/>
-  <circle cx="95" cy="415" r="23" fill="#0C4A6E"/>
-  <text x="95" y="420" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">DR</text>
-  
-  <text x="135" y="408" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Dr. Full Name</text>
-  <text x="135" y="426" fill="#F1F5F9" font-family="system-ui, -apple-system, sans-serif" font-size="11">Specialist Physician • Clinic Center</text>
-  <text x="135" y="443" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold">Call / WhatsApp: +91 98765 43210</text>
+
+  <rect width="1080" height="1920" fill="url(#bg)"/>
+  <circle cx="950" cy="200" r="300" fill="#38BDF8" opacity="0.2"/>
+  <circle cx="150" cy="1400" r="280" fill="#F43F5E" opacity="0.15"/>
+
+  <g transform="translate(80, 100)">
+    <rect width="400" height="60" rx="30" fill="url(#pinkGrad)"/>
+    <text x="200" y="38" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" letter-spacing="1.5" text-anchor="middle">PEDIATRIC HEALTH &amp; CARE</text>
+  </g>
+
+  <text x="80" y="240" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="800">Child Vaccination</text>
+  <text x="80" y="315" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="800">Milestone Tracker</text>
+  <text x="80" y="380" fill="#E0F2FE" font-family="'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="400">Essential Immunization Schedule: Birth to 5 Years</text>
+
+  <g transform="translate(80, 470)" filter="url(#shadow)">
+    <rect width="920" height="170" rx="24" fill="url(#cardGrad)" stroke="#BAE6FD" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="75" cy="85" r="38" fill="#EC4899" opacity="0.2"/>
+    <circle cx="75" cy="85" r="18" fill="#EC4899"/>
+    <text x="140" y="65" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="700">At Birth to 6 Weeks</text>
+    <text x="140" y="105" fill="#F0FDF4" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600">BCG + OPV-0 + Hepatitis B (Birth Dose)</text>
+    <text x="140" y="140" fill="#E0F2FE" font-family="'Segoe UI', Roboto, sans-serif" font-size="20">Protects newborns from severe tuberculosis and infantile jaundice.</text>
+  </g>
+
+  <g transform="translate(80, 680)" filter="url(#shadow)">
+    <rect width="920" height="170" rx="24" fill="url(#cardGrad)" stroke="#BAE6FD" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="75" cy="85" r="38" fill="#EC4899" opacity="0.2"/>
+    <circle cx="75" cy="85" r="18" fill="#EC4899"/>
+    <text x="140" y="65" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="700">6, 10 &amp; 14 Weeks (Primary Doses)</text>
+    <text x="140" y="105" fill="#F0FDF4" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600">Pentavalent (DTP+HepB+Hib) + Rotavirus + PCV</text>
+    <text x="140" y="140" fill="#E0F2FE" font-family="'Segoe UI', Roboto, sans-serif" font-size="20">Prevents pneumonia, whooping cough, meningitis and acute diarrhea.</text>
+  </g>
+
+  <g transform="translate(80, 890)" filter="url(#shadow)">
+    <rect width="920" height="170" rx="24" fill="url(#cardGrad)" stroke="#BAE6FD" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="75" cy="85" r="38" fill="#EC4899" opacity="0.2"/>
+    <circle cx="75" cy="85" r="18" fill="#EC4899"/>
+    <text x="140" y="65" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="700">9 to 12 Months</text>
+    <text x="140" y="105" fill="#F0FDF4" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600">MR-1 (Measles-Rubella) + JE-1 + Vitamin A</text>
+    <text x="140" y="140" fill="#E0F2FE" font-family="'Segoe UI', Roboto, sans-serif" font-size="20">Crucial shield against measles outbreaks and childhood blindness.</text>
+  </g>
+
+  <g transform="translate(80, 1100)" filter="url(#shadow)">
+    <rect width="920" height="170" rx="24" fill="url(#cardGrad)" stroke="#BAE6FD" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="75" cy="85" r="38" fill="#EC4899" opacity="0.2"/>
+    <circle cx="75" cy="85" r="18" fill="#EC4899"/>
+    <text x="140" y="65" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="700">16 to 24 Months &amp; 5 Years</text>
+    <text x="140" y="105" fill="#F0FDF4" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600">DTP Booster-1 &amp; Booster-2 + OPV Booster</text>
+    <text x="140" y="140" fill="#E0F2FE" font-family="'Segoe UI', Roboto, sans-serif" font-size="20">Long-term booster immunity before preschool and kindergarten admission.</text>
+  </g>
+
+  <g transform="translate(80, 1620)" filter="url(#shadow)">
+    <rect width="920" height="210" rx="28" fill="url(#pinkGrad)"/>
+    <circle cx="110" cy="105" r="62" fill="#FFFFFF"/>
+    <circle cx="110" cy="105" r="56" fill="#0C4A6E"/>
+    <text x="110" y="118" fill="#F43F5E" font-family="'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="800" text-anchor="middle">DR</text>
+
+    <text x="195" y="80" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="32" font-weight="800">Dr. Full Name, MD (Pediatrics), DCH</text>
+    <text x="195" y="120" fill="#FFE4E6" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500">Senior Pediatrician &amp; Newborn Specialist â€¢ Little Stars Clinic</text>
+    <rect x="195" y="142" width="680" height="46" rx="23" fill="#0C4A6E" opacity="0.35"/>
+    <text x="215" y="172" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700">ðŸ“ž Book Vaccination Slot: +91 98765 43210  |  Painless Vaccines</text>
+  </g>
 </svg>

@@ -1,47 +1,55 @@
 @model CYHBrandModel.DTO.BannerTemplateDTO
 @{
-    ViewData["Title"] = "Template Library";
-    var activeCategory = Model?.CategoryId?.ToString();
-    var activeOrientation = Model?.Orientation;
+    ViewData["Title"] = "Doctor Banner Templates";
+    var activeCategory = Model?.CategoryId.HasValue == true ? Model.CategoryId.Value.ToString() : "";
+    var currentOrientation = Model?.Orientation ?? "";
 }
 
 <div class="container-fluid px-3 px-md-4 py-3">
 
-    <!-- ── TOP HEADER & BREADCRUMB ── -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1 small">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-                    <li class="breadcrumb-item active text-primary fw-medium" aria-current="page">Template Library</li>
-                </ol>
-            </nav>
-            <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="bi bi-grid-1x2-fill text-primary"></i> Doctor Banner Template Library
-            </h3>
-            <p class="text-muted small mb-0 mt-1">Clinically vetted, ready-to-use medical posters and festival banners for your clinic and social media.</p>
-        </div>
-
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            <!-- Templates count badge -->
-            <div class="badge bg-light text-dark border px-3 py-2 rounded-pill fs-7 d-flex align-items-center gap-2">
-                <i class="bi bi-collection-fill text-teal"></i>
-                <span>Available: <strong class="text-primary">@(Model?.TotalRecords ?? Model?.TemplateList?.Count ?? 0)</strong> Templates</span>
+    <!-- ── HEADER HERO SECTION ── -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" 
+         style="background: linear-gradient(135deg, #0B1B3D 0%, #152852 60%, #0EA5A0 100%); color: #fff;">
+        <div class="card-body p-4 p-md-5 position-relative">
+            <div class="row align-items-center position-relative" style="z-index: 2;">
+                <div class="col-lg-8">
+                    <span class="badge bg-teal bg-opacity-25 text-white border border-light border-opacity-25 px-3 py-1 rounded-pill mb-2 small">
+                        <i class="bi bi-patch-check-fill text-warning me-1"></i> Professionally Curated Medical Templates
+                    </span>
+                    <h2 class="fw-bold mb-2 display-6 text-white">Clinical Post &amp; Banner Library</h2>
+                    <p class="mb-3 opacity-80 lead fs-6" style="max-width: 650px;">
+                        Select high-converting doctor templates for patient awareness, festival greetings, seasonal alerts, and OPD schedules. Customize in 1-click with your verified clinic details.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 pt-1">
+                        <span class="badge bg-white bg-opacity-15 text-white px-3 py-2 rounded-pill small">
+                            <i class="bi bi-grid-fill me-1"></i> @(Model?.TotalRecords ?? 0) Medical Presets
+                        </span>
+                        <span class="badge bg-white bg-opacity-15 text-white px-3 py-2 rounded-pill small">
+                            <i class="bi bi-palette-fill me-1"></i> Multi-Format (Square, Story, Banner)
+                        </span>
+                        <span class="badge bg-white bg-opacity-15 text-white px-3 py-2 rounded-pill small">
+                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i> 100% Free for Verified Doctors
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a asp-controller="AiBanner" asp-action="Index" class="btn btn-warning btn-lg rounded-pill px-4 shadow fw-bold text-dark">
+                        <i class="bi bi-stars me-1"></i> Generate with AI
+                    </a>
+                </div>
             </div>
-
-            <a asp-controller="AiBanner" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
-                <i class="bi bi-stars me-1"></i> AI Banner Studio
-            </a>
-
-            <a asp-controller="Design" asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
-                <i class="bi bi-folder2-open me-1"></i> My Saved Designs
-            </a>
+            <!-- Decorative circle -->
+            <div class="position-absolute end-0 bottom-0 opacity-10 pointer-events-none" style="transform: translate(20%, 30%);">
+                <i class="bi bi-heart-pulse-fill" style="font-size: 20rem; color: #fff;"></i>
+            </div>
         </div>
     </div>
 
     <!-- ── CATEGORY PILLS BAR ── -->
-    <div class="d-flex align-items-center gap-2 pb-3 mb-3 overflow-auto flex-nowrap" style="scrollbar-width: thin;">
-        <a asp-action="Index" asp-route-orientation="@activeOrientation" asp-route-searchKey="@Model?.SearchKey"
+    <div class="d-flex align-items-center gap-2 overflow-auto pb-3 mb-3 border-bottom no-scrollbar" style="white-space: nowrap;">
+        <a asp-action="Index" 
+           asp-route-orientation="@currentOrientation"
+           asp-route-searchKey="@Model?.SearchKey"
            class="btn btn-sm rounded-pill px-3 py-2 text-nowrap fw-medium @(string.IsNullOrEmpty(activeCategory) ? "btn-primary shadow-sm" : "btn-light border text-dark")">
             <i class="bi bi-stars me-1"></i> All Templates
         </a>
@@ -59,7 +67,10 @@
                            cat.Slug?.Contains("announce") == true ? "megaphone-fill" :
                            cat.Slug?.Contains("promot") == true ? "tag-fill" : "hospital-fill";
 
-                <a asp-action="Index" asp-route-categoryId="@cat.CategoryId" asp-route-orientation="@activeOrientation" asp-route-searchKey="@Model?.SearchKey"
+                <a asp-action="Index" 
+                   asp-route-categoryId="@cat.EncId"
+                   asp-route-orientation="@currentOrientation"
+                   asp-route-searchKey="@Model?.SearchKey"
                    class="btn btn-sm rounded-pill px-3 py-2 text-nowrap fw-medium @(isSelected ? "btn-primary shadow-sm" : "btn-light border text-dark")">
                     <i class="bi bi-@icon me-1 text-teal"></i> @cat.CategoryName
                 </a>
@@ -67,51 +78,40 @@
         }
     </div>
 
-    <!-- ── SEARCH & FILTER CONTROLS ── -->
+    <!-- ── SEARCH & ORIENTATION FILTER BAR ── -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-3">
-            <form method="get" class="row g-2 align-items-center">
-                <!-- Search input -->
-                <div class="col-lg-4 col-md-6">
+            <form method="get" asp-action="Index" class="row g-2 align-items-center">
+                @if (Model?.CategoryId.HasValue == true)
+                {
+                    <input type="hidden" name="categoryId" value="@Model.CategoryId.Value" />
+                }
+
+                <!-- Search Input -->
+                <div class="col-12 col-md-5 col-lg-6">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="searchKey" value="@Model?.SearchKey" class="form-control border-start-0 ps-0" placeholder="Search templates by disease, topic, or keyword..." />
+                        <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="searchKey" value="@Model?.SearchKey" 
+                               class="form-control bg-light border-start-0 rounded-end-pill py-2 shadow-none" 
+                               placeholder="Search topics (e.g. Heart, Sugar, Dengue, Dental, Festival)..." />
                     </div>
                 </div>
 
-                <!-- Category dropdown -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-tag"></i></span>
-                        <select name="categoryId" class="form-select border-start-0 ps-0">
-                            <option value="">All Categories</option>
-                            @if (Model?.CategoryList != null)
-                            {
-                                foreach (var c in Model.CategoryList)
-                                {
-                                    <option value="@c.CategoryId" selected="@(Model.CategoryId == c.CategoryId)">@c.CategoryName</option>
-                                }
-                            }
-                        </select>
-                    </div>
+                <!-- Orientation Selector -->
+                <div class="col-6 col-md-3 col-lg-3">
+                    <select name="orientation" class="form-select rounded-pill py-2 shadow-none bg-light">
+                        <option value="">All Formats &amp; Sizes</option>
+                        <option value="Square" selected="@(currentOrientation == "Square")">Square (1:1 • 1080×1080)</option>
+                        <option value="Portrait" selected="@(currentOrientation == "Portrait")">Portrait / Story (9:16 • 1080×1920)</option>
+                        <option value="Landscape" selected="@(currentOrientation == "Landscape")">Landscape (16:9 • 1920×1080)</option>
+                    </select>
                 </div>
 
-                <!-- Orientation dropdown -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-aspect-ratio"></i></span>
-                        <select name="orientation" class="form-select border-start-0 ps-0">
-                            <option value="">All Orientations</option>
-                            <option value="Square" selected="@(Model?.Orientation == "Square")">Square (1:1 Feed)</option>
-                            <option value="Portrait" selected="@(Model?.Orientation == "Portrait")">Portrait / Story (9:16)</option>
-                            <option value="Landscape" selected="@(Model?.Orientation == "Landscape")">Landscape (16:9 Banner)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Buttons -->
-                <div class="col-lg-2 col-md-6 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary rounded-pill px-3 flex-grow-1 shadow-sm">
+                <!-- Submit / Clear Buttons -->
+                <div class="col-6 col-md-4 col-lg-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 flex-grow-1 shadow-sm">
                         <i class="bi bi-funnel me-1"></i> Filter
                     </button>
                     @if (!string.IsNullOrEmpty(Model?.SearchKey) || Model?.CategoryId.HasValue == true || !string.IsNullOrEmpty(Model?.Orientation))
@@ -133,18 +133,29 @@
             {
                 var isStory = t.Orientation == "Portrait";
                 var isBanner = t.Orientation == "Landscape";
-                var aspectStyle = isStory ? "aspect-ratio: 9/16; max-height: 420px;" :
+                var aspectStyle = isStory ? "aspect-ratio: 9/16; max-height: 400px;" :
                                   isBanner ? "aspect-ratio: 16/9;" : "aspect-ratio: 1/1;";
-                var badgeColor = isStory ? "warning" : isBanner ? "info" : "primary";
+                var previewUrl = Url.Action("Preview", "Template", new { id = t.EncId ?? t.TemplateId.ToString() });
 
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden template-card-item transition-all position-relative" style="transition: transform 0.2s, box-shadow 0.2s;">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden template-card-item position-relative" 
+                         style="transition: transform 0.2s, box-shadow 0.2s; background: #fff;">
 
                         <!-- Thumbnail & Badges Container -->
-                        <div class="position-relative overflow-hidden bg-light d-flex align-items-center justify-content-center" style="@aspectStyle">
+                        <div class="position-relative overflow-hidden d-flex align-items-center justify-content-center cursor-pointer template-stage-box" 
+                             style="@aspectStyle; background: #071126;"
+                             data-name="@t.TemplateName"
+                             data-img="@t.ThumbnailPath"
+                             data-cat="@(t.CategoryName ?? "Clinical Care")"
+                             data-orient="@(t.Orientation ?? "Square")"
+                             data-dims="@(t.WidthPx) × @(t.HeightPx) px"
+                             data-id="@(t.EncId ?? t.TemplateId.ToString())"
+                             data-desc="@(t.Description ?? "Professional medical awareness banner ready for clinic branding.")"
+                             data-preview-url="@previewUrl">
+
                             @if (!string.IsNullOrEmpty(t.ThumbnailPath))
                             {
-                                <img src="@t.ThumbnailPath" alt="@t.TemplateName" class="w-100 h-100 template-thumb-img" style="object-fit: cover;" />
+                                <img src="@t.ThumbnailPath" alt="@t.TemplateName" class="w-100 h-100 template-thumb-img" style="object-fit: contain; display: block;" />
                             }
                             else
                             {
@@ -157,7 +168,7 @@
                             }
 
                             <!-- Orientation Badge -->
-                            <div class="position-absolute top-0 start-0 m-2">
+                            <div class="position-absolute top-0 start-0 m-2 pointer-events-none" style="z-index: 3;">
                                 <span class="badge bg-dark bg-opacity-75 backdrop-blur text-white px-2 py-1 rounded-pill small" style="font-size: 10px;">
                                     <i class="bi bi-aspect-ratio me-1"></i>@(t.Orientation ?? "Square")
                                 </span>
@@ -166,7 +177,7 @@
                             <!-- PRO Badge -->
                             @if (t.IsPremium)
                             {
-                                <div class="position-absolute top-0 end-0 m-2">
+                                <div class="position-absolute top-0 end-0 m-2 pointer-events-none" style="z-index: 3;">
                                     <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-bold shadow-sm" style="font-size: 10px;">
                                         <i class="bi bi-star-fill me-1"></i>PRO
                                     </span>
@@ -175,10 +186,17 @@
 
                             <!-- Hover Overlay with Actions -->
                             <div class="template-hover-overlay position-absolute inset-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-2 p-3 opacity-0"
-                                 style="background: rgba(15, 26, 66, 0.85); transition: opacity 0.25s ease; backdrop-filter: blur(2px);">
+                                 style="background: rgba(11, 27, 61, 0.88); transition: opacity 0.25s ease; backdrop-filter: blur(3px); z-index: 4;">
                                 
-                                <button type="button" class="btn btn-light btn-sm rounded-pill px-3 shadow fw-semibold"
-                                        onclick="openQuickPreview('@t.TemplateName', '@(t.ThumbnailPath ?? "")', '@(t.CategoryName ?? "General")', '@(t.Orientation ?? "Square")', '@(t.WidthPx)x@(t.HeightPx)', '@t.EncId', '@(t.Description ?? "")')">
+                                <button type="button" class="btn btn-light btn-sm rounded-pill px-3 shadow fw-semibold btn-quick-preview"
+                                        data-name="@t.TemplateName"
+                                        data-img="@t.ThumbnailPath"
+                                        data-cat="@(t.CategoryName ?? "Clinical Care")"
+                                        data-orient="@(t.Orientation ?? "Square")"
+                                        data-dims="@(t.WidthPx) × @(t.HeightPx) px"
+                                        data-id="@(t.EncId ?? t.TemplateId.ToString())"
+                                        data-desc="@(t.Description ?? "Professional medical awareness banner ready for clinic branding.")"
+                                        data-preview-url="@previewUrl">
                                     <i class="bi bi-eye-fill me-1 text-primary"></i> Quick Preview
                                 </button>
 
@@ -217,7 +235,7 @@
                             <!-- Bottom Action Row -->
                             <div class="d-flex align-items-center gap-2 pt-2 border-top">
                                 <a asp-action="Preview" asp-route-id="@(t.EncId ?? t.TemplateId.ToString())" class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1" style="font-size: 12px;">
-                                    <i class="bi bi-eye me-1"></i> Preview
+                                    <i class="bi bi-eye me-1"></i> Details
                                 </a>
 
                                 <form asp-action="UseTemplate" method="post" class="flex-grow-1 m-0">
@@ -297,18 +315,23 @@
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 text-center bg-dark bg-opacity-10 d-flex align-items-center justify-content-center" style="min-height: 420px;">
-                <img id="modalPreviewImg" src="" alt="Template" class="img-fluid rounded-3 shadow-sm" style="max-height: 520px; object-fit: contain;" />
+            <div class="modal-body p-3 p-md-4 text-center bg-dark bg-opacity-25 d-flex align-items-center justify-content-center" style="min-height: 480px;">
+                <div class="modal-preview-wrapper d-flex align-items-center justify-content-center w-100" style="max-height: 65vh;">
+                    <img id="modalPreviewImg" src="" alt="Template" class="rounded-3 shadow-lg" 
+                         style="max-height: 60vh; max-width: 100%; object-fit: contain; display: block; background: #071126;" />
+                </div>
             </div>
             <div class="modal-footer border-top px-4 py-3 bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <p class="text-muted small mb-0 text-start" id="modalDescription" style="max-width: 400px; font-size: 12px;"></p>
+                <p class="text-muted small mb-0 text-start" id="modalDescription" style="max-width: 380px; font-size: 12px;"></p>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3 btn-sm" data-bs-dismiss="modal">Close</button>
+                    <a id="modalFullDetailsLink" href="#" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Full Details
+                    </a>
                     <form asp-action="UseTemplate" method="post" id="modalUseForm" class="m-0">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="templateId" id="modalTemplateIdInput" value="" />
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 btn-sm shadow-sm">
-                            <i class="bi bi-pencil-square me-1"></i> Use In Banner Editor
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 btn-sm shadow-sm fw-semibold">
+                            <i class="bi bi-pencil-square me-1"></i> Customize in Editor
                         </button>
                     </form>
                 </div>
@@ -332,19 +355,45 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .backdrop-blur {
+        backdrop-filter: blur(4px);
+    }
 </style>
 <script>
-    function openQuickPreview(name, imgPath, catName, orientation, dims, encId, desc) {
-        document.getElementById('modalTemplateName').textContent = name;
-        document.getElementById('modalCategoryBadge').textContent = catName;
-        document.getElementById('modalOrientationBadge').textContent = orientation;
-        document.getElementById('modalDimensionsBadge').textContent = dims + ' px';
-        document.getElementById('modalPreviewImg').src = imgPath;
-        document.getElementById('modalTemplateIdInput').value = encId;
-        document.getElementById('modalDescription').textContent = desc || 'Clinically ready medical template for social posts.';
-        
-        const modal = new bootstrap.Modal(document.getElementById('quickPreviewModal'));
-        modal.show();
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('quickPreviewModal');
+        const modal = new bootstrap.Modal(modalEl);
+
+        function triggerPreview(dataset) {
+            document.getElementById('modalTemplateName').textContent = dataset.name || 'Template Preview';
+            document.getElementById('modalCategoryBadge').textContent = dataset.cat || 'Clinical';
+            document.getElementById('modalOrientationBadge').textContent = dataset.orient || 'Square';
+            document.getElementById('modalDimensionsBadge').textContent = dataset.dims || '1080 × 1080 px';
+            document.getElementById('modalPreviewImg').src = dataset.img || '';
+            document.getElementById('modalTemplateIdInput').value = dataset.id || '';
+            document.getElementById('modalDescription').textContent = dataset.desc || 'Clinically ready medical template for social posts.';
+            document.getElementById('modalFullDetailsLink').href = dataset.previewUrl || '#';
+            modal.show();
+        }
+
+        // Delegate click for buttons and stage boxes
+        document.querySelectorAll('.btn-quick-preview').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                triggerPreview(this.dataset);
+            });
+        });
+
+        document.querySelectorAll('.template-stage-box').forEach(function (box) {
+            box.addEventListener('click', function (e) {
+                // Ignore if clicked on a child button or form
+                if (e.target.closest('button') || e.target.closest('form') || e.target.closest('a')) return;
+                triggerPreview(this.dataset);
+            });
+        });
+    });
 </script>
 }

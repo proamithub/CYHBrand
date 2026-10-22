@@ -1,48 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1E3A8A"/>
-      <stop offset="100%" stop-color="#172554"/>
+      <stop offset="0%" stop-color="#0A1F1C"/>
+      <stop offset="50%" stop-color="#0F2E28"/>
+      <stop offset="100%" stop-color="#144238"/>
     </linearGradient>
-    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
+    <linearGradient id="emeraldGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
     </linearGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
   </defs>
-  <rect width="500" height="500" fill="url(#bg)"/>
-  <circle cx="450" cy="50" r="160" fill="#38BDF8" opacity="0.15"/>
-  <circle cx="50" cy="450" r="120" fill="#38BDF8" opacity="0.1"/>
-  
-  <!-- Header Badge -->
-  <rect x="50" y="45" width="200" height="28" rx="14" fill="#38BDF8" opacity="0.9"/>
-  <text x="150" y="64" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">DIABETES</text>
-  
-  <!-- Headline -->
-  <text x="50" y="125" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold">Sugar Control Routine</text>
-  
-  <!-- Content Container Card -->
-  <rect x="50" y="160" width="400" height="190" rx="14" fill="#FFFFFF" opacity="0.12"/>
-  
-  <!-- Bullet 1 -->
-  <circle cx="75" cy="200" r="7" fill="#38BDF8"/>
-  <text x="95" y="205" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13">Healthy Diet, Exercise & HbA1c</text>
-  
-  <!-- Bullet 2 -->
-  <circle cx="75" cy="245" r="7" fill="#38BDF8"/>
-  <text x="95" y="250" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Daily clinical guidelines & precautions</text>
-  
-  <!-- Bullet 3 -->
-  <circle cx="75" cy="290" r="7" fill="#38BDF8"/>
-  <text x="95" y="295" fill="#E2E8F0" font-family="system-ui, -apple-system, sans-serif" font-size="13">Consult qualified doctor for early diagnosis</text>
-  
-  <!-- Doctor Footer Ribbon -->
-  <rect x="50" y="375" width="400" height="80" rx="12" fill="#38BDF8" opacity="0.95"/>
-  <!-- Avatar -->
-  <circle cx="95" cy="415" r="26" fill="#FFFFFF"/>
-  <circle cx="95" cy="415" r="23" fill="#1E3A8A"/>
-  <text x="95" y="420" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">DR</text>
-  
-  <text x="135" y="408" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Dr. Full Name</text>
-  <text x="135" y="426" fill="#F1F5F9" font-family="system-ui, -apple-system, sans-serif" font-size="11">Specialist Physician • Clinic Center</text>
-  <text x="135" y="443" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold">Call / WhatsApp: +91 98765 43210</text>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <circle cx="950" cy="180" r="280" fill="#10B981" opacity="0.12"/>
+  <circle cx="120" cy="850" r="220" fill="#34D399" opacity="0.1"/>
+
+  <g transform="translate(80, 80)">
+    <rect width="380" height="52" rx="26" fill="url(#emeraldGrad)"/>
+    <text x="190" y="34" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5" text-anchor="middle">DIABETES &amp; LIFESTYLE CARE</text>
+  </g>
+
+  <text x="80" y="210" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="54" font-weight="800">Control Your Blood Sugar</text>
+  <text x="80" y="265" fill="#A7F3D0" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="400">Practical Daily Protocol to Stabilize HbA1c &amp; Prevent Spikes</text>
+
+  <g transform="translate(80, 390)" filter="url(#shadow)">
+    <rect width="920" height="110" rx="20" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="65" cy="55" r="32" fill="#10B981" opacity="0.2"/>
+    <circle cx="65" cy="55" r="14" fill="#10B981"/>
+    <text x="125" y="48" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700">1. Fasting &amp; Post-Meal Sugar Checks</text>
+    <text x="125" y="80" fill="#D1FAE5" font-family="'Segoe UI', Roboto, sans-serif" font-size="18">Target: Fasting 80-130 mg/dL, Post-prandial &lt; 180 mg/dL. Keep a daily log.</text>
+  </g>
+
+  <g transform="translate(80, 525)" filter="url(#shadow)">
+    <rect width="920" height="110" rx="20" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="65" cy="55" r="32" fill="#10B981" opacity="0.2"/>
+    <circle cx="65" cy="55" r="14" fill="#10B981"/>
+    <text x="125" y="48" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700">2. Low Glycemic &amp; High-Fiber Nutrition</text>
+    <text x="125" y="80" fill="#D1FAE5" font-family="'Segoe UI', Roboto, sans-serif" font-size="18">Switch to whole millets, fenugreek, pulses and chia seeds. Avoid processed carbs.</text>
+  </g>
+
+  <g transform="translate(80, 660)" filter="url(#shadow)">
+    <rect width="920" height="110" rx="20" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="65" cy="55" r="32" fill="#10B981" opacity="0.2"/>
+    <circle cx="65" cy="55" r="14" fill="#10B981"/>
+    <text x="125" y="48" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700">3. Daily 45-Min Post-Meal Walk</text>
+    <text x="125" y="80" fill="#D1FAE5" font-family="'Segoe UI', Roboto, sans-serif" font-size="18">A brisk 15-minute walk right after major meals reduces glucose spikes by up to 35%.</text>
+  </g>
+
+  <g transform="translate(80, 810)" filter="url(#shadow)">
+    <rect width="920" height="185" rx="24" fill="url(#emeraldGrad)"/>
+    <circle cx="100" cy="92" r="54" fill="#FFFFFF"/>
+    <circle cx="100" cy="92" r="48" fill="#0A1F1C"/>
+    <text x="100" y="103" fill="#34D399" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="800" text-anchor="middle">DR</text>
+
+    <text x="180" y="70" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="800">Dr. Full Name, MD (Medicine), Diabetologist</text>
+    <text x="180" y="105" fill="#E6FFFA" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500">Specialist in Type-2 Diabetes &amp; Metabolic Care â€¢ Diabetes Center</text>
+    <rect x="180" y="125" width="690" height="40" rx="20" fill="#0A1F1C" opacity="0.35"/>
+    <text x="200" y="151" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="700">ðŸ“ž Diabetes Helpline: +91 98765 43210  |  Free Diet Counseling Available</text>
+  </g>
 </svg>

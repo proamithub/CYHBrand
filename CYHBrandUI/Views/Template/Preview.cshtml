@@ -28,10 +28,17 @@
                 <i class="bi bi-arrow-left me-1"></i> Back to Templates
             </a>
 
+            @if (!string.IsNullOrEmpty(Model?.ThumbnailPath))
+            {
+                <a href="@Model.ThumbnailPath" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrows-fullscreen me-1"></i> Full Size
+                </a>
+            }
+
             <form asp-action="UseTemplate" method="post" class="m-0">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="templateId" value="@(Model?.EncId ?? Model?.TemplateId.ToString())" />
-                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-semibold">
                     <i class="bi bi-pencil-square me-1"></i> Use In Banner Editor
                 </button>
             </form>
@@ -43,27 +50,49 @@
         <!-- Left: Image Canvas Preview -->
         <div class="col-lg-7 col-xl-8">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white border-0 pt-3 px-4 pb-0 d-flex align-items-center justify-content-between">
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">
-                        @(Model?.CategoryName ?? "Medical Template")
-                    </span>
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small">
+                            @(Model?.CategoryName ?? "Medical Template")
+                        </span>
+                        @if (Model?.IsPremium == true)
+                        {
+                            <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-bold small">
+                                <i class="bi bi-star-fill me-1"></i>PRO
+                            </span>
+                        }
+                    </div>
                     <span class="badge bg-light text-muted border px-2 py-1 rounded-pill small">
                         <i class="bi bi-aspect-ratio me-1"></i>@(Model?.Orientation) (@(Model?.WidthPx) × @(Model?.HeightPx) px)
                     </span>
                 </div>
-                <div class="card-body p-4 d-flex align-items-center justify-content-center bg-dark bg-opacity-10" style="min-height: 480px;">
+                <div class="card-body p-3 p-md-4 d-flex align-items-center justify-content-center bg-dark bg-opacity-25" style="min-height: 520px;">
                     @if (!string.IsNullOrEmpty(Model?.ThumbnailPath))
                     {
-                        <img src="@Model.ThumbnailPath" class="img-fluid rounded-3 shadow" style="max-height: 600px; object-fit: contain;" alt="@Model.TemplateName" />
+                        <div class="preview-stage-container d-flex align-items-center justify-content-center w-100" style="max-width: @(isStory ? "400px" : isBanner ? "860px" : "560px");">
+                            <img src="@Model.ThumbnailPath" 
+                                 class="img-fluid rounded-4 shadow-lg w-100" 
+                                 style="display: block; aspect-ratio: @(isStory ? "9/16" : isBanner ? "16/9" : "1/1"); object-fit: contain; background: #071126;" 
+                                 alt="@Model.TemplateName" />
+                        </div>
                     }
                     else
                     {
-                        <div class="d-flex flex-column align-items-center justify-content-center rounded-3 p-5 text-white"
+                        <div class="d-flex flex-column align-items-center justify-content-center rounded-4 p-5 text-white shadow"
                              style="width: 480px; height: 480px; background: linear-gradient(135deg, #1B2B6B 0%, #0EA5A0 100%);">
                             <i class="bi bi-heart-pulse-fill fs-1 opacity-75 mb-3"></i>
                             <h4 class="fw-bold mb-1 text-center">@Model?.TemplateName</h4>
                             <span class="opacity-75">@Model?.CategoryName</span>
                         </div>
+                    }
+                </div>
+                <div class="card-footer bg-light border-0 py-2 px-4 d-flex justify-content-between align-items-center text-muted small">
+                    <span><i class="bi bi-info-circle me-1"></i> Vector SVG format (Lossless scaling to any print or display size)</span>
+                    @if (!string.IsNullOrEmpty(Model?.ThumbnailPath))
+                    {
+                        <a href="@Model.ThumbnailPath" download="@(Model.TemplateName ?? "template").svg" class="text-decoration-none text-muted">
+                            <i class="bi bi-download me-1"></i> Download Asset
+                        </a>
                     }
                 </div>
             </div>
@@ -108,38 +137,46 @@
 
                     @if (!string.IsNullOrEmpty(Model?.Description))
                     {
-                        <div class="p-3 rounded-3 bg-light border mb-4">
-                            <h6 class="fw-semibold text-dark small mb-1">Clinical Context & Advice</h6>
-                            <p class="text-muted small mb-0" style="font-size: 13px;">@Model.Description</p>
+                        <div class="mb-4">
+                            <h6 class="fw-semibold text-dark mb-1 small text-uppercase text-muted">Description</h6>
+                            <p class="text-muted small mb-0">@Model.Description</p>
                         </div>
                     }
 
+                    <!-- Doctor Customization Note -->
+                    <div class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-2">
+                        <i class="bi bi-person-badge-fill fs-5 text-info mt-1"></i>
+                        <div class="small text-dark">
+                            <strong>Automatic Doctor Branding:</strong> When you open this in the editor, your doctor profile name, qualification, and clinic contact are automatically embedded into the footer.
+                        </div>
+                    </div>
+
+                    <!-- Call to action buttons -->
                     <div class="d-grid gap-2">
                         <form asp-action="UseTemplate" method="post" class="m-0">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="templateId" value="@(Model?.EncId ?? Model?.TemplateId.ToString())" />
                             <button type="submit" class="btn btn-primary rounded-pill py-2 w-100 shadow-sm fw-semibold">
-                                <i class="bi bi-pencil-square me-1"></i> Customize In Banner Editor
+                                <i class="bi bi-pencil-square me-1"></i> Customize This Template
                             </button>
                         </form>
 
-                        <a asp-controller="AiBanner" asp-action="Index" asp-route-topic="@Model?.TemplateName" class="btn btn-outline-primary rounded-pill py-2 w-100 fw-semibold">
-                            <i class="bi bi-stars me-1 text-warning"></i> Generate AI Banner on This Topic
+                        <a asp-controller="AiBanner" asp-action="Index" asp-route-topic="@Model?.TemplateName" class="btn btn-outline-primary rounded-pill py-2 fw-medium">
+                            <i class="bi bi-stars me-1 text-warning"></i> Generate Alternative with AI
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Best Practice Guidelines -->
-            <div class="card border-0 shadow-sm rounded-4 bg-primary-subtle border-primary-subtle">
-                <div class="card-body p-3 d-flex align-items-start gap-2">
-                    <i class="bi bi-info-circle-fill text-primary fs-5 mt-1"></i>
-                    <div class="small">
-                        <strong class="text-primary">Automated Doctor Branding:</strong>
-                        <span class="text-dark d-block mt-1">
-                            Opening this template in the editor automatically attaches your doctor photo, qualifications, and clinic address ribbon at the bottom.
-                        </span>
-                    </div>
+            <!-- Best Practices Card -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-success me-1"></i> Clinical Design Best Practices</h6>
+                    <ul class="text-muted small ps-3 mb-0" style="font-size: 12px; line-height: 1.6;">
+                        <li>Templates strictly follow medical advertising and social awareness standards.</li>
+                        <li>High contrast text ensures readability for elderly and mobile patients.</li>
+                        <li>Fonts and vectors export at 300 DPI for both social feeds and clinic flex boards.</li>
+                    </ul>
                 </div>
             </div>
         </div>
