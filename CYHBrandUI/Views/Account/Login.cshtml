@@ -8,7 +8,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Login — CYHBrand</title>
+    <title>Doctor Login — CYHBrand (Blazor Interactive)</title>
+    <base href="~/" />
     <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -47,11 +48,11 @@
             outline: none;
         }
         .pulse-highlight {
-            animation: otpPulse 0.5s ease-in-out;
+            animation: otpPulse 0.6s ease-in-out;
         }
         @@keyframes otpPulse {
             0% { transform: scale(1); border-color: #0EA5A0; }
-            50% { transform: scale(1.08); border-color: #10B981; background: rgba(16, 185, 129, 0.1); }
+            50% { transform: scale(1.08); border-color: #10B981; background: rgba(16, 185, 129, 0.12); }
             100% { transform: scale(1); border-color: #0EA5A0; }
         }
     </style>
@@ -88,466 +89,62 @@
         </div>
     </div>
 
-    <!-- ── Right Form Panel ── -->
-    <div class="cyh-login-right">
-        <div class="mb-4 d-lg-none text-center">
-            <div style="font-size:1.5rem;font-weight:800;color:#1B2B6B;">
-                <i class="bi bi-heart-pulse-fill" style="color:#0EA5A0;"></i> CYHBrand
-            </div>
-            <div class="text-muted small">Doctor Branding &amp; AI Banner Studio</div>
-        </div>
-
-        <div class="cyh-login-title">Doctor Portal</div>
-        <div class="cyh-login-subtitle">Welcome back! Choose your preferred login method.</div>
-
-        <!-- ── Dual Login Tab Switcher ── -->
-        <div class="d-flex p-1 bg-light rounded-pill mb-4 border" style="background:#F1F5F9;">
-            <button type="button" class="login-tab-btn flex-grow-1 active" id="tabPassword" onclick="switchLoginMode('password')">
-                <i class="bi bi-key-fill me-1"></i> Password
-            </button>
-            <button type="button" class="login-tab-btn flex-grow-1" id="tabOtp" onclick="switchLoginMode('otp')">
-                <i class="bi bi-phone-fill me-1"></i> Mobile / OTP
-            </button>
-        </div>
-
-        <!-- Anti-Forgery Token for secure fetch calls -->
-        @Html.AntiForgeryToken()
-
-        <!-- Global Alert Container -->
-        <div id="loginAlertBox" class="d-none alert rounded-3 py-2 mb-3" style="font-size:.85rem;"></div>
-
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger rounded-3 py-2 mb-3" style="font-size:.85rem;">
-                <i class="bi bi-exclamation-circle me-1"></i>
-                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
-            </div>
-        }
-
-        <!-- ══════════════════════════════════════════════════════════
-             MODE 1: STANDARD PASSWORD LOGIN FORM
-             ══════════════════════════════════════════════════════════ -->
-        <div id="passwordLoginForm">
-            <form asp-action="Login" asp-controller="Account" method="post" novalidate id="formPasswordAuth">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="returnUrl" value="@returnUrl" />
-
-                <div class="mb-3">
-                    <label class="cyh-form-label">Email or Mobile Number</label>
-                    <div class="position-relative">
-                        <i class="bi bi-person position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
-                        <input asp-for="Email" id="txtPasswordEmail" class="form-control cyh-form-control ps-5" placeholder="e.g. amit@gmail.com or 1234569879" autocomplete="username" />
-                    </div>
-                    <span asp-validation-for="Email" class="text-danger" style="font-size:.75rem;"></span>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="cyh-form-label mb-0">Password</label>
-                        <a href="javascript:void(0)" onclick="switchLoginMode('otp')" style="font-size:.78rem;color:#0EA5A0;">Login with OTP instead?</a>
-                    </div>
-                    <div class="position-relative">
-                        <i class="bi bi-lock position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
-                        <input asp-for="Password" type="password" class="form-control cyh-form-control ps-5" placeholder="••••••••" autocomplete="current-password" id="pwdField" />
-                        <button type="button" class="btn btn-link position-absolute p-0" style="right:12px;top:50%;transform:translateY(-50%);color:#94A3B8;" onclick="togglePwd()">
-                            <i class="bi bi-eye" id="eyeIcon"></i>
-                        </button>
-                    </div>
-                    <span asp-validation-for="Password" class="text-danger" style="font-size:.75rem;"></span>
-                </div>
-
-                <div class="mb-4 d-flex align-items-center gap-2">
-                    <input asp-for="RememberMe" class="form-check-input mt-0" type="checkbox" id="remMe" />
-                    <label for="remMe" style="font-size:.85rem;color:#64748B;cursor:pointer;">Remember me</label>
-                </div>
-
-                <button type="submit" class="btn btn-cyh-primary w-100 py-2 mb-3" style="font-size:.95rem;border-radius:10px;">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In with Password
-                </button>
-
-                <div class="text-center mb-3" style="font-size:.82rem;color:#94A3B8;">
-                    <span>— OR —</span>
-                </div>
-
-                <button type="button" class="btn btn-cyh-outline w-100 py-2 mb-4" style="border-radius:10px;font-size:.9rem;" onclick="switchLoginMode('otp')">
-                    <i class="bi bi-phone me-2" style="color:#0EA5A0;"></i>Login with OTP (Instant Auto-Feed)
-                </button>
-            </form>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════════════
-             MODE 2: SECURE OTP LOGIN WITH AUTO-FEED
-             ══════════════════════════════════════════════════════════ -->
-        <div id="otpLoginForm" class="d-none">
-            
-            <!-- STEP 1: Enter Mobile / Email -->
-            <div id="otpStep1">
-                <div class="mb-3">
-                    <label class="cyh-form-label">Registered Mobile Number or Email</label>
-                    <div class="position-relative">
-                        <i class="bi bi-phone position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
-                        <input type="text" id="otpIdentifierInput" class="form-control cyh-form-control ps-5" placeholder="e.g. 1234569879 or amit@gmail.com" />
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-1">
-                        <small class="text-muted" style="font-size:11px;">We will generate an OTP for your verification.</small>
-                        <a href="javascript:void(0)" onclick="quickFillDemo()" class="badge bg-light text-primary text-decoration-none border rounded-pill" style="font-size:10px;">
-                            <i class="bi bi-magic me-1"></i>Fill Test Doctor
-                        </a>
-                    </div>
-                </div>
-
-                <button type="button" id="btnSendOtp" class="btn btn-cyh-primary w-100 py-2 mb-3" style="font-size:.95rem;border-radius:10px;" onclick="handleSendOtp()">
-                    <span id="btnSendOtpSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
-                    <i class="bi bi-send-fill me-2" id="btnSendOtpIcon"></i>Get OTP
-                </button>
-            </div>
-
-            <!-- STEP 2: Enter & Auto-Feed OTP -->
-            <div id="otpStep2" class="d-none">
-
-                <!-- Auto Feed Live Alert Banner -->
-                <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 rounded-3 mb-3 border-0" 
-                     style="background: rgba(14, 165, 160, 0.12); border-left: 4px solid #0EA5A0 !important;">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-check-circle-fill fs-5" style="color:#0EA5A0;"></i>
-                        <div>
-                            <div class="small fw-bold text-dark">
-                                OTP Code: <span class="badge bg-dark font-monospace fs-6 px-2 py-1" id="liveOtpBadge">------</span>
-                            </div>
-                            <div class="text-muted" style="font-size: 11px;">Sent to <span id="otpTargetMasked">your account</span></div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-sm text-white rounded-pill px-3 shadow-sm fw-bold" id="btnAutoFeed" 
-                            style="background:#0EA5A0; font-size:12px;" onclick="executeAutoFeed()">
-                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Auto-Feed
-                    </button>
-                </div>
-
-                <div class="mb-3 text-center">
-                    <label class="cyh-form-label mb-2 d-block">Enter 6-Digit OTP</label>
-                    <div class="d-flex justify-content-center gap-2" id="otpDigitContainer">
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp1" inputmode="numeric" autocomplete="one-time-code" />
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp2" inputmode="numeric" />
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp3" inputmode="numeric" />
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp4" inputmode="numeric" />
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp5" inputmode="numeric" />
-                        <input type="text" maxlength="1" class="otp-input-box" id="otp6" inputmode="numeric" />
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <input class="form-check-input mt-0" type="checkbox" id="otpRemMe" checked />
-                        <label for="otpRemMe" style="font-size:.82rem;color:#64748B;cursor:pointer;">Remember me</label>
-                    </div>
-                    <span id="resendCountdown" class="text-muted small" style="font-size:12px;">Resend in <span id="timerCount">30</span>s</span>
-                    <a href="javascript:void(0)" id="btnResendOtp" class="d-none text-decoration-none fw-semibold small" style="color:#0EA5A0; font-size:12px;" onclick="handleSendOtp()">
-                        Resend OTP
-                    </a>
-                </div>
-
-                <button type="button" id="btnVerifyOtp" class="btn btn-cyh-primary w-100 py-2 mb-3" style="font-size:.95rem;border-radius:10px;" onclick="handleVerifyOtp()">
-                    <span id="btnVerifySpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
-                    <i class="bi bi-shield-check me-2" id="btnVerifyIcon"></i>Verify &amp; Login
-                </button>
-
-                <div class="text-center mb-3">
-                    <a href="javascript:void(0)" onclick="resetOtpStep()" class="text-muted text-decoration-none small">
-                        <i class="bi bi-arrow-left me-1"></i>Change Mobile / Email
-                    </a>
-                </div>
-            </div>
-
-            <div class="text-center mb-3" style="font-size:.82rem;color:#94A3B8;">
-                <span>— OR —</span>
-            </div>
-
-            <button type="button" class="btn btn-cyh-outline w-100 py-2 mb-4" style="border-radius:10px;font-size:.9rem;" onclick="switchLoginMode('password')">
-                <i class="bi bi-key me-2" style="color:#0EA5A0;"></i>Back to Password Login
-            </button>
-        </div>
-
-        <div class="text-center" style="font-size:.85rem;color:#64748B;">
-            Don't have an account?
-            <a asp-controller="Account" asp-action="Register" style="color:#0EA5A0;font-weight:600;">Register as Doctor</a>
-        </div>
-
-        <div class="text-center mt-3 pt-3 border-top">
-            <a href="/Admin/Account/Login" class="text-decoration-none text-muted" style="font-size:.78rem;">
-                <i class="bi bi-shield-lock-fill text-primary me-1"></i> Admin Portal Login
-            </a>
-        </div>
-    </div>
+    <!-- ── Right Form Panel (Hosted Blazor Interactive Component) ── -->
+    <component type="typeof(CYHBrandUI.Components.DoctorLoginComponent)" 
+               render-mode="ServerPrerendered" 
+               param-ReturnUrl="@returnUrl" />
 </div>
 
+<!-- Hidden Form for standard cookie establishment -->
+<form id="hiddenAuthForm" method="post" action="/Account/Login" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Email" id="hiddenEmail" />
+    <input type="hidden" name="Password" id="hiddenPassword" />
+    <input type="hidden" name="RememberMe" id="hiddenRememberMe" />
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+</form>
+
 <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="_framework/blazor.server.js"></script>
 <script>
-    let currentGeneratedOtp = "";
-    let resendInterval = null;
-    const returnUrl = "@Html.Raw(returnUrl)";
+    window.blazorAuthHelper = {
+        focusDigit: function (index) {
+            setTimeout(function () {
+                var el = document.getElementById('blazorOtp_' + index);
+                if (el) el.focus();
+            }, 50);
+        },
+        submitLogin: function (data) {
+            document.getElementById('hiddenEmail').value = data.email || '';
+            document.getElementById('hiddenPassword').value = data.password || '';
+            document.getElementById('hiddenRememberMe').value = data.rememberMe ? 'true' : 'false';
+            document.getElementById('hiddenAuthForm').submit();
+        },
+        submitVerifyOtp: async function (data) {
+            try {
+                var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                var token = tokenEl ? tokenEl.value : '';
 
-    function togglePwd() {
-        const f = document.getElementById('pwdField');
-        const i = document.getElementById('eyeIcon');
-        if (f.type === 'password') { f.type = 'text'; i.className = 'bi bi-eye-slash'; }
-        else { f.type = 'password'; i.className = 'bi bi-eye'; }
-    }
+                var resp = await fetch('/Account/VerifyOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(data)
+                });
 
-    function switchLoginMode(mode) {
-        hideAlert();
-        const tabPass = document.getElementById('tabPassword');
-        const tabOtp = document.getElementById('tabOtp');
-        const passForm = document.getElementById('passwordLoginForm');
-        const otpForm = document.getElementById('otpLoginForm');
-
-        if (mode === 'otp') {
-            tabPass.classList.remove('active');
-            tabOtp.classList.add('active');
-            passForm.classList.add('d-none');
-            otpForm.classList.remove('d-none');
-
-            // Sync email if entered in password form
-            const passEmail = document.getElementById('txtPasswordEmail').value;
-            const otpInput = document.getElementById('otpIdentifierInput');
-            if (passEmail && !otpInput.value) {
-                otpInput.value = passEmail;
-            }
-            otpInput.focus();
-        } else {
-            tabOtp.classList.remove('active');
-            tabPass.classList.add('active');
-            otpForm.classList.add('d-none');
-            passForm.classList.remove('d-none');
-            document.getElementById('txtPasswordEmail').focus();
-        }
-    }
-
-    function quickFillDemo() {
-        document.getElementById('otpIdentifierInput').value = '1234569879';
-        hideAlert();
-    }
-
-    function showAlert(msg, isSuccess) {
-        const box = document.getElementById('loginAlertBox');
-        box.className = 'alert rounded-3 py-2 mb-3 ' + (isSuccess ? 'alert-success' : 'alert-danger');
-        box.innerHTML = (isSuccess ? '<i class="bi bi-check-circle me-1"></i> ' : '<i class="bi bi-exclamation-circle me-1"></i> ') + msg;
-        box.classList.remove('d-none');
-    }
-
-    function hideAlert() {
-        const box = document.getElementById('loginAlertBox');
-        box.classList.add('d-none');
-    }
-
-    function getAntiForgeryToken() {
-        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-        return tokenInput ? tokenInput.value : '';
-    }
-
-    async function handleSendOtp() {
-        hideAlert();
-        const identifier = document.getElementById('otpIdentifierInput').value.trim();
-        if (!identifier) {
-            showAlert('Please enter your registered mobile number or email.', false);
-            document.getElementById('otpIdentifierInput').focus();
-            return;
-        }
-
-        const btn = document.getElementById('btnSendOtp');
-        const spinner = document.getElementById('btnSendOtpSpinner');
-        const icon = document.getElementById('btnSendOtpIcon');
-
-        btn.disabled = true;
-        spinner.classList.remove('d-none');
-        icon.classList.add('d-none');
-
-        try {
-            const resp = await fetch('/Account/SendOtp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': getAntiForgeryToken()
-                },
-                body: JSON.stringify({ identifier: identifier })
-            });
-
-            const data = await resp.json();
-            if (data.success) {
-                currentGeneratedOtp = data.otp;
-                document.getElementById('liveOtpBadge').textContent = data.otp;
-                document.getElementById('otpTargetMasked').textContent = identifier;
-
-                // Move to Step 2
-                document.getElementById('otpStep1').classList.add('d-none');
-                document.getElementById('otpStep2').classList.remove('d-none');
-
-                showAlert(data.message, true);
-                startResendTimer();
-
-                // ⚡ AUTO-FEED EXECUTION:
-                // Instantly auto-feed the 6-digit OTP with visual feedback
-                setTimeout(() => {
-                    executeAutoFeed();
-                }, 300);
-
-            } else {
-                showAlert(data.message || 'Unable to send OTP. Please try again.', false);
-            }
-        } catch (err) {
-            showAlert('Connection error. Please check your network and try again.', false);
-        } finally {
-            btn.disabled = false;
-            spinner.classList.add('d-none');
-            icon.classList.remove('d-none');
-        }
-    }
-
-    function executeAutoFeed() {
-        if (!currentGeneratedOtp || currentGeneratedOtp.length !== 6) return;
-        
-        for (let i = 0; i < 6; i++) {
-            const box = document.getElementById('otp' + (i + 1));
-            box.value = currentGeneratedOtp[i];
-            box.classList.add('pulse-highlight');
-        }
-
-        setTimeout(() => {
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById('otp' + i).classList.remove('pulse-highlight');
-            }
-        }, 600);
-
-        document.getElementById('otp6').focus();
-    }
-
-    function resetOtpStep() {
-        hideAlert();
-        clearInterval(resendInterval);
-        document.getElementById('otpStep2').classList.add('d-none');
-        document.getElementById('otpStep1').classList.remove('d-none');
-        for (let i = 1; i <= 6; i++) {
-            document.getElementById('otp' + i).value = '';
-        }
-    }
-
-    function startResendTimer() {
-        clearInterval(resendInterval);
-        let sec = 30;
-        const countSpan = document.getElementById('timerCount');
-        const countdownEl = document.getElementById('resendCountdown');
-        const resendBtn = document.getElementById('btnResendOtp');
-
-        countdownEl.classList.remove('d-none');
-        resendBtn.classList.add('d-none');
-        countSpan.textContent = sec;
-
-        resendInterval = setInterval(() => {
-            sec--;
-            countSpan.textContent = sec;
-            if (sec <= 0) {
-                clearInterval(resendInterval);
-                countdownEl.classList.add('d-none');
-                resendBtn.classList.remove('d-none');
-            }
-        }, 1000);
-    }
-
-    async function handleVerifyOtp() {
-        hideAlert();
-        const identifier = document.getElementById('otpIdentifierInput').value.trim();
-        let enteredOtp = '';
-        for (let i = 1; i <= 6; i++) {
-            enteredOtp += document.getElementById('otp' + i).value.trim();
-        }
-
-        if (enteredOtp.length < 6) {
-            showAlert('Please enter the complete 6-digit OTP code.', false);
-            return;
-        }
-
-        const btn = document.getElementById('btnVerifyOtp');
-        const spinner = document.getElementById('btnVerifySpinner');
-        const icon = document.getElementById('btnVerifyIcon');
-        const remMe = document.getElementById('otpRemMe').checked;
-
-        btn.disabled = true;
-        spinner.classList.remove('d-none');
-        icon.classList.add('d-none');
-
-        try {
-            const resp = await fetch('/Account/VerifyOtp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': getAntiForgeryToken()
-                },
-                body: JSON.stringify({
-                    identifier: identifier,
-                    otp: enteredOtp,
-                    rememberMe: remMe,
-                    returnUrl: returnUrl
-                })
-            });
-
-            const data = await resp.json();
-            if (data.success) {
-                showAlert(data.message, true);
-                setTimeout(() => {
-                    window.location.href = data.redirectUrl || '/';
-                }, 600);
-            } else {
-                showAlert(data.message || 'OTP verification failed. Please check the code.', false);
-                btn.disabled = false;
-                spinner.classList.add('d-none');
-                icon.classList.remove('d-none');
-            }
-        } catch (err) {
-            showAlert('Verification request failed. Please try again.', false);
-            btn.disabled = false;
-            spinner.classList.add('d-none');
-            icon.classList.remove('d-none');
-        }
-    }
-
-    // OTP Digit Inputs auto-focus & paste handlers
-    document.addEventListener('DOMContentLoaded', function () {
-        const boxes = [
-            document.getElementById('otp1'),
-            document.getElementById('otp2'),
-            document.getElementById('otp3'),
-            document.getElementById('otp4'),
-            document.getElementById('otp5'),
-            document.getElementById('otp6')
-        ];
-
-        boxes.forEach((box, index) => {
-            box.addEventListener('input', function (e) {
-                const val = this.value;
-                if (val.length === 1 && index < 5) {
-                    boxes[index + 1].focus();
+                var res = await resp.json();
+                if (res.success) {
+                    window.location.href = res.redirectUrl || '/';
+                } else {
+                    alert(res.message || 'OTP verification failed.');
                 }
-            });
-
-            box.addEventListener('keydown', function (e) {
-                if (e.key === 'Backspace' && !this.value && index > 0) {
-                    boxes[index - 1].focus();
-                } else if (e.key === 'Enter') {
-                    handleVerifyOtp();
-                }
-            });
-
-            box.addEventListener('paste', function (e) {
-                e.preventDefault();
-                const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
-                if (/^\d{6}$/.test(pasteData)) {
-                    for (let i = 0; i < 6; i++) {
-                        boxes[i].value = pasteData[i];
-                    }
-                    boxes[5].focus();
-                }
-            });
-        });
-    });
+            } catch (err) {
+                alert('Connection error during verification.');
+            }
+        }
+    };
 </script>
 </body>
 </html>

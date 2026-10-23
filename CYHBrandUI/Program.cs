@@ -101,6 +101,7 @@ try
 
     // ── In-Memory Cache (templates, categories, dashboard stats) ──────────────
     builder.Services.AddMemoryCache();
+    builder.Services.AddServerSideBlazor();
 
     // ── Response Compression (Disabled in Development to prevent Browser Link hangs) ──
     if (!builder.Environment.IsDevelopment())
@@ -146,6 +147,7 @@ try
 
     app.MapControllerRoute("areas",   "{area:exists}/{controller=Home}/{action=Index}/{id?}");
     app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+    app.MapBlazorHub();
 
     app.Run();
 }
