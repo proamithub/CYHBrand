@@ -1,0 +1,90 @@
+@model CYHBrandModel.DTO.BannerTemplateDTO
+@{
+    ViewData["Title"] = "Template Catalog";
+    var activeCategory = Model?.CategoryId.HasValue == true ? Model.CategoryId.Value.ToString() : "";
+    var currentOrientation = Model?.Orientation ?? "";
+}
+
+<div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+    <div class="card-body p-3 p-md-4">
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold text-dark mb-1">Medical Template Library</h5>
+                <p class="text-muted small mb-0">Total @(Model?.TotalRecords ?? 0) pre-configured medical design templates</p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="/Template" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Public Catalog View
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="get" asp-action="Index" class="row g-2 align-items-center mb-4">
+            <div class="col-md-5">
+                <input type="text" name="searchKey" value="@Model?.SearchKey" class="form-control rounded-pill bg-light" placeholder="Search templates..." />
+            </div>
+            <div class="col-md-4">
+                <select name="orientation" class="form-select rounded-pill bg-light">
+                    <option value="">All Orientations</option>
+                    <option value="Square" selected="@(currentOrientation == "Square")">Square (1:1)</option>
+                    <option value="Portrait" selected="@(currentOrientation == "Portrait")">Portrait / Story (9:16)</option>
+                    <option value="Landscape" selected="@(currentOrientation == "Landscape")">Landscape (16:9)</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1">Filter</button>
+                @if (!string.IsNullOrEmpty(Model?.SearchKey) || !string.IsNullOrEmpty(Model?.Orientation))
+                {
+                    <a href="/Admin/Templates" class="btn btn-outline-secondary rounded-pill px-3"><i class="bi bi-x"></i></a>
+                }
+            </div>
+        </form>
+
+        <!-- Template Cards Grid -->
+        @if (Model?.TemplateList?.Any() == true)
+        {
+            <div class="row g-3">
+                @foreach (var t in Model.TemplateList)
+                {
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <div class="card h-100 border rounded-4 overflow-hidden shadow-none bg-light bg-opacity-25">
+                            <div class="position-relative d-flex align-items-center justify-content-center p-2" 
+                                 style="aspect-ratio: 1/1; background: #071126;">
+                                <img src="@t.ThumbnailPath" alt="@t.TemplateName" class="w-100 h-100 rounded-3" style="object-fit: contain;" />
+                                <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-3 small rounded-pill">
+                                    @t.Orientation
+                                </span>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-primary-subtle text-primary border rounded-pill" style="font-size: 10px;">
+                                        @(t.CategoryName ?? "Clinical")
+                                    </span>
+                                    <small class="text-muted" style="font-size: 11px;">@t.UsageCount uses</small>
+                                </div>
+                                <h6 class="fw-bold text-dark text-truncate mb-1" title="@t.TemplateName">@t.TemplateName</h6>
+                                <small class="text-muted font-monospace d-block mb-3" style="font-size: 11px;">
+                                    @(t.WidthPx) × @(t.HeightPx) px
+                                </small>
+                                <a href="/Template/Preview/@(t.EncId ?? t.TemplateId.ToString())" target="_blank" class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+                                    <i class="bi bi-eye me-1"></i> Preview Asset
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-grid text-muted fs-1 mb-2"></i>
+                <h6 class="text-dark fw-bold">No Templates Found</h6>
+                <p class="text-muted small">Try modifying search filters.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Executive Dashboard";
+    var doctors = ViewBag.RecentDoctors as List<CYHBrandModel.DTO.DoctorMasterDTO> ?? new();
+    var templates = ViewBag.RecentTemplates as List<CYHBrandModel.DTO.BannerTemplateDTO> ?? new();
+}
+
+<!-- ── STATS KPI CARDS ── -->
+<div class="row g-3 mb-4">
+    <!-- Total Doctors -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-bold text-uppercase">Total Doctors</span>
+                <div class="rounded-3 p-2 bg-primary-subtle text-primary">
+                    <i class="bi bi-people-fill fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@ViewBag.TotalDoctors</h3>
+            <div class="d-flex align-items-center text-success small">
+                <i class="bi bi-patch-check-fill me-1"></i> Verified Practitioner Accounts
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Templates -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-bold text-uppercase">Live Templates</span>
+                <div class="rounded-3 p-2 text-teal" style="background: rgba(14, 165, 160, 0.15);">
+                    <i class="bi bi-grid-1x2-fill fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@ViewBag.TotalTemplates</h3>
+            <div class="d-flex align-items-center text-muted small">
+                <i class="bi bi-tags me-1"></i> Across @ViewBag.TotalCategories Clinical Categories
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Designs Created -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-bold text-uppercase">Banners Generated</span>
+                <div class="rounded-3 p-2 bg-warning-subtle text-warning">
+                    <i class="bi bi-stars fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">@ViewBag.TotalDesigns</h3>
+            <div class="d-flex align-items-center text-warning small">
+                <i class="bi bi-lightning-charge-fill me-1"></i> Canvas &amp; AI Studio Outputs
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-bold text-uppercase">Platform Health</span>
+                <div class="rounded-3 p-2 bg-success-subtle text-success">
+                    <i class="bi bi-activity fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-success mb-1">99.98%</h3>
+            <div class="d-flex align-items-center text-muted small">
+                <i class="bi bi-shield-check text-success me-1"></i> All Services Operational
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MAIN CONTENT GRID ── -->
+<div class="row g-4 mb-4">
+    <!-- Left: Recent Doctors Table -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold text-dark mb-0">Registered Doctors</h6>
+                    <small class="text-muted">Latest practitioner accounts on the platform</small>
+                </div>
+                <a href="/Admin/Doctors" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    View All Doctors <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body px-4 pb-4 pt-2">
+                @if (doctors.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small">
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Specialty &amp; Clinic</th>
+                                    <th>Contact</th>
+                                    <th>Credits</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in doctors)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 12px;">
+                                                    DR
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold text-dark">@(d.DisplayName ?? d.FullName)</div>
+                                                    <small class="text-muted font-monospace" style="font-size: 11px;">#DOC-@d.DoctorId</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="small fw-medium text-dark">@(d.Specialty ?? "General Physician")</div>
+                                            <small class="text-muted">@(d.ClinicName ?? "Clinic")</small>
+                                        </td>
+                                        <td>
+                                            <div class="small">@d.Email</div>
+                                            <small class="text-muted">@d.MobileNo</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill">
+                                                <i class="bi bi-coin text-warning me-1"></i>@d.AiCredits
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (d.IsActive)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Inactive</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">No doctors found.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Quick Actions & Live Templates -->
+    <div class="col-lg-4">
+        <!-- Quick Action Panel -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Operations</h6>
+                <div class="d-grid gap-2">
+                    <a href="/Admin/Doctors" class="btn btn-light border text-start rounded-3 p-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-people text-primary fs-5"></i>
+                        <div>
+                            <div class="fw-semibold small text-dark">Manage Doctors</div>
+                            <small class="text-muted" style="font-size: 11px;">Toggle account access &amp; allocate credits</small>
+                        </div>
+                    </a>
+                    <a href="/Admin/Templates" class="btn btn-light border text-start rounded-3 p-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-3x3 text-teal fs-5"></i>
+                        <div>
+                            <div class="fw-semibold small text-dark">Manage Templates</div>
+                            <small class="text-muted" style="font-size: 11px;">Browse &amp; audit medical canvas presets</small>
+                        </div>
+                    </a>
+                    <a href="/Template" target="_blank" class="btn btn-light border text-start rounded-3 p-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-eye text-info fs-5"></i>
+                        <div>
+                            <div class="fw-semibold small text-dark">Doctor Template Portal</div>
+                            <small class="text-muted" style="font-size: 11px;">View live public template catalog</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Templates Mini-List -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">Recent Presets</h6>
+                <a href="/Admin/Templates" class="small text-primary text-decoration-none">View All</a>
+            </div>
+            <div class="card-body p-4 pt-1">
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var t in templates)
+                    {
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-3 border bg-light bg-opacity-50">
+                            <img src="@t.ThumbnailPath" alt="@t.TemplateName" class="rounded-2 shadow-sm" style="width: 48px; height: 48px; object-fit: cover; background: #0B1B3D;" />
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-bold text-dark text-truncate small" title="@t.TemplateName">@t.TemplateName</div>
+                                <div class="d-flex gap-2 text-muted" style="font-size: 11px;">
+                                    <span><i class="bi bi-aspect-ratio me-1"></i>@t.Orientation</span>
+                                    <span>•</span>
+                                    <span>@t.UsageCount uses</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

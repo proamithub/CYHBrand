@@ -1,0 +1,151 @@
+@model CYHBrandModel.DTO.LoginDTO
+@{
+    Layout = null;
+    var returnUrl = ViewBag.ReturnUrl as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Portal Login — CYHBrand</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #071126 0%, #0B1B3D 50%, #152852 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .admin-login-card {
+            width: 100%;
+            max-width: 440px;
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-login-header {
+            background: linear-gradient(135deg, #0B1B3D 0%, #1A3365 100%);
+            padding: 2.2rem 2rem;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+        .admin-badge {
+            background: rgba(14, 165, 160, 0.2);
+            color: #2DD4BF;
+            border: 1px solid rgba(14, 165, 160, 0.4);
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .form-control:focus {
+            border-color: #0EA5A0;
+            box-shadow: 0 0 0 4px rgba(14, 165, 160, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-login-card">
+        <!-- Card Header -->
+        <div class="admin-login-header">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow"
+                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #0EA5A0, #0284C7);">
+                <i class="bi bi-shield-lock-fill fs-2 text-white"></i>
+            </div>
+            <h4 class="fw-bold text-white mb-1">CYHBrand Admin</h4>
+            <span class="badge admin-badge rounded-pill px-3 py-1 text-uppercase">
+                <i class="bi bi-lock-fill me-1"></i> Control Center
+            </span>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-4 p-md-5">
+            <div class="text-center mb-4">
+                <h5 class="fw-bold text-dark mb-1">Administrator Sign In</h5>
+                <p class="text-muted small mb-0">Authorized management personnel only</p>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger rounded-3 py-2 mb-3" style="font-size:.85rem;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                </div>
+            }
+
+            <form asp-area="Admin" asp-controller="Account" asp-action="Login" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                <!-- Email Input -->
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Admin Email or Mobile</label>
+                    <div class="position-relative">
+                        <i class="bi bi-envelope-fill position-absolute" style="left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
+                        <input asp-for="Email" id="adminEmail" class="form-control rounded-pill ps-5 py-2" placeholder="admin@cyhbrand.com" autocomplete="username" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- Password Input -->
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Password</label>
+                    <div class="position-relative">
+                        <i class="bi bi-key-fill position-absolute" style="left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
+                        <input asp-for="Password" id="adminPassword" type="password" class="form-control rounded-pill ps-5 py-2" placeholder="••••••••" autocomplete="current-password" />
+                        <button type="button" class="btn btn-link position-absolute p-0" style="right:14px;top:50%;transform:translateY(-50%);color:#94A3B8;" onclick="togglePwd()">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="remMe" checked />
+                        <label class="form-check-label text-muted small" for="remMe">Keep signed in</label>
+                    </div>
+
+                    <a href="javascript:void(0)" onclick="quickFillAdmin()" class="text-primary text-decoration-none small fw-semibold">
+                        <i class="bi bi-lightning-fill text-warning me-1"></i>Fill Demo Admin
+                    </a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill shadow-sm fw-bold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Authenticate &amp; Enter Console
+                </button>
+            </form>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <a href="/Account/Login" class="text-muted text-decoration-none small">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Doctor Portal Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePwd() {
+            const f = document.getElementById('adminPassword');
+            const i = document.getElementById('eyeIcon');
+            if (f.type === 'password') { f.type = 'text'; i.className = 'bi bi-eye-slash'; }
+            else { f.type = 'password'; i.className = 'bi bi-eye'; }
+        }
+
+        function quickFillAdmin() {
+            document.getElementById('adminEmail').value = 'admin@cyhbrand.com';
+            document.getElementById('adminPassword').value = '123456';
+        }
+    </script>
+</body>
+</html>
