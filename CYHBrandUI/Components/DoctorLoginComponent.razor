@@ -99,8 +99,8 @@
                 <label for="blazorRemMe" style="font-size:.85rem;color:#64748B;cursor:pointer;">Remember me</label>
             </div>
 
-            <button type="button" class="btn btn-cyh-primary w-100 py-2 mb-3" 
-                    style="font-size:.95rem;border-radius:10px;" 
+            <button type="button" class="btn btn-shiny w-100 py-2 mb-3 rounded-pill fw-bold shadow-sm" 
+                    style="font-size:.95rem;" 
                     disabled="@isSubmitting"
                     @onclick="SubmitPasswordLogin">
                 @if (isSubmitting)
@@ -119,8 +119,8 @@
                 <span>— OR —</span>
             </div>
 
-            <button type="button" class="btn btn-cyh-outline w-100 py-2 mb-4" 
-                    style="border-radius:10px;font-size:.9rem;" 
+            <button type="button" class="btn btn-outline-secondary w-100 py-2 mb-4 rounded-pill fw-semibold" 
+                    style="font-size:.9rem;" 
                     @onclick="@(() => SwitchMode("otp"))">
                 <i class="bi bi-phone me-2" style="color:#0EA5A0;"></i>
                 <span>Login with OTP (Instant Auto-Feed)</span>
@@ -156,8 +156,8 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-cyh-primary w-100 py-2 mb-3" 
-                        style="font-size:.95rem;border-radius:10px;" 
+                <button type="button" class="btn btn-shiny w-100 py-2 mb-3 rounded-pill fw-bold shadow-sm" 
+                        style="font-size:.95rem;" 
                         disabled="@isSendingOtp" 
                         @onclick="SendOtp">
                     @if (isSendingOtp)
@@ -226,8 +226,8 @@
                     }
                 </div>
 
-                <button type="button" class="btn btn-cyh-primary w-100 py-2 mb-3" 
-                        style="font-size:.95rem;border-radius:10px;" 
+                <button type="button" class="btn btn-shiny w-100 py-2 mb-3 rounded-pill fw-bold shadow-sm" 
+                        style="font-size:.95rem;" 
                         disabled="@isVerifyingOtp" 
                         @onclick="VerifyOtp">
                     @if (isVerifyingOtp)
@@ -253,8 +253,8 @@
                 <span>— OR —</span>
             </div>
 
-            <button type="button" class="btn btn-cyh-outline w-100 py-2 mb-4" 
-                    style="border-radius:10px;font-size:.9rem;" 
+            <button type="button" class="btn btn-outline-secondary w-100 py-2 mb-4 rounded-pill fw-semibold" 
+                    style="font-size:.9rem;" 
                     @onclick="@(() => SwitchMode("password"))">
                 <i class="bi bi-key me-2" style="color:#0EA5A0;"></i>
                 <span>Back to Password Login</span>

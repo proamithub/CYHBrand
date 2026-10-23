@@ -8,12 +8,305 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Login — CYHBrand (Blazor Interactive)</title>
+    <title>Doctor Login — CYHBrand Clinical Studio</title>
     <base href="~/" />
     <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
+        /* ══════════════════════════════════════════════════════════
+           MEDICAL LOGIN FULLSCREEN WRAPPER
+           ══════════════════════════════════════════════════════════ */
+        * { box-sizing: border-box; }
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #060D1E;
+            overflow-x: hidden;
+        }
+
+        .med-login-root {
+            min-height: 100vh;
+            display: flex;
+            background: #060D1E;
+            position: relative;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           LEFT SIDE: ANIMATED MEDICAL CANVAS & DYNAMICS
+           ══════════════════════════════════════════════════════════ */
+        .med-left-panel {
+            flex: 1.15;
+            position: relative;
+            background: linear-gradient(135deg, #050C1A 0%, #0A1931 50%, #0C2340 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 48px;
+            color: #fff;
+            overflow: hidden;
+            border-right: 1px solid rgba(14, 165, 160, 0.2);
+        }
+
+        /* Ambient Glowing Background Orbs */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.45;
+            animation: orbFloat 14s ease-in-out infinite alternate;
+        }
+        .orb-teal {
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(14, 165, 160, 0.5) 0%, transparent 70%);
+            top: -60px;
+            left: -60px;
+        }
+        .orb-blue {
+            width: 440px;
+            height: 440px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, transparent 70%);
+            bottom: -80px;
+            right: -80px;
+            animation-duration: 18s;
+            animation-delay: -5s;
+        }
+        .orb-navy {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            top: 45%;
+            left: 30%;
+            animation-duration: 22s;
+            animation-delay: -10s;
+        }
+        @@keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.1); }
+            100% { transform: translate(-30px, 40px) scale(0.95); }
+        }
+
+        /* Medical Grid Overlay */
+        .med-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 160, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 160, 0.05) 1px, transparent 1px);
+            background-size: 36px 36px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Floating Medical Plus & Cross Particles */
+        .med-particle {
+            position: absolute;
+            color: rgba(14, 165, 160, 0.3);
+            font-weight: 900;
+            user-select: none;
+            pointer-events: none;
+            z-index: 2;
+            animation: particleDrift 8s ease-in-out infinite;
+        }
+        .particle-1 { top: 18%; left: 12%; font-size: 24px; animation-duration: 7s; }
+        .particle-2 { top: 32%; right: 18%; font-size: 16px; animation-duration: 9s; animation-delay: -2s; color: rgba(56, 189, 248, 0.35); }
+        .particle-3 { bottom: 25%; left: 22%; font-size: 20px; animation-duration: 11s; animation-delay: -4s; }
+        .particle-4 { bottom: 40%; right: 10%; font-size: 28px; animation-duration: 8s; animation-delay: -1s; color: rgba(16, 185, 129, 0.25); }
+
+        @@keyframes particleDrift {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(45deg) scale(1.2); opacity: 0.7; }
+        }
+
+        /* Central Animated ECG Oscilloscope Display */
+        .ecg-monitor-box {
+            position: relative;
+            z-index: 3;
+            background: rgba(7, 18, 38, 0.75);
+            border: 1px solid rgba(14, 165, 160, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(14, 165, 160, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            margin: 24px 0;
+            overflow: hidden;
+        }
+
+        .ecg-monitor-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #0EA5A0, #38BDF8, transparent);
+        }
+
+        /* ECG Wave SVG Animation */
+        .ecg-svg-track {
+            width: 100%;
+            height: 90px;
+            overflow: visible;
+        }
+        .ecg-grid-lines {
+            stroke: rgba(14, 165, 160, 0.12);
+            stroke-width: 1;
+        }
+        .ecg-wave-path {
+            fill: none;
+            stroke: #0EA5A0;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 800;
+            stroke-dashoffset: 800;
+            animation: ecgFlow 3.5s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(14, 165, 160, 0.8));
+        }
+        @@keyframes ecgFlow {
+            0% { stroke-dashoffset: 800; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        /* Blinking / Traveling Pulse Light on ECG */
+        .ecg-beam-glow {
+            position: absolute;
+            width: 120px;
+            height: 100%;
+            top: 0;
+            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.25), rgba(14, 165, 160, 0.4), transparent);
+            animation: beamScan 3.5s linear infinite;
+            pointer-events: none;
+        }
+        @@keyframes beamScan {
+            0% { left: -120px; }
+            100% { left: 100%; }
+        }
+
+        /* Rotating Floating DNA Molecule */
+        .dna-float-widget {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+        @@keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Pulsing Radar Sonar Waves around Heart */
+        .sonar-heart-container {
+            position: relative;
+            width: 68px;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sonar-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1.5px solid rgba(14, 165, 160, 0.6);
+            animation: sonarWave 2.8s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+            pointer-events: none;
+        }
+        .sonar-ring:nth-child(2) { animation-delay: 0.9s; }
+        .sonar-ring:nth-child(3) { animation-delay: 1.8s; }
+        @@keyframes sonarWave {
+            0% { transform: scale(0.6); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        .sonar-heart-core {
+            position: relative;
+            z-index: 2;
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #0EA5A0 0%, #0284C7 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.6rem;
+            box-shadow: 0 0 24px rgba(14, 165, 160, 0.6);
+            animation: heartbeatBeep 1.4s ease-in-out infinite;
+        }
+        @@keyframes heartbeatBeep {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.12); }
+            70% { transform: scale(1); }
+        }
+
+        /* Feature Pills at Bottom */
+        .med-feature-pills {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            z-index: 3;
+            position: relative;
+        }
+        .med-pill-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+        .med-pill-item:hover {
+            background: rgba(14, 165, 160, 0.12);
+            border-color: rgba(14, 165, 160, 0.35);
+            transform: translateY(-2px);
+        }
+        .med-pill-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(14, 165, 160, 0.15);
+            color: #38BDF8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           RIGHT SIDE: LUXURY GLASSMORPHISM LOGIN CARD
+           ══════════════════════════════════════════════════════════ */
+        .med-right-panel {
+            flex: 0.95;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .med-login-card-container {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        /* Tab Switcher */
         .login-tab-btn {
             border: none;
             background: transparent;
@@ -21,19 +314,22 @@
             font-weight: 600;
             color: #64748B;
             border-radius: 50rem;
-            padding: .45rem 1rem;
+            padding: .5rem 1.2rem;
             transition: all .2s ease;
         }
         .login-tab-btn.active {
-            background: #fff;
-            color: #1B2B6B;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: #FFFFFF;
+            color: #0B1B3D;
+            box-shadow: 0 4px 12px rgba(11, 27, 61, 0.08);
+            font-weight: 700;
         }
+
+        /* OTP Input Boxes */
         .otp-input-box {
-            width: 46px;
-            height: 52px;
+            width: 48px;
+            height: 54px;
             text-align: center;
-            font-size: 1.4rem;
+            font-size: 1.45rem;
             font-weight: 700;
             border: 2px solid #E2E8F0;
             border-radius: 12px;
@@ -43,8 +339,8 @@
         }
         .otp-input-box:focus {
             border-color: #0EA5A0;
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(14, 165, 160, 0.15);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(14, 165, 160, 0.18);
             outline: none;
         }
         .pulse-highlight {
@@ -55,44 +351,192 @@
             50% { transform: scale(1.08); border-color: #10B981; background: rgba(16, 185, 129, 0.12); }
             100% { transform: scale(1); border-color: #0EA5A0; }
         }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 991.98px) {
+            .med-login-root {
+                flex-direction: column;
+            }
+            .med-left-panel {
+                padding: 32px 20px;
+                min-height: auto;
+            }
+            .med-right-panel {
+                padding: 36px 20px;
+            }
+            .med-feature-pills {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body style="margin:0;padding:0;">
+<body>
 
-<div class="cyh-login-page">
-    <!-- ── Left Branding Panel ── -->
-    <div class="cyh-login-left">
-        <div class="cyh-login-logo">
-            <i class="bi bi-heart-pulse-fill" style="color:#0EA5A0;"></i> CYHBrand
+<div class="med-login-root">
+    <!-- ══════════════════════════════════════════════════════════
+         LEFT PANEL: ANIMATED MEDICAL MOVEMENT & VITAL MONITOR
+         ══════════════════════════════════════════════════════════ -->
+    <div class="med-left-panel">
+        <!-- Ambient Glowing Background Blobs -->
+        <div class="ambient-orb orb-teal"></div>
+        <div class="ambient-orb orb-blue"></div>
+        <div class="ambient-orb orb-navy"></div>
+        <div class="med-grid-bg"></div>
+
+        <!-- Floating Medical Particles -->
+        <div class="med-particle particle-1"><i class="bi bi-plus-lg"></i></div>
+        <div class="med-particle particle-2"><i class="bi bi-plus-lg"></i></div>
+        <div class="med-particle particle-3"><i class="bi bi-plus-lg"></i></div>
+        <div class="med-particle particle-4"><i class="bi bi-plus-lg"></i></div>
+
+        <!-- ── Top Header Brand ── -->
+        <div class="d-flex align-items-center justify-content-between position-relative" style="z-index: 3;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="sonar-heart-container">
+                    <div class="sonar-ring"></div>
+                    <div class="sonar-ring"></div>
+                    <div class="sonar-ring"></div>
+                    <div class="sonar-heart-core">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">CYH<span style="color:#0EA5A0;">Brand</span></h3>
+                    <div class="text-white-50 small">Doctor Branding &amp; AI Clinical Studio</div>
+                </div>
+            </div>
+
+            <!-- Floating DNA / Live Telemetry Pill -->
+            <div class="dna-float-widget d-none d-md-flex">
+                <span class="badge bg-success rounded-circle p-1" style="width:8px;height:8px;"></span>
+                <span class="small fw-semibold text-white">Live Clinical Telemetry</span>
+                <i class="bi bi-activity text-teal ms-1"></i>
+            </div>
         </div>
-        <div class="cyh-login-tagline">
-            Doctor Branding &amp; AI Banner Studio<br>
-            <small style="font-size:.8rem;opacity:.65;">Build Your Brand · Share Your Knowledge · Make a Healthier World</small>
+
+        <!-- ── Middle Section: Live Animated ECG Oscilloscope Screen ── -->
+        <div class="ecg-monitor-box">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 small">
+                        <i class="bi bi-record-circle-fill me-1"></i> LIVE MONITOR
+                    </span>
+                    <span class="text-white-50 small font-monospace">LEAD-II • NORMAL SINUS</span>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-white">
+                    <div>
+                        <span class="text-white-50" style="font-size: 11px;">HR:</span>
+                        <strong class="text-teal fs-6 font-monospace ms-1">72</strong>
+                        <small class="text-white-50" style="font-size: 10px;">BPM</small>
+                    </div>
+                    <div>
+                        <span class="text-white-50" style="font-size: 11px;">SpO2:</span>
+                        <strong class="text-info fs-6 font-monospace ms-1">99%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animated Continuous SVG ECG Waveform -->
+            <div class="position-relative overflow-hidden rounded-3" style="background: rgba(3, 10, 22, 0.9); border: 1px solid rgba(14,165,160,0.15);">
+                <div class="ecg-beam-glow"></div>
+                <svg viewBox="0 0 600 100" class="ecg-svg-track" preserveAspectRatio="none">
+                    <defs>
+                        <pattern id="ecgGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" class="ecg-grid-lines" />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#ecgGrid)" />
+
+                    <!-- Medical Continuous ECG Rhythm Path -->
+                    <path class="ecg-wave-path" d="
+                        M 0 50
+                        L 50 50
+                        L 60 50
+                        L 70 42
+                        L 80 50
+                        L 95 50
+                        L 105 58
+                        L 115 15
+                        L 125 88
+                        L 135 50
+                        L 155 50
+                        L 170 38
+                        L 185 50
+                        L 240 50
+                        L 250 42
+                        L 260 50
+                        L 275 50
+                        L 285 58
+                        L 295 15
+                        L 305 88
+                        L 315 50
+                        L 335 50
+                        L 350 38
+                        L 365 50
+                        L 420 50
+                        L 430 42
+                        L 440 50
+                        L 455 50
+                        L 465 58
+                        L 475 15
+                        L 485 88
+                        L 495 50
+                        L 515 50
+                        L 530 38
+                        L 545 50
+                        L 600 50" />
+                </svg>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-2 pt-1 text-white-50" style="font-size: 11px;">
+                <span><i class="bi bi-shield-check text-teal me-1"></i> 256-Bit Encrypted Clinical Gateway</span>
+                <span>Speed: 25 mm/s • Voltage: 10 mm/mV</span>
+            </div>
         </div>
-        <div class="cyh-login-features">
-            <div class="cyh-login-feature">
-                <div class="cyh-login-feature-icon"><i class="bi bi-stars"></i></div>
-                <div class="cyh-login-feature-text">AI Banner<br>Creation</div>
+
+        <!-- ── Bottom Medical Features ── -->
+        <div class="med-feature-pills">
+            <div class="med-pill-item">
+                <div class="med-pill-icon"><i class="bi bi-stars"></i></div>
+                <div>
+                    <div class="fw-bold text-white small">AI Banner Engine</div>
+                    <div class="text-white-50" style="font-size: 11px;">1-Click Patient Awareness Posts</div>
+                </div>
             </div>
-            <div class="cyh-login-feature">
-                <div class="cyh-login-feature-icon"><i class="bi bi-grid-1x2"></i></div>
-                <div class="cyh-login-feature-text">Ready<br>Templates</div>
+            <div class="med-pill-item">
+                <div class="med-pill-icon"><i class="bi bi-patch-check-fill text-warning"></i></div>
+                <div>
+                    <div class="fw-bold text-white small">Verified Doctor Badge</div>
+                    <div class="text-white-50" style="font-size: 11px;">Official Clinic Credentials</div>
+                </div>
             </div>
-            <div class="cyh-login-feature">
-                <div class="cyh-login-feature-icon"><i class="bi bi-share"></i></div>
-                <div class="cyh-login-feature-text">Social Media<br>Sharing</div>
+            <div class="med-pill-item">
+                <div class="med-pill-icon"><i class="bi bi-grid-1x2-fill"></i></div>
+                <div>
+                    <div class="fw-bold text-white small">Curated Templates</div>
+                    <div class="text-white-50" style="font-size: 11px;">Cardio, Dental, Flu &amp; More</div>
+                </div>
             </div>
-            <div class="cyh-login-feature">
-                <div class="cyh-login-feature-icon"><i class="bi bi-calendar-check"></i></div>
-                <div class="cyh-login-feature-text">Schedule<br>Posts</div>
+            <div class="med-pill-item">
+                <div class="med-pill-icon"><i class="bi bi-calendar3"></i></div>
+                <div>
+                    <div class="fw-bold text-white small">Auto Social Scheduler</div>
+                    <div class="text-white-50" style="font-size: 11px;">WhatsApp, FB, Insta &amp; LinkedIn</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ── Right Form Panel (Hosted Blazor Interactive Component) ── -->
-    <component type="typeof(CYHBrandUI.Components.DoctorLoginComponent)" 
-               render-mode="ServerPrerendered" 
-               param-ReturnUrl="@returnUrl" />
+    <!-- ══════════════════════════════════════════════════════════
+         RIGHT PANEL: DOCTOR LOGIN BLZ COMPONENT
+         ══════════════════════════════════════════════════════════ -->
+    <div class="med-right-panel">
+        <div class="med-login-card-container">
+            <component type="typeof(CYHBrandUI.Components.DoctorLoginComponent)" 
+                       render-mode="ServerPrerendered" 
+                       param-ReturnUrl="@returnUrl" />
+        </div>
+    </div>
 </div>
 
 <!-- Hidden Form for standard cookie establishment -->
