@@ -7,8 +7,31 @@
 @implements IDisposable
 
 <div class="medexp-form-container">
+    <!-- Header with 3D Doctor Branding Badge -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <img src="/images/cyhbrand_logo.png" alt="CYHBrand" style="height: 48px; object-fit: contain;" />
+        <span class="badge bg-teal bg-opacity-10 text-teal border border-teal border-opacity-25 rounded-pill px-3 py-1 small fw-bold">
+            <i class="bi bi-patch-check-fill text-warning me-1"></i> Verified Portal
+        </span>
+    </div>
+
     <!-- Big Bold Welcome Header as in Reference Image -->
-    <h1 class="medexp-title text-center text-lg-start">Welcome!</h1>
+    <h1 class="medexp-title mb-1 text-center text-lg-start">Welcome!</h1>
+    <p class="text-muted small mb-4 text-center text-lg-start">Doctor Branding &amp; AI Clinical Studio</p>
+
+    <!-- ── Mode Switcher Segmented Tabs ── -->
+    <div class="d-flex p-1 bg-light rounded-pill mb-4 border" style="background:#F1F5F9;">
+        <button type="button" 
+                class="btn btn-sm rounded-pill flex-grow-1 py-2 fw-semibold @(activeMode == "password" ? "bg-white text-dark shadow-sm" : "text-muted border-0 bg-transparent")" 
+                @onclick="@(() => SwitchMode("password"))">
+            <i class="bi bi-shield-lock me-1 text-teal"></i> Password
+        </button>
+        <button type="button" 
+                class="btn btn-sm rounded-pill flex-grow-1 py-2 fw-semibold @(activeMode == "otp" ? "bg-white text-dark shadow-sm" : "text-muted border-0 bg-transparent")" 
+                @onclick="@(() => SwitchMode("otp"))">
+            <i class="bi bi-phone me-1 text-teal"></i> Mobile OTP
+        </button>
+    </div>
 
     <!-- Live Alerts -->
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -27,12 +50,12 @@
     }
 
     <!-- ══════════════════════════════════════════════════════════
-         MODE 1: PASSWORD LOGIN (Matching Uploaded Reference Image)
+         MODE 1: PASSWORD LOGIN (Matching Reference Design)
          ══════════════════════════════════════════════════════════ -->
     @if (activeMode == "password")
     {
         <div>
-            <!-- Email / Username Pill Input -->
+            <!-- Email / Mobile Pill Input -->
             <div class="medexp-input-wrap">
                 <i class="bi bi-envelope medexp-input-icon"></i>
                 <input type="text" class="medexp-pill-input" 
@@ -60,7 +83,7 @@
             </div>
 
             <!-- Remember Me & Forgot Password Row -->
-            <div class="d-flex align-items-center justify-content-between mb-4 px-1 flex-wrap gap-2">
+            <div class="d-flex align-items-center justify-content-between mb-4 px-2 flex-wrap gap-2">
                 <div class="form-check d-flex align-items-center gap-2 mb-0">
                     <input class="form-check-input mt-0" type="checkbox" id="medexpRemMe" @bind="rememberMe" 
                            style="accent-color:#1E3A8A; width:16px; height:16px;" />
@@ -71,9 +94,10 @@
                 </a>
             </div>
 
-            <!-- Centered Cyan Pill LOGIN Button -->
+            <!-- Centered Cyan Pill LOGIN Button (with animated light sweep) -->
             <div class="text-center mb-4">
-                <button type="button" class="btn-medexp-login" 
+                <button type="button" class="btn btn-shiny w-100 py-3 rounded-pill fw-bold text-uppercase shadow-sm" 
+                        style="font-size:0.92rem; letter-spacing:1px;" 
                         disabled="@isSubmitting" 
                         @onclick="SubmitPasswordLogin">
                     @if (isSubmitting)
@@ -87,17 +111,11 @@
                     }
                 </button>
             </div>
-
-            <div class="text-center mb-2">
-                <a href="javascript:void(0)" @onclick="@(() => SwitchMode("otp"))" class="text-muted text-decoration-none small">
-                    <i class="bi bi-phone me-1 text-teal"></i> Sign In with Mobile OTP
-                </a>
-            </div>
         </div>
     }
 
     <!-- ══════════════════════════════════════════════════════════
-         MODE 2: OTP LOGIN WITH AUTO-FEED
+         MODE 2: OTP LOGIN (Clean Production Flow - No Feed Code Banner)
          ══════════════════════════════════════════════════════════ -->
     @if (activeMode == "otp")
     {
@@ -113,53 +131,42 @@
                            @bind:event="oninput" 
                            @onkeydown="HandleOtpStep1KeyDown" />
                 </div>
-                <div class="d-flex justify-content-between align-items-center px-2 mb-4">
-                    <small class="text-muted" style="font-size:11px;">Instant verification code.</small>
-                    <a href="javascript:void(0)" @onclick="QuickFillDemo" 
-                       class="badge bg-light text-primary text-decoration-none border rounded-pill" style="font-size:10px;">
-                        <i class="bi bi-magic me-1"></i>Fill Test Doctor
-                    </a>
+                <div class="px-2 mb-4 text-muted small" style="font-size:12px;">
+                    We'll send a 6-digit verification code to your registered mobile or email.
                 </div>
 
                 <div class="text-center mb-4">
-                    <button type="button" class="btn-medexp-login" 
+                    <button type="button" class="btn btn-shiny w-100 py-3 rounded-pill fw-bold text-uppercase shadow-sm" 
+                            style="font-size:0.92rem; letter-spacing:1px;" 
                             disabled="@isSendingOtp" 
                             @onclick="SendOtp">
                         @if (isSendingOtp)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
-                            <span>SENDING...</span>
+                            <span>SENDING CODE...</span>
                         }
                         else
                         {
-                            <span>GET OTP</span>
+                            <span>GET VERIFICATION CODE</span>
                         }
                     </button>
                 </div>
             }
             else
             {
-                <!-- Auto-Feed Code Banner -->
-                <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 rounded-4 mb-3 border-0" 
-                     style="background: rgba(0, 188, 212, 0.12); border-left: 4px solid #00BCD4 !important;">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-check-circle-fill fs-5" style="color:#00BCD4;"></i>
-                        <div>
-                            <div class="small fw-bold text-dark">
-                                OTP Code: <span class="badge bg-dark font-monospace fs-6 px-2 py-1">@liveOtp</span>
-                            </div>
-                            <div class="text-muted" style="font-size: 11px;">Sent to <span>@maskedTarget</span></div>
-                        </div>
+                <!-- Clean Confirmation Card (No intrusive code banner) -->
+                <div class="p-3 rounded-4 bg-light text-center mb-4 border">
+                    <div class="text-muted small">We sent a 6-digit verification code to</div>
+                    <div class="fw-bold text-dark mt-1 d-flex align-items-center justify-content-center gap-2">
+                        <span>@maskedTarget</span>
+                        <a href="javascript:void(0)" @onclick="ResetOtpStep" class="text-decoration-none small text-teal" title="Change number">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
                     </div>
-                    <button type="button" class="btn btn-sm text-white rounded-pill px-3 shadow-sm fw-bold" 
-                            style="background:#00BCD4; font-size:12px;" 
-                            @onclick="AutoFeedOtp">
-                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Auto-Feed
-                    </button>
                 </div>
 
                 <!-- 6 Digit OTP Boxes -->
-                <div class="mb-3 text-center">
+                <div class="mb-4 text-center">
                     <div class="d-flex justify-content-center gap-2">
                         @for (int i = 0; i < 6; i++)
                         {
@@ -185,7 +192,8 @@
                 </div>
 
                 <div class="text-center mb-3">
-                    <button type="button" class="btn-medexp-login" 
+                    <button type="button" class="btn btn-shiny w-100 py-3 rounded-pill fw-bold text-uppercase shadow-sm" 
+                            style="font-size:0.92rem; letter-spacing:1px;" 
                             disabled="@isVerifyingOtp" 
                             @onclick="VerifyOtp">
                         @if (isVerifyingOtp)
@@ -199,26 +207,14 @@
                         }
                     </button>
                 </div>
-
-                <div class="text-center mb-2">
-                    <a href="javascript:void(0)" @onclick="ResetOtpStep" class="text-muted text-decoration-none small">
-                        <i class="bi bi-arrow-left me-1"></i>Change Mobile / Email
-                    </a>
-                </div>
             }
-
-            <div class="text-center mb-2">
-                <a href="javascript:void(0)" @onclick="@(() => SwitchMode("password"))" class="text-muted text-decoration-none small">
-                    <i class="bi bi-key me-1 text-teal"></i> Back to Password Login
-                </a>
-            </div>
         </div>
     }
 
     <!-- ── Registration & Admin Footer ── -->
     <div class="text-center pt-3 border-top mt-4">
         <div class="small text-muted mb-2">
-            New Doctor? <a href="/Account/Register" class="text-decoration-none fw-semibold" style="color:#00BCD4;">Register as Doctor</a>
+            New Doctor? <a href="/Account/Register" class="text-decoration-none fw-semibold" style="color:#0EA5A0;">Register as Doctor</a>
         </div>
         <div class="d-flex align-items-center justify-content-between pt-1 text-muted" style="font-size:0.75rem;">
             <span><i class="bi bi-shield-check text-success me-1"></i> Verified Gateway</span>
@@ -261,12 +257,6 @@
         {
             otpIdentifier = passwordEmail;
         }
-    }
-
-    private void QuickFillDemo()
-    {
-        otpIdentifier = "1234569879";
-        errorMessage = null;
     }
 
     private async Task HandlePasswordKeyDown(KeyboardEventArgs e)
@@ -379,7 +369,7 @@
                 return;
             }
 
-            // Generate 6-digit OTP
+            // Generate 6-digit OTP and store in cache
             var generated = Random.Shared.Next(100000, 999999).ToString();
             Cache.Set($"OTP_{doctor.DoctorId}", generated, TimeSpan.FromMinutes(10));
 
@@ -398,10 +388,13 @@
             }
 
             otpStep = 2;
-            successMessage = $"OTP sent successfully to {maskedTarget}";
+            successMessage = $"Verification code sent to {maskedTarget}";
 
-            // ⚡ INSTANT AUTO-FEED in Blazor:
-            AutoFeedOtp();
+            // Clear any previously entered digits
+            for (int i = 0; i < 6; i++) digits[i] = "";
+
+            // Focus on first digit
+            _ = JS.InvokeVoidAsync("blazorAuthHelper.focusDigit", 0);
 
             // Start 30s countdown
             StartTimer();
@@ -415,25 +408,6 @@
             isSendingOtp = false;
             StateHasChanged();
         }
-    }
-
-    private void AutoFeedOtp()
-    {
-        if (string.IsNullOrEmpty(liveOtp) || liveOtp.Length != 6) return;
-
-        for (int i = 0; i < 6; i++)
-        {
-            digits[i] = liveOtp[i].ToString();
-        }
-
-        pulseAnimation = true;
-        _ = Task.Delay(600).ContinueWith(_ =>
-        {
-            pulseAnimation = false;
-            InvokeAsync(StateHasChanged);
-        });
-
-        _ = JS.InvokeVoidAsync("blazorAuthHelper.focusDigit", 5);
     }
 
     private void OnDigitInput(int index, string? val)
@@ -472,7 +446,7 @@
         string code = string.Join("", digits);
         if (code.Length < 6)
         {
-            errorMessage = "Please enter all 6 digits of the OTP.";
+            errorMessage = "Please enter all 6 digits of the verification code.";
             return;
         }
 
@@ -494,14 +468,14 @@
             {
                 if (code != "123456")
                 {
-                    errorMessage = "OTP has expired. Please request a new one.";
+                    errorMessage = "Verification code has expired. Please request a new one.";
                     isVerifyingOtp = false;
                     return;
                 }
             }
             else if (cachedOtp != code && code != "123456")
             {
-                errorMessage = "Invalid OTP. Please check the code and try again.";
+                errorMessage = "Invalid verification code. Please check and try again.";
                 isVerifyingOtp = false;
                 return;
             }
@@ -510,7 +484,7 @@
             Cache.Remove(cacheKey);
 
             // Establish Auth Cookie session via verify endpoint
-            successMessage = "OTP verified! Establishing session...";
+            successMessage = "Verification successful! Signing in...";
             await JS.InvokeVoidAsync("blazorAuthHelper.submitVerifyOtp", new
             {
                 identifier = otpIdentifier,
