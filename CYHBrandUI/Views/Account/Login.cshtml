@@ -92,71 +92,107 @@
             z-index: 2;
         }
 
-        /* ── Floating Medical Pills & Capsules with Continuous Motion ── */
-        .floating-med-item {
+        /* ── Floating Doctor Branding, Social Media & Benefit Badges ── */
+        .brand-float-card {
             position: absolute;
             pointer-events: none;
-            z-index: 3;
-            filter: drop-shadow(0 8px 16px rgba(10, 25, 80, 0.25));
+            z-index: 5;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 18px;
+            border-radius: 50rem;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+            color: #FFFFFF;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .brand-float-card .icon-chip {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            color: #fff;
+            flex-shrink: 0;
         }
 
-        /* Round Pill 1 (Top Center-Right) */
-        .pill-round-top {
-            top: 10%;
-            right: 28%;
-            width: 58px;
-            height: 58px;
-            animation: floatBob 6s ease-in-out infinite;
+        /* 1. Verified Doctor Badge (Top Left) */
+        .float-badge-verified {
+            top: 13%;
+            left: 10%;
+            animation: floatBob 6.5s ease-in-out infinite;
+        }
+        .float-badge-verified .icon-chip {
+            background: linear-gradient(135deg, #0EA5A0 0%, #10B981 100%);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
         }
 
-        /* Round Pill 2 (Mid Right) */
-        .pill-round-mid {
-            top: 32%;
-            right: 12%;
-            width: 44px;
-            height: 44px;
-            animation: floatBob 7s ease-in-out infinite reverse;
+        /* 2. Instagram Clinical Awareness (Top Right) */
+        .float-badge-insta {
+            top: 9%;
+            right: 20%;
+            animation: floatBob 7.5s ease-in-out infinite reverse;
             animation-delay: -2s;
         }
+        .float-badge-insta .icon-chip {
+            background: linear-gradient(135deg, #F58529 0%, #DD2A7B 50%, #8134AF 100%);
+            box-shadow: 0 0 14px rgba(221, 42, 123, 0.6);
+        }
 
-        /* Outline Pill (Top Left) */
-        .capsule-top-left {
-            top: 16%;
-            left: 14%;
-            width: 48px;
-            height: 32px;
+        /* 3. WhatsApp Direct Patient Broadcast (Center Top) */
+        .float-badge-whatsapp {
+            top: 23%;
+            left: 28%;
             animation: floatWobble 8s ease-in-out infinite;
+            animation-delay: -3.5s;
+        }
+        .float-badge-whatsapp .icon-chip {
+            background: #25D366;
+            box-shadow: 0 0 14px rgba(37, 211, 102, 0.6);
+        }
+
+        /* 4. AI Banner Maker & Clinic Watermark (Mid Left) */
+        .float-badge-ai {
+            top: 38%;
+            left: 5%;
+            animation: floatRotate 9s ease-in-out infinite;
             animation-delay: -1s;
         }
-
-        /* Cyan Filled Capsule (Mid Left) */
-        .capsule-mid-left {
-            top: 42%;
-            left: 6%;
-            width: 70px;
-            height: 42px;
-            animation: floatRotate 9s ease-in-out infinite;
-            animation-delay: -3s;
+        .float-badge-ai .icon-chip {
+            background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
         }
 
-        /* Outline Capsule (Center Top) */
-        .capsule-center-top {
-            top: 25%;
-            left: 32%;
-            width: 60px;
-            height: 38px;
-            animation: floatBob 8s ease-in-out infinite;
+        /* 5. Multi-Channel Social Sharing (Mid Right) */
+        .float-badge-social {
+            top: 30%;
+            right: 8%;
+            animation: floatBob 8.5s ease-in-out infinite;
             animation-delay: -4s;
         }
+        .float-badge-social .icon-chip {
+            background: #0077B5;
+            box-shadow: 0 0 14px rgba(0, 119, 181, 0.6);
+        }
 
-        /* Capsule Bottom Right */
-        .capsule-bot-right {
-            bottom: 35%;
-            right: 22%;
-            width: 68px;
-            height: 42px;
+        /* 6. Patient Reach & OPD Growth (Bottom Right) */
+        .float-badge-growth {
+            bottom: 36%;
+            right: 18%;
             animation: floatRotate 10s ease-in-out infinite reverse;
-            animation-delay: -1.5s;
+            animation-delay: -2.5s;
+        }
+        .float-badge-growth .icon-chip {
+            background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.6);
         }
 
         /* Sparkling Stars / Bubbles */
@@ -389,53 +425,59 @@
             <div class="medexp-brand-text">CYH<span>Brand</span></div>
         </a>
 
-        <!-- Floating Medical Pills & Capsules with continuous animation -->
-        <!-- 1. Round Blue Pill (Top Center) -->
-        <div class="floating-med-item pill-round-top">
-            <svg viewBox="0 0 60 60" width="100%" height="100%">
-                <circle cx="30" cy="30" r="28" fill="#132F99" />
-                <line x1="10" y1="10" x2="50" y2="50" stroke="#00E5FF" stroke-width="3" stroke-linecap="round" />
-            </svg>
+        <!-- Floating Doctor Branding, Social Media & Benefit Badges -->
+        <!-- 1. Verified Doctor Badge (Top Left) -->
+        <div class="brand-float-card float-badge-verified">
+            <div class="icon-chip"><i class="bi bi-patch-check-fill"></i></div>
+            <div>
+                <div>Verified Doctor</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">Clinic Branding</div>
+            </div>
         </div>
 
-        <!-- 2. Round Cyan Pill (Mid Right) -->
-        <div class="floating-med-item pill-round-mid">
-            <svg viewBox="0 0 60 60" width="100%" height="100%">
-                <circle cx="30" cy="30" r="28" fill="#00E5FF" />
-                <line x1="30" y1="5" x2="30" y2="55" stroke="#132F99" stroke-width="3.5" stroke-linecap="round" />
-            </svg>
+        <!-- 2. Instagram Clinical Awareness (Top Right) -->
+        <div class="brand-float-card float-badge-insta">
+            <div class="icon-chip"><i class="bi bi-instagram"></i></div>
+            <div>
+                <div>Instagram Posts</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">Daily Awareness</div>
+            </div>
         </div>
 
-        <!-- 3. Outline Capsule (Top Left) -->
-        <div class="floating-med-item capsule-top-left">
-            <svg viewBox="0 0 90 48" width="100%" height="100%">
-                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="4.5" />
-                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="4.5" />
-            </svg>
+        <!-- 3. WhatsApp Direct Patient Broadcast (Center Top) -->
+        <div class="brand-float-card float-badge-whatsapp">
+            <div class="icon-chip"><i class="bi bi-whatsapp"></i></div>
+            <div>
+                <div>WhatsApp Status</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">OPD &amp; Camp Alerts</div>
+            </div>
         </div>
 
-        <!-- 4. Blue Outline Capsule (Mid Left) -->
-        <div class="floating-med-item capsule-mid-left">
-            <svg viewBox="0 0 90 48" width="100%" height="100%">
-                <rect x="4" y="4" width="82" height="40" rx="20" fill="#0F2888" stroke="#00E5FF" stroke-width="3.5" />
-                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="3.5" />
-            </svg>
+        <!-- 4. AI Banner Maker & Clinic Watermark (Mid Left) -->
+        <div class="brand-float-card float-badge-ai">
+            <div class="icon-chip"><i class="bi bi-stars"></i></div>
+            <div>
+                <div>AI Banner Studio</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">1-Click Creatives</div>
+            </div>
         </div>
 
-        <!-- 5. Two-Toned Pill (Center Top) -->
-        <div class="floating-med-item capsule-center-top">
-            <svg viewBox="0 0 90 48" width="100%" height="100%">
-                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="3.5" stroke-dasharray="6,4" />
-                <circle cx="45" cy="24" r="8" fill="#00E5FF" />
-            </svg>
+        <!-- 5. Multi-Channel Social Sharing (Mid Right) -->
+        <div class="brand-float-card float-badge-social">
+            <div class="icon-chip"><i class="bi bi-share-fill"></i></div>
+            <div>
+                <div>Auto-Schedule</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">FB · LinkedIn · Insta</div>
+            </div>
         </div>
 
-        <!-- 6. Capsule Bottom Right -->
-        <div class="floating-med-item capsule-bot-right">
-            <svg viewBox="0 0 90 48" width="100%" height="100%">
-                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="4" />
-                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="4" />
-            </svg>
+        <!-- 6. 50K+ Patients Reached / OPD Growth (Bottom Right) -->
+        <div class="brand-float-card float-badge-growth">
+            <div class="icon-chip"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+                <div>50K+ Patient Reach</div>
+                <div style="font-size:0.65rem; opacity:0.85; font-weight:500;">OPD Footfall Boost</div>
+            </div>
         </div>
 
         <!-- Sparkles & Bubbles -->
