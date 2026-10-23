@@ -43,6 +43,33 @@ namespace CYHBrandRepo.Repository
             }
         }
 
+        public async Task<DoctorMasterDTO?> GetByEmailOrMobileAsync(string identifier)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(identifier)) return null;
+                var trimmed = identifier.Trim();
+                await using var con = new SqlConnection(_conn);
+                const string sql = @"
+                    SELECT TOP 1
+                        DoctorId, FullName, DisplayName, Email, MobileNo,
+                        Specialty, Qualifications, ClinicName, ClinicAddress,
+                        City, State, PinCode, WebsiteUrl, Bio,
+                        ProfilePic, ClinicLogo, PrimaryColorHex, SecondaryColorHex,
+                        PreferredFont, IsActive, IsVerified, IsProfileComplete,
+                        RoleId, CreatedDate
+                    FROM DoctorMaster
+                    WHERE (Email = @Identifier OR MobileNo = @Identifier)
+                      AND IsActive = 1";
+                return await con.QueryFirstOrDefaultAsync<DoctorMasterDTO>(sql, new { Identifier = trimmed });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetByEmailOrMobileAsync failed for {Identifier}", identifier);
+                return null;
+            }
+        }
+
         public async Task<ApiResponse> RegisterAsync(DoctorMasterDTO model)
         {
             try

@@ -8,6 +8,7 @@ namespace CYHBrandRepo.IRepository
     {
         // ── Auth ──────────────────────────────────────────────────────────
         Task<DoctorMasterDTO?> AuthenticateAsync(string email, string password);
+        Task<DoctorMasterDTO?> GetByEmailOrMobileAsync(string identifier);
         Task<ApiResponse>      RegisterAsync(DoctorMasterDTO model);
         Task<bool>             EmailExistsAsync(string email);
 
