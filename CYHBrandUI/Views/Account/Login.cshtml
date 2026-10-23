@@ -8,501 +8,530 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Sign In — CYHBrand Clinical Branding Studio</title>
+    <title>Doctor Login — CYHBrand Clinical Studio</title>
     <base href="~/" />
     <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         /* ══════════════════════════════════════════════════════════
-           EXECUTIVE MEDICAL DOCTOR PORTAL THEME
+           MED-EXPLORER DOCTOR LOGIN THEME
            ══════════════════════════════════════════════════════════ */
         * { box-sizing: border-box; }
-        body, html {
+        html, body {
             height: 100%;
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #F8FAFC;
-            color: #0F172A;
+            background: #1938B4;
             overflow-x: hidden;
         }
 
-        .exec-login-container {
+        .medexp-page-root {
             min-height: 100vh;
             display: flex;
-            background: #F8FAFC;
+            background: #1938B4;
+            position: relative;
         }
 
         /* ══════════════════════════════════════════════════════════
-           LEFT SIDE: CORPORATE CLINICAL CANVAS & GRACEFUL MOTION
+           LEFT SIDE: BLUE ILLUSTRATION CANVAS WITH ANIMATED DOCTOR & PILLS
            ══════════════════════════════════════════════════════════ */
-        .exec-left-canvas {
-            flex: 1.15;
+        .medexp-left-canvas {
+            flex: 1.1;
             position: relative;
-            background: linear-gradient(150deg, #091326 0%, #0F2144 55%, #0B1933 100%);
+            background: #1A3DBF;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 56px 64px;
+            padding: 36px 48px;
             color: #FFFFFF;
             overflow: hidden;
-            border-right: 1px solid rgba(226, 232, 240, 0.1);
+            min-height: 100vh;
         }
 
-        /* Elegant Grid Overlay */
-        .exec-grid-pattern {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
-            background-size: 28px 28px;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Subtle Ambient Glow (Refined & Soft, not neon) */
-        .exec-glow-soft {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.25;
-        }
-        .exec-glow-teal {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, #0EA5A0 0%, transparent 70%);
-            top: -120px;
-            left: -120px;
-        }
-        .exec-glow-blue {
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, #2563EB 0%, transparent 70%);
-            bottom: -80px;
-            right: -80px;
-        }
-
-        /* Floating Medical Caduceus / Cross Watermarks (Subtle, 4% Opacity) */
-        .exec-watermark {
-            position: absolute;
-            color: rgba(255, 255, 255, 0.035);
-            font-size: 26rem;
-            right: -60px;
-            top: 22%;
-            pointer-events: none;
-            z-index: 1;
-            line-height: 1;
-        }
-
-        /* Brand Header */
-        .exec-brand-logo {
-            display: flex;
+        /* Top Brand Logo */
+        .medexp-brand {
+            display: inline-flex;
             align-items: center;
-            gap: 14px;
-            z-index: 2;
+            gap: 10px;
+            z-index: 10;
             position: relative;
+            text-decoration: none;
         }
-        .exec-logo-icon {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0EA5A0 0%, #0284C7 100%);
+        .medexp-logo-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FFFFFF;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            color: #fff;
-            box-shadow: 0 8px 20px rgba(14, 165, 160, 0.35);
+            color: #1A3DBF;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        .exec-brand-title {
-            font-size: 1.4rem;
+        .medexp-brand-text {
+            font-size: 1.35rem;
             font-weight: 800;
-            letter-spacing: -0.5px;
-            color: #fff;
-        }
-        .exec-brand-subtitle {
-            font-size: 0.78rem;
-            color: rgba(255, 255, 255, 0.6);
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
-        }
-
-        /* Hero Editorial Typography */
-        .exec-hero-copy {
-            margin: 40px 0 24px 0;
-            z-index: 2;
-            position: relative;
-            max-width: 580px;
-        }
-        .exec-hero-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 50rem;
-            background: rgba(14, 165, 160, 0.15);
-            border: 1px solid rgba(14, 165, 160, 0.3);
-            color: #2DD4BF;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-        }
-        .exec-hero-title {
-            font-size: 2.35rem;
-            font-weight: 800;
-            line-height: 1.22;
-            letter-spacing: -0.8px;
             color: #FFFFFF;
-            margin-bottom: 16px;
+            letter-spacing: -0.5px;
         }
-        .exec-hero-desc {
-            font-size: 0.98rem;
-            line-height: 1.6;
-            color: rgba(226, 232, 240, 0.75);
-            font-weight: 400;
+        .medexp-brand-text span {
+            color: #00E5FF;
         }
 
-        /* ── Continuous Graceful Pulse & Clinical Wave (Professional) ── */
-        .exec-clinical-wave-box {
-            position: relative;
+        /* Curved Ground Hill at Bottom */
+        .medexp-ground-curve {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 220px;
+            pointer-events: none;
             z-index: 2;
-            background: rgba(15, 28, 54, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 16px;
-            padding: 20px 24px;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            margin-bottom: 32px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         }
 
-        .exec-wave-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        /* ── Floating Medical Pills & Capsules with Continuous Motion ── */
+        .floating-med-item {
+            position: absolute;
+            pointer-events: none;
+            z-index: 3;
+            filter: drop-shadow(0 8px 16px rgba(10, 25, 80, 0.25));
         }
-        .exec-status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.78rem;
-            color: #2DD4BF;
-            font-weight: 600;
+
+        /* Round Pill 1 (Top Center-Right) */
+        .pill-round-top {
+            top: 10%;
+            right: 28%;
+            width: 58px;
+            height: 58px;
+            animation: floatBob 6s ease-in-out infinite;
         }
-        .pulse-dot-green {
-            width: 8px;
-            height: 8px;
+
+        /* Round Pill 2 (Mid Right) */
+        .pill-round-mid {
+            top: 32%;
+            right: 12%;
+            width: 44px;
+            height: 44px;
+            animation: floatBob 7s ease-in-out infinite reverse;
+            animation-delay: -2s;
+        }
+
+        /* Outline Pill (Top Left) */
+        .capsule-top-left {
+            top: 16%;
+            left: 14%;
+            width: 48px;
+            height: 32px;
+            animation: floatWobble 8s ease-in-out infinite;
+            animation-delay: -1s;
+        }
+
+        /* Cyan Filled Capsule (Mid Left) */
+        .capsule-mid-left {
+            top: 42%;
+            left: 6%;
+            width: 70px;
+            height: 42px;
+            animation: floatRotate 9s ease-in-out infinite;
+            animation-delay: -3s;
+        }
+
+        /* Outline Capsule (Center Top) */
+        .capsule-center-top {
+            top: 25%;
+            left: 32%;
+            width: 60px;
+            height: 38px;
+            animation: floatBob 8s ease-in-out infinite;
+            animation-delay: -4s;
+        }
+
+        /* Capsule Bottom Right */
+        .capsule-bot-right {
+            bottom: 35%;
+            right: 22%;
+            width: 68px;
+            height: 42px;
+            animation: floatRotate 10s ease-in-out infinite reverse;
+            animation-delay: -1.5s;
+        }
+
+        /* Sparkling Stars / Bubbles */
+        .med-sparkle {
+            position: absolute;
+            background: #FFFFFF;
             border-radius: 50%;
-            background: #10B981;
-            box-shadow: 0 0 10px #10B981;
-            animation: pulseFade 1.8s infinite;
+            pointer-events: none;
+            z-index: 3;
+            animation: sparklePulse 3s ease-in-out infinite;
         }
-        @@keyframes pulseFade {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.4; }
+        .sp-1 { width: 6px; height: 6px; top: 14%; left: 36%; opacity: 0.7; }
+        .sp-2 { width: 8px; height: 8px; top: 28%; right: 38%; opacity: 0.6; animation-delay: -1s; }
+        .sp-3 { width: 5px; height: 5px; top: 52%; left: 18%; opacity: 0.5; animation-delay: -2s; }
+        .sp-4 { width: 7px; height: 7px; bottom: 42%; right: 14%; opacity: 0.6; animation-delay: -1.5s; }
+
+        @@keyframes floatBob {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-16px) rotate(8deg); }
+        }
+        @@keyframes floatWobble {
+            0%, 100% { transform: translateY(0) rotate(-15deg); }
+            50% { transform: translateY(14px) rotate(5deg); }
+        }
+        @@keyframes floatRotate {
+            0%, 100% { transform: translateY(0) rotate(35deg); }
+            50% { transform: translateY(-18px) rotate(48deg); }
+        }
+        @@keyframes sparklePulse {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.6); opacity: 0.9; }
         }
 
-        .exec-wave-svg {
+        /* ── Central Doctor Character & Flashlight Light Beam ── */
+        .doctor-stage-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75%;
+            pointer-events: none;
+            z-index: 4;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            padding-left: 20px;
+        }
+
+        .doctor-svg-canvas {
             width: 100%;
-            height: 60px;
+            height: 100%;
             overflow: visible;
         }
-        .exec-pulse-path {
-            fill: none;
-            stroke: #0EA5A0;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-dasharray: 600;
-            stroke-dashoffset: 600;
-            animation: drawWave 4s linear infinite;
+
+        /* Flashlight Light Beam Animation */
+        .light-cone-beam {
+            transform-origin: 300px 320px;
+            animation: beamPulse 4s ease-in-out infinite;
         }
-        @@keyframes drawWave {
-            0% { stroke-dashoffset: 600; }
-            100% { stroke-dashoffset: 0; }
+        @@keyframes beamPulse {
+            0%, 100% { opacity: 0.85; transform: scaleY(1); }
+            50% { opacity: 0.98; transform: scaleY(1.05); }
         }
 
-        .exec-wave-beam {
-            position: absolute;
-            width: 100px;
-            height: 100%;
-            top: 0;
-            background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.25), transparent);
-            animation: beamTravel 4s linear infinite;
-            pointer-events: none;
+        /* Subtle Doctor Breathing / Sway */
+        .doctor-body-group {
+            transform-origin: 220px 520px;
+            animation: doctorSway 5s ease-in-out infinite;
         }
-        @@keyframes beamTravel {
-            0% { left: 0; }
-            100% { left: 100%; }
-        }
-
-        /* Verified Metrics Bar */
-        .exec-metrics-row {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-            z-index: 2;
-            position: relative;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .exec-metric-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .exec-metric-val {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #FFFFFF;
-            letter-spacing: -0.3px;
-        }
-        .exec-metric-lbl {
-            font-size: 0.75rem;
-            color: rgba(226, 232, 240, 0.6);
-            margin-top: 2px;
+        @@keyframes doctorSway {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            50% { transform: rotate(0.6deg) translateY(-3px); }
         }
 
         /* ══════════════════════════════════════════════════════════
-           RIGHT SIDE: PRISTINE WHITE CORPORATE LOGIN PANEL
+           RIGHT SIDE: WHITE CURVED LOGIN CARD WITH FLASHLIGHT ILLUMINATION
            ══════════════════════════════════════════════════════════ */
-        .exec-right-panel {
-            flex: 0.95;
+        .medexp-right-panel {
+            flex: 0.9;
             background: #FFFFFF;
+            border-radius: 44px 0 0 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 56px 48px;
+            padding: 48px 60px;
             position: relative;
-            z-index: 5;
+            z-index: 10;
+            box-shadow: -15px 0 40px rgba(0, 0, 0, 0.08);
+            min-height: 100vh;
         }
 
-        .exec-login-card {
+        /* Soft flashlight beam illumination on the left edge of the white card */
+        .medexp-right-panel::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 60px;
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.12), transparent);
+            pointer-events: none;
+            border-radius: 44px 0 0 44px;
+        }
+
+        .medexp-card-inner {
             width: 100%;
-            max-width: 440px;
+            max-width: 400px;
         }
 
-        /* Tab Switcher */
-        .exec-tab-wrap {
-            display: flex;
-            background: #F1F5F9;
-            border-radius: 12px;
-            padding: 4px;
+        /* Welcome Title (Bold Royal Blue) */
+        .medexp-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #1E3A8A;
             margin-bottom: 28px;
-            border: 1px solid #E2E8F0;
+            letter-spacing: -0.6px;
         }
-        .login-tab-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 0.86rem;
-            font-weight: 600;
+
+        /* Rounded Pill Input Fields */
+        .medexp-input-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .medexp-input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             color: #64748B;
-            border-radius: 8px;
-            padding: 8px 14px;
-            transition: all 0.18s ease;
-            text-align: center;
+            font-size: 1.05rem;
+            pointer-events: none;
         }
-        .login-tab-btn.active {
-            background: #FFFFFF;
-            color: #0F172A;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-            font-weight: 700;
-        }
-
-        /* Inputs & Controls */
-        .form-control.cyh-form-control {
-            border: 1.5px solid #E2E8F0;
-            border-radius: 10px;
-            padding: 11px 14px 11px 44px;
-            font-size: 0.9rem;
-            color: #0F172A;
-            background: #FFFFFF;
-            transition: all 0.18s ease;
-        }
-        .form-control.cyh-form-control:focus {
-            border-color: #0EA5A0;
-            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.12);
-            background: #FFFFFF;
-        }
-
-        /* OTP Input Boxes */
-        .otp-input-box {
-            width: 48px;
-            height: 52px;
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: 700;
-            border: 1.5px solid #CBD5E1;
-            border-radius: 10px;
-            background: #F8FAFC;
-            color: #0F172A;
-            transition: all 0.18s ease;
-        }
-        .otp-input-box:focus {
-            border-color: #0EA5A0;
-            background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(14, 165, 160, 0.15);
-            outline: none;
-        }
-
-        /* Primary Button */
-        .btn-exec-primary {
-            background: #0B1B3D;
-            color: #FFFFFF;
-            font-weight: 600;
-            font-size: 0.92rem;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
-            transition: all 0.2s ease;
+        .medexp-pill-input {
             width: 100%;
+            background: #F1F5F9;
+            border: 1.5px solid transparent;
+            border-radius: 50rem;
+            padding: 14px 20px 14px 50px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #334155;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            outline: none;
+            transition: all 0.2s ease;
         }
-        .btn-exec-primary:hover {
-            background: #152A55;
-            color: #FFFFFF;
-            box-shadow: 0 4px 14px rgba(11, 27, 61, 0.2);
-            transform: translateY(-1px);
+        .medexp-pill-input::placeholder {
+            color: #94A3B8;
+            font-weight: 600;
+        }
+        .medexp-pill-input:focus {
+            background: #FFFFFF;
+            border-color: #00BCD4;
+            box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.12);
         }
 
-        /* Responsive */
+        /* Bright Cyan / Teal Login Pill Button */
+        .btn-medexp-login {
+            background: #00BCD4;
+            color: #FFFFFF;
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border: none;
+            border-radius: 50rem;
+            padding: 13px 52px;
+            box-shadow: 0 6px 18px rgba(0, 188, 212, 0.4);
+            transition: all 0.25s ease;
+            display: inline-block;
+        }
+        .btn-medexp-login:hover {
+            background: #00ACC1;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.5);
+        }
+
+        /* Checkbox & Forgot Links */
+        .medexp-check-label {
+            font-size: 0.8rem;
+            color: #64748B;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+        .medexp-link {
+            font-size: 0.8rem;
+            color: #1E3A8A;
+            font-weight: 600;
+            text-decoration: underline;
+            transition: color 0.15s ease;
+        }
+        .medexp-link:hover {
+            color: #00BCD4;
+        }
+
+        /* Responsive Breakpoints */
         @@media (max-width: 991.98px) {
-            .exec-login-container {
+            .medexp-page-root {
                 flex-direction: column;
             }
-            .exec-left-canvas {
-                padding: 40px 24px;
+            .medexp-left-canvas {
+                min-height: 440px;
+                padding: 28px 24px;
             }
-            .exec-right-panel {
-                padding: 40px 24px;
+            .doctor-stage-container {
+                height: 380px;
             }
-            .exec-metrics-row {
-                gap: 20px;
+            .medexp-right-panel {
+                border-radius: 36px 36px 0 0;
+                padding: 40px 24px;
+                min-height: auto;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="exec-login-container">
+<div class="medexp-page-root">
     <!-- ══════════════════════════════════════════════════════════
-         LEFT PANEL: PROFESSIONAL CLINICAL CANVAS & WAVE DYNAMICS
+         LEFT SIDE: BLUE CANVAS WITH DOCTOR, FLASHLIGHT BEAM & FLOATING PILLS
          ══════════════════════════════════════════════════════════ -->
-    <div class="exec-left-canvas">
-        <div class="exec-grid-pattern"></div>
-        <div class="exec-glow-soft exec-glow-teal"></div>
-        <div class="exec-glow-soft exec-glow-blue"></div>
-        <i class="bi bi-heart-pulse exec-watermark"></i>
+    <div class="medexp-left-canvas">
+        <!-- Top Brand Logo -->
+        <a href="/" class="medexp-brand">
+            <div class="medexp-logo-badge">
+                <i class="bi bi-capsule"></i>
+            </div>
+            <div class="medexp-brand-text">CYH<span>Brand</span></div>
+        </a>
 
-        <!-- Brand Top Bar -->
-        <div class="exec-brand-logo">
-            <div class="exec-logo-icon">
-                <i class="bi bi-heart-pulse-fill"></i>
-            </div>
-            <div>
-                <div class="exec-brand-title">CYH<span style="color:#2DD4BF;">Brand</span></div>
-                <div class="exec-brand-subtitle">Clinical Branding &amp; Patient Outreach</div>
-            </div>
+        <!-- Floating Medical Pills & Capsules with continuous animation -->
+        <!-- 1. Round Blue Pill (Top Center) -->
+        <div class="floating-med-item pill-round-top">
+            <svg viewBox="0 0 60 60" width="100%" height="100%">
+                <circle cx="30" cy="30" r="28" fill="#132F99" />
+                <line x1="10" y1="10" x2="50" y2="50" stroke="#00E5FF" stroke-width="3" stroke-linecap="round" />
+            </svg>
         </div>
 
-        <!-- Hero Editorial Copy -->
-        <div class="exec-hero-copy">
-            <div class="exec-hero-tag">
-                <i class="bi bi-patch-check-fill text-warning"></i> Official Physician Portal
-            </div>
-            <h1 class="exec-hero-title">
-                Elevating Doctor Brands with Clinical Precision.
-            </h1>
-            <p class="exec-hero-desc">
-                Access your verified branding dashboard to publish medically accurate patient awareness posts, manage OPD schedules, and curate clinic creatives in seconds.
-            </p>
+        <!-- 2. Round Cyan Pill (Mid Right) -->
+        <div class="floating-med-item pill-round-mid">
+            <svg viewBox="0 0 60 60" width="100%" height="100%">
+                <circle cx="30" cy="30" r="28" fill="#00E5FF" />
+                <line x1="30" y1="5" x2="30" y2="55" stroke="#132F99" stroke-width="3.5" stroke-linecap="round" />
+            </svg>
         </div>
 
-        <!-- Professional Clinical Continuous Wave Monitor -->
-        <div class="exec-clinical-wave-box">
-            <div class="exec-wave-header">
-                <div class="exec-status-chip">
-                    <span class="pulse-dot-green"></span>
-                    <span>Clinical Network Live • 256-Bit SSL Encrypted</span>
-                </div>
-                <span class="badge bg-white bg-opacity-10 text-white-50 px-2 py-1 rounded-pill small" style="font-size:10px;">
-                    LEAD-II ECG
-                </span>
-            </div>
-
-            <!-- Waveform SVG with continuous draw animation -->
-            <div class="position-relative overflow-hidden" style="height: 60px;">
-                <div class="exec-wave-beam"></div>
-                <svg viewBox="0 0 600 80" class="exec-wave-svg" preserveAspectRatio="none">
-                    <path class="exec-pulse-path" d="
-                        M 0 45 
-                        L 60 45 
-                        L 75 45 
-                        L 85 36 
-                        L 95 45 
-                        L 110 45 
-                        L 120 54 
-                        L 130 10 
-                        L 140 75 
-                        L 150 45 
-                        L 170 45 
-                        L 185 34 
-                        L 200 45 
-                        L 260 45 
-                        L 275 45 
-                        L 285 36 
-                        L 295 45 
-                        L 310 45 
-                        L 320 54 
-                        L 330 10 
-                        L 340 75 
-                        L 350 45 
-                        L 370 45 
-                        L 385 34 
-                        L 400 45 
-                        L 460 45 
-                        L 475 45 
-                        L 485 36 
-                        L 495 45 
-                        L 510 45 
-                        L 520 54 
-                        L 530 10 
-                        L 540 75 
-                        L 550 45 
-                        L 570 45 
-                        L 585 34 
-                        L 600 45" />
-                </svg>
-            </div>
+        <!-- 3. Outline Capsule (Top Left) -->
+        <div class="floating-med-item capsule-top-left">
+            <svg viewBox="0 0 90 48" width="100%" height="100%">
+                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="4.5" />
+                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="4.5" />
+            </svg>
         </div>
 
-        <!-- Verified Credibility Metrics -->
-        <div class="exec-metrics-row">
-            <div class="exec-metric-item">
-                <span class="exec-metric-val">10,000+</span>
-                <span class="exec-metric-lbl">Verified Doctors</span>
-            </div>
-            <div class="exec-metric-item">
-                <span class="exec-metric-val">48+</span>
-                <span class="exec-metric-lbl">Medical Specialties</span>
-            </div>
-            <div class="exec-metric-item">
-                <span class="exec-metric-val">100%</span>
-                <span class="exec-metric-lbl">Clinically Compliant</span>
-            </div>
+        <!-- 4. Blue Outline Capsule (Mid Left) -->
+        <div class="floating-med-item capsule-mid-left">
+            <svg viewBox="0 0 90 48" width="100%" height="100%">
+                <rect x="4" y="4" width="82" height="40" rx="20" fill="#0F2888" stroke="#00E5FF" stroke-width="3.5" />
+                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="3.5" />
+            </svg>
+        </div>
+
+        <!-- 5. Two-Toned Pill (Center Top) -->
+        <div class="floating-med-item capsule-center-top">
+            <svg viewBox="0 0 90 48" width="100%" height="100%">
+                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="3.5" stroke-dasharray="6,4" />
+                <circle cx="45" cy="24" r="8" fill="#00E5FF" />
+            </svg>
+        </div>
+
+        <!-- 6. Capsule Bottom Right -->
+        <div class="floating-med-item capsule-bot-right">
+            <svg viewBox="0 0 90 48" width="100%" height="100%">
+                <rect x="4" y="4" width="82" height="40" rx="20" fill="none" stroke="#00E5FF" stroke-width="4" />
+                <line x1="45" y1="4" x2="45" y2="44" stroke="#00E5FF" stroke-width="4" />
+            </svg>
+        </div>
+
+        <!-- Sparkles & Bubbles -->
+        <div class="med-sparkle sp-1"></div>
+        <div class="med-sparkle sp-2"></div>
+        <div class="med-sparkle sp-3"></div>
+        <div class="med-sparkle sp-4"></div>
+
+        <!-- Curved Blue Ground Hill -->
+        <svg class="medexp-ground-curve" viewBox="0 0 800 240" preserveAspectRatio="none">
+            <path d="M 0 120 Q 380 30 800 130 L 800 240 L 0 240 Z" fill="#132B8C" />
+        </svg>
+
+        <!-- Doctor with Flashlight & Expanding Light Beam -->
+        <div class="doctor-stage-container">
+            <svg class="doctor-svg-canvas" viewBox="0 0 700 620" preserveAspectRatio="xMinYMax meet">
+                <defs>
+                    <!-- Flashlight Light Beam Gradient (Shooting to the Right Edge) -->
+                    <linearGradient id="flashlightBeamGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                        <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.9" />
+                        <stop offset="35%" stop-color="#00C5D7" stop-opacity="0.5" />
+                        <stop offset="70%" stop-color="#38BDF8" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.25" />
+                    </linearGradient>
+
+                    <!-- Doctor Scrub Gradient -->
+                    <linearGradient id="doctorScrubGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00E5FF" />
+                        <stop offset="100%" stop-color="#00A3C4" />
+                    </linearGradient>
+
+                    <!-- Doctor Skin Gradient -->
+                    <linearGradient id="doctorSkinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFBE9F" />
+                        <stop offset="100%" stop-color="#F7A07E" />
+                    </linearGradient>
+                </defs>
+
+                <!-- ── Flashlight Cone Light Beam ── -->
+                <polygon class="light-cone-beam" points="262,320 700,80 700,560 262,330" fill="url(#flashlightBeamGrad)" />
+
+                <!-- ── Doctor Figure ── -->
+                <g class="doctor-body-group">
+                    <!-- Left Leg (Behind) -->
+                    <path d="M 160 380 Q 140 450 125 500 L 145 510 Q 165 460 180 395 Z" fill="#E2E8F0" />
+                    <!-- Left Shoe -->
+                    <path d="M 110 500 C 105 505 105 520 120 525 C 135 530 150 515 145 505 Z" fill="#0A1847" />
+
+                    <!-- Right Leg (Forward) -->
+                    <path d="M 195 380 Q 215 440 225 490 L 245 488 Q 235 440 215 380 Z" fill="#FFFFFF" />
+                    <!-- Right Shoe -->
+                    <path d="M 220 488 C 220 495 220 512 235 515 C 255 520 265 505 245 490 Z" fill="#0A1847" />
+
+                    <!-- Doctor Scrub Coat / Tunic -->
+                    <path d="M 155 270 C 155 270 200 250 230 290 L 235 385 C 215 398 175 400 155 380 Z" fill="url(#doctorScrubGrad)" />
+                    <!-- Tunic Flair Shadow -->
+                    <path d="M 155 375 C 180 398 220 395 235 380 L 230 405 C 205 415 170 410 150 390 Z" fill="#0090AD" />
+
+                    <!-- Doctor Neck -->
+                    <path d="M 180 240 L 195 240 L 195 275 L 180 275 Z" fill="url(#doctorSkinGrad)" />
+
+                    <!-- Doctor Head (Facing Right) -->
+                    <circle cx="185" cy="220" r="24" fill="url(#doctorSkinGrad)" />
+                    <!-- Nose -->
+                    <path d="M 205 218 L 216 226 L 205 230 Z" fill="url(#doctorSkinGrad)" />
+                    <!-- Modern Dark Blue Hair -->
+                    <path d="M 160 215 C 160 185 190 180 210 195 C 218 202 215 212 205 210 C 200 208 190 198 180 205 C 170 212 170 225 160 215 Z" fill="#0A1847" />
+
+                    <!-- White Stethoscope looping around neck -->
+                    <path d="M 172 250 C 158 280 170 315 195 310 C 205 305 210 280 200 260" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
+                    <circle cx="195" cy="310" r="5" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5" />
+
+                    <!-- Left Arm (Back / Swinging) -->
+                    <path d="M 160 280 Q 140 310 135 330 L 150 335 Q 155 315 170 290 Z" fill="url(#doctorScrubGrad)" />
+                    <circle cx="135" cy="335" r="7" fill="url(#doctorSkinGrad)" />
+
+                    <!-- Right Arm (Extended holding flashlight) -->
+                    <path d="M 200 285 L 245 315 L 240 330 L 195 305 Z" fill="url(#doctorScrubGrad)" />
+                    <!-- Hand -->
+                    <circle cx="245" cy="322" r="7" fill="url(#doctorSkinGrad)" />
+
+                    <!-- Flashlight / Torch Body -->
+                    <polygon points="242,316 262,318 262,328 242,326" fill="#0A1847" />
+                    <polygon points="262,314 270,312 270,334 262,332" fill="#0F2466" />
+                    <!-- Lens Ring -->
+                    <ellipse cx="270" cy="323" rx="2.5" ry="11" fill="#00E5FF" />
+                </g>
+            </svg>
         </div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         RIGHT PANEL: CLEAN EXECUTIVE DOCTOR LOGIN
+         RIGHT SIDE: WHITE ROUNDED LOGIN CARD
          ══════════════════════════════════════════════════════════ -->
-    <div class="exec-right-panel">
-        <div class="exec-login-card">
+    <div class="medexp-right-panel">
+        <div class="medexp-card-inner">
             <component type="typeof(CYHBrandUI.Components.DoctorLoginComponent)" 
                        render-mode="ServerPrerendered" 
                        param-ReturnUrl="@returnUrl" />
