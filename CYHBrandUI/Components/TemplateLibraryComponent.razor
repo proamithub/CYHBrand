@@ -1,0 +1,381 @@
+@using CYHBrandModel.DTO
+@inject NavigationManager Navigation
+
+<div class="template-library-blazor">
+    <!-- ── Shiny Hero Banner ── -->
+    <div class="hero-shiny-banner p-4 p-md-5 mb-4 text-white">
+        <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <span class="badge rounded-pill bg-teal bg-opacity-25 text-white border border-light border-opacity-25 px-3 py-1 mb-2 small">
+                    <i class="bi bi-patch-check-fill text-warning me-1"></i> Clinically Curated Medical Design Library
+                </span>
+                <h2 class="fw-bold mb-2 display-6 text-white">
+                    Doctor Banner &amp; <span class="gradient-text-shiny">Social Creatives</span>
+                </h2>
+                <p class="mb-3 text-white-50 lead fs-6" style="max-width: 650px;">
+                    Instantly create high-impact patient awareness banners, OPD consultation announcements, and seasonal medical alerts branded with your clinic credentials.
+                </p>
+                <div class="d-flex flex-wrap gap-2 pt-1">
+                    <span class="badge rounded-pill bg-white bg-opacity-15 text-white px-3 py-2 small">
+                        <i class="bi bi-grid-fill me-1"></i> @(InitialData?.TotalRecords ?? FilteredTemplates.Count()) Templates
+                    </span>
+                    <span class="badge rounded-pill bg-white bg-opacity-15 text-white px-3 py-2 small">
+                        <i class="bi bi-aspect-ratio-fill me-1"></i> Square, Story &amp; Landscape
+                    </span>
+                    <span class="badge rounded-pill bg-white bg-opacity-15 text-white px-3 py-2 small">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Instant Live Filtering
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <a href="/AiBanner" class="btn btn-shiny-gold btn-lg rounded-pill px-4 shadow fw-bold d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-stars"></i> Create with AI
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Category Filter Pills ── -->
+    <div class="d-flex align-items-center gap-2 overflow-auto pb-3 mb-3 border-bottom no-scrollbar" style="white-space: nowrap;">
+        <button type="button" 
+                class="btn btn-sm rounded-pill px-3 py-2 text-nowrap fw-medium @(SelectedCategoryId == null ? "btn-primary shadow-sm" : "btn-light border text-dark")"
+                @onclick="() => FilterByCategory(null)">
+            <i class="bi bi-stars me-1"></i> All Categories
+        </button>
+
+        @if (InitialData?.CategoryList != null)
+        {
+            @foreach (var cat in InitialData.CategoryList)
+            {
+                var isSelected = SelectedCategoryId == cat.CategoryId;
+                var icon = cat.Slug?.Contains("cardio") == true ? "heart-pulse-fill" :
+                           cat.Slug?.Contains("diabetes") == true ? "droplet-half" :
+                           cat.Slug?.Contains("pediatric") == true ? "balloon-fill" :
+                           cat.Slug?.Contains("festival") == true ? "stars" :
+                           cat.Slug?.Contains("aware") == true ? "shield-exclamation" :
+                           cat.Slug?.Contains("announce") == true ? "megaphone-fill" :
+                           cat.Slug?.Contains("promot") == true ? "tag-fill" : "hospital-fill";
+
+                <button type="button" 
+                        class="btn btn-sm rounded-pill px-3 py-2 text-nowrap fw-medium @(isSelected ? "btn-primary shadow-sm" : "btn-light border text-dark")"
+                        @onclick="() => FilterByCategory(cat.CategoryId)">
+                    <i class="bi bi-@icon me-1 text-teal"></i> @cat.CategoryName
+                </button>
+            }
+        }
+    </div>
+
+    <!-- ── Interactive Search & Format Filter Bar ── -->
+    <div class="shiny-card p-3 mb-4">
+        <div class="row g-2 align-items-center">
+            <!-- Live Search -->
+            <div class="col-12 col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control bg-light border-start-0 rounded-end-pill py-2 shadow-none" 
+                           placeholder="Instant search (e.g. Heart, Dengue, Dental, Diet, Camp)..." 
+                           @bind="SearchQuery" 
+                           @bind:event="oninput" />
+                </div>
+            </div>
+
+            <!-- Orientation Filter -->
+            <div class="col-6 col-md-3">
+                <select class="form-select rounded-pill py-2 shadow-none bg-light" 
+                        @bind="SelectedOrientation">
+                    <option value="">All Formats &amp; Sizes</option>
+                    <option value="Square">Square (1:1 • 1080×1080)</option>
+                    <option value="Portrait">Portrait / Story (9:16)</option>
+                    <option value="Landscape">Landscape (16:9)</option>
+                </select>
+            </div>
+
+            <!-- Filter Summary / Reset -->
+            <div class="col-6 col-md-3 text-end d-flex align-items-center justify-content-end gap-2">
+                <span class="text-muted small d-none d-sm-inline">
+                    Showing <strong>@FilteredTemplates.Count()</strong> results
+                </span>
+                @if (HasActiveFilters)
+                {
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="ResetFilters">
+                        <i class="bi bi-x-circle me-1"></i> Reset
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Template Cards Grid ── -->
+    @if (FilteredTemplates.Any())
+    {
+        <div class="row g-4 mb-4">
+            @foreach (var t in FilteredTemplates)
+            {
+                var isStory = t.Orientation == "Portrait";
+                var isBanner = t.Orientation == "Landscape";
+                var aspectStyle = isStory ? "aspect-ratio: 9/16; max-height: 380px;" :
+                                  isBanner ? "aspect-ratio: 16/9;" : "aspect-ratio: 1/1;";
+                var tmplEncId = t.EncId ?? t.TemplateId.ToString();
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="shiny-card h-100 d-flex flex-column justify-content-between position-relative template-item-box">
+                        <!-- Preview Stage Box -->
+                        <div class="position-relative overflow-hidden d-flex align-items-center justify-content-center cursor-pointer" 
+                             style="@aspectStyle; background: #071126;"
+                             @onclick="() => OpenPreview(t)">
+                            @if (!string.IsNullOrEmpty(t.ThumbnailPath))
+                            {
+                                <img src="@t.ThumbnailPath" alt="@t.TemplateName" style="width: 100%; height: 100%; object-fit: contain; display: block;" />
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white p-3 text-center"
+                                     style="background: linear-gradient(135deg, #1B2B6B 0%, #0EA5A0 100%);">
+                                    <i class="bi bi-heart-pulse-fill fs-1 opacity-75 mb-2"></i>
+                                    <span class="fw-bold fs-6">@t.TemplateName</span>
+                                    <small class="opacity-75">@t.CategoryName</small>
+                                </div>
+                            }
+
+                            <!-- Badges -->
+                            <div class="position-absolute top-0 start-0 m-2 pointer-events-none" style="z-index: 3;">
+                                <span class="badge bg-dark bg-opacity-75 backdrop-blur text-white px-2 py-1 rounded-pill small" style="font-size: 10px;">
+                                    <i class="bi bi-aspect-ratio me-1"></i>@(t.Orientation ?? "Square")
+                                </span>
+                            </div>
+
+                            @if (t.IsPremium)
+                            {
+                                <div class="position-absolute top-0 end-0 m-2 pointer-events-none" style="z-index: 3;">
+                                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-bold shadow-sm" style="font-size: 10px;">
+                                        <i class="bi bi-star-fill me-1"></i>PRO
+                                    </span>
+                                </div>
+                            }
+
+                            <!-- Hover Overlay -->
+                            <div class="template-hover-actions position-absolute inset-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-2 p-3"
+                                 style="background: rgba(11, 27, 61, 0.88); backdrop-filter: blur(3px); z-index: 4;">
+                                <button type="button" class="btn btn-light btn-sm rounded-pill px-3 shadow fw-semibold"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => OpenPreview(t)">
+                                    <i class="bi bi-eye-fill me-1 text-primary"></i> Quick Preview
+                                </button>
+                                <a href="/Design/Create?templateId=@tmplEncId" class="btn btn-shiny btn-sm rounded-pill px-3 shadow fw-semibold"
+                                   @onclick:stopPropagation="true">
+                                    <i class="bi bi-pencil-square me-1"></i> Customize in Editor
+                                </a>
+                                <a href="/AiBanner?topic=@Uri.EscapeDataString(t.TemplateName ?? "")" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-medium"
+                                   @onclick:stopPropagation="true">
+                                    <i class="bi bi-stars me-1 text-warning"></i> Generate with AI
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 11px;">
+                                        @(t.CategoryName ?? "Clinical Care")
+                                    </span>
+                                    <small class="text-muted" style="font-size: 11px;">
+                                        <i class="bi bi-eye me-1"></i>@(t.UsageCount) uses
+                                    </small>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="@t.TemplateName">@t.TemplateName</h6>
+                                <p class="text-muted small mb-3" style="font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px;">
+                                    @(string.IsNullOrWhiteSpace(t.Description) ? "Professional medical awareness poster ready for clinical branding." : t.Description)
+                                </p>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1" style="font-size: 12px;"
+                                        @onclick="() => OpenPreview(t)">
+                                    <i class="bi bi-eye me-1"></i> Preview
+                                </button>
+                                <a href="/Design/Create?templateId=@tmplEncId" class="btn btn-primary btn-sm rounded-pill flex-grow-1 shadow-sm" style="font-size: 12px;">
+                                    <i class="bi bi-pencil me-1"></i> Use
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="shiny-card p-5 text-center my-4">
+            <div class="py-4">
+                <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-search fs-1"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No Matching Templates</h5>
+                <p class="text-muted small mb-4" style="max-width: 480px; margin: 0 auto;">
+                    We couldn't find any medical templates matching your filters. Try resetting filters or generate a custom poster with AI.
+                </p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="ResetFilters">
+                        <i class="bi bi-x-circle me-1"></i> Reset All Filters
+                    </button>
+                    <a href="/AiBanner" class="btn btn-shiny rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-stars me-1"></i> Generate with AI
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ── Interactive Blazor Quick Preview Modal ── -->
+    @if (SelectedTemplate != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background: rgba(7, 17, 38, 0.75); backdrop-filter: blur(6px); z-index: 1055;">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-1">@SelectedTemplate.TemplateName</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary border rounded-pill">@(SelectedTemplate.CategoryName ?? "Clinical")</span>
+                                <span class="badge bg-dark bg-opacity-75 text-white rounded-pill">@(SelectedTemplate.Orientation ?? "Square")</span>
+                                <span class="badge bg-light text-muted border rounded-pill">@(SelectedTemplate.WidthPx) × @(SelectedTemplate.HeightPx) px</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" @onclick="ClosePreview"></button>
+                    </div>
+
+                    <div class="modal-body p-3 p-md-4 text-center bg-dark bg-opacity-25 d-flex align-items-center justify-content-center" style="min-height: 480px;">
+                        <div class="d-flex align-items-center justify-content-center w-100" style="max-height: 65vh;">
+                            @if (!string.IsNullOrEmpty(SelectedTemplate.ThumbnailPath))
+                            {
+                                <img src="@SelectedTemplate.ThumbnailPath" alt="@SelectedTemplate.TemplateName" class="rounded-3 shadow-lg" 
+                                     style="max-height: 60vh; max-width: 100%; object-fit: contain; display: block; background: #071126;" />
+                            }
+                            else
+                            {
+                                <div class="p-5 text-white text-center">
+                                    <i class="bi bi-heart-pulse-fill fs-1 text-teal mb-3"></i>
+                                    <h4>@SelectedTemplate.TemplateName</h4>
+                                    <p class="text-white-50">Visual canvas ready for doctor branding customization</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-top px-4 py-3 bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <p class="text-muted small mb-0 text-start" style="max-width: 380px; font-size: 12px;">
+                            @(string.IsNullOrWhiteSpace(SelectedTemplate.Description) ? "Clinically ready medical template for social posts." : SelectedTemplate.Description)
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="/Template/Preview/@(SelectedTemplate.EncId ?? SelectedTemplate.TemplateId.ToString())" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Full Details
+                            </a>
+                            <a href="/Design/Create?templateId=@(SelectedTemplate.EncId ?? SelectedTemplate.TemplateId.ToString())" class="btn btn-shiny rounded-pill px-4 btn-sm shadow-sm fw-semibold">
+                                <i class="bi bi-pencil-square me-1"></i> Customize in Editor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .template-item-box .template-hover-actions {
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+    }
+    .template-item-box:hover .template-hover-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .backdrop-blur {
+        backdrop-filter: blur(4px);
+    }
+</style>
+
+@code {
+    [Parameter]
+    public BannerTemplateDTO InitialData { get; set; } = new BannerTemplateDTO();
+
+    private int? SelectedCategoryId { get; set; }
+    private string SelectedOrientation { get; set; } = "";
+    private string SearchQuery { get; set; } = "";
+    private BannerTemplateDTO? SelectedTemplate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (InitialData != null)
+        {
+            SelectedCategoryId = InitialData.CategoryId;
+            SelectedOrientation = InitialData.Orientation ?? "";
+            SearchQuery = InitialData.SearchKey ?? "";
+        }
+    }
+
+    private void FilterByCategory(int? categoryId)
+    {
+        SelectedCategoryId = categoryId;
+    }
+
+    private void ResetFilters()
+    {
+        SelectedCategoryId = null;
+        SelectedOrientation = "";
+        SearchQuery = "";
+    }
+
+    private bool HasActiveFilters =>
+        SelectedCategoryId.HasValue ||
+        !string.IsNullOrEmpty(SelectedOrientation) ||
+        !string.IsNullOrWhiteSpace(SearchQuery);
+
+    private void OpenPreview(BannerTemplateDTO template)
+    {
+        SelectedTemplate = template;
+    }
+
+    private void ClosePreview()
+    {
+        SelectedTemplate = null;
+    }
+
+    private IEnumerable<BannerTemplateDTO> FilteredTemplates
+    {
+        get
+        {
+            var list = InitialData?.TemplateList ?? new List<BannerTemplateDTO>();
+
+            if (SelectedCategoryId.HasValue)
+            {
+                list = list.Where(t => t.CategoryId == SelectedCategoryId.Value).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(SelectedOrientation))
+            {
+                list = list.Where(t => string.Equals(t.Orientation, SelectedOrientation, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                list = list.Where(t =>
+                    (t.TemplateName != null && t.TemplateName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.CategoryName != null && t.CategoryName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.Description != null && t.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            return list;
+        }
+    }
+}
